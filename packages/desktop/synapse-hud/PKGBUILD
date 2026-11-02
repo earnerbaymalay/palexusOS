@@ -27,9 +27,11 @@ source=(
   "synapse-settings.desktop"
   "synapse-notes.desktop"
   "synapse-welcome.desktop"
+  "master_plate_960.png"
 )
 sha256sums=(
   "SKIP"
+  'SKIP'
   'SKIP'
   'SKIP'
   'SKIP'
@@ -67,10 +69,11 @@ package() {
   install -Dm644 "${srcdir}/synapse-governor.service" "${pkgdir}/usr/lib/systemd/system/synapse-governor.service"
   ln -sf "/usr/bin/synapse-hud" "${pkgdir}/usr/bin/synapse-palette"
 
-  # QML Assets
+  # QML Assets & Liquid Chrome Master Plate
   install -dm755 "${pkgdir}/usr/share/synapse-hud"
   install -Dm644 "${srcdir}/Main.qml" "${pkgdir}/usr/share/synapse-hud/Main.qml"
   install -Dm644 "${srcdir}/CommandCategoryCard.qml" "${pkgdir}/usr/share/synapse-hud/CommandCategoryCard.qml"
+  install -Dm644 "${srcdir}/master_plate_960.png" "${pkgdir}/usr/share/synapse-hud/master_plate_960.png"
 
   # Desktop Entries
   install -Dm644 "${srcdir}/synapse-hud.desktop" "${pkgdir}/usr/share/applications/synapse-hud.desktop"

@@ -1,52 +1,50 @@
 #!/usr/bin/env python3
-"""synapse-welcome — SynapseOS Welcome & Onboarding Experience.
+"""synapse-welcome — SynapseOS Native Cyberdeck Onboarding Wizard.
 
-Presents the user with:
-  1. Metallic Icon Pack Selection (Liquid Chrome, Smoked Obsidian, Radial Tungsten, Aerospace Billet)
-  2. Wallpaper & System Accent Selection (Mauve, Tungsten, Crimson, Sapphire, Emerald)
-  3. Screensaver Experience (Purple Donut Torus, Cyber Matrix Brand, Continuous Cycle)
-  4. Cyberdeck Verification & Feature Tour:
-     - Prime Directive Stealth (MAC randomization, Quad9 DoT)
-     - Autonomous Local AI Engine (Ollama, Vector Brain Memory)
-     - Dual Compositor Velocity (Sway Wayland & XFCE Fallback)
-     - Mnemonic Keybindings (Super+S, Super+T, Super+B, Super+F, Super+I, Super+K)
-     - Quick Action Launchers (HUD, Installer, Shortcuts, Notes)
+Matches the SDDM greeter (synapse-greeter) obsidian chamfered aesthetic:
+  - Authentic 3D liquid chrome master emblem stamped at header
+  - Catppuccin Mocha Mauve + Liquid Chrome glowing conduits
+  - Question-by-question click-through workflow:
+      01. Operator Identity & Workstation Designation
+      02. Operational Profile Archetype (AI Deck, SecOps, Performance, Stealth, Minimalist)
+      03. Modular Feature & Hardware Combos (Matrix toggles)
+      04. Metallic Icon Suite (Chrome, Obsidian, Tungsten, Aerospace)
+      05. Cyberdeck Theme & Accent Variant (Mauve, Tungsten, Crimson, Sapphire, Emerald)
+      06. Idle Screensaver Experience (Purple Donut, Cyber Matrix, Singularity Cycle)
+      07. System Verification & Launch Cockpit
 """
 
 import os
 import sys
 import json
 import shutil
+import socket
 import subprocess
 from pathlib import Path
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QLabel, QPushButton, QButtonGroup, QFrame, QRadioButton,
-    QStackedWidget, QScrollArea, QMessageBox, QGridLayout, QLineEdit
+    QStackedWidget, QScrollArea, QGridLayout, QLineEdit, QCheckBox
 )
 from PyQt6.QtCore import Qt, QSize
-from PyQt6.QtGui import QFont, QIcon, QPixmap
-try:
-    from PyQt6.QtSvgWidgets import QSvgWidget
-    HAS_SVG = True
-except ImportError:
-    HAS_SVG = False
+from PyQt6.QtGui import QFont, QIcon, QPixmap, QImage
 
 CONFIG_DIR = os.path.expanduser("~/.config/synapse")
 ONBOARDING_FLAG = os.path.join(CONFIG_DIR, ".onboarding_complete")
 
 
-def find_logo_asset():
-    """Find the authentic vector or image logo across standard package and dev locations."""
+def find_chrome_emblem():
+    """Find the authentic 3D liquid chrome master plate emblem."""
     script_dir = Path(__file__).resolve().parent
     candidates = [
-        "/usr/share/calamares/branding/synapseos/synapseos-logo.svg",
-        "/etc/calamares/branding/synapseos/synapseos-logo.svg",
-        "/usr/share/synapseos/branding/synapseos-logo.svg",
-        script_dir / "../../installer/calamares/branding/synapseos/synapseos-logo.svg",
-        Path.home() / "synapseOS/packages/installer/calamares/branding/synapseos/synapseos-logo.svg",
-        Path.home() / "Desktop/AI CLI WORK/synapseOS/packages/installer/calamares/branding/synapseos/synapseos-logo.svg",
-        Path.home() / "Desktop/SynapseOS_Flow_Assets/04_synapseos_wordmark_logo.png",
+        script_dir / "master_plate_960.png",
+        script_dir / "../synapse-plymouth/master_plate_960.png",
+        script_dir / "../../desktop/synapse-plymouth/master_plate_960.png",
+        Path("/usr/share/synapse-hud/master_plate_960.png"),
+        Path("/usr/share/synapseos/branding/master_plate_960.png"),
+        Path("/usr/share/plymouth/themes/synapseos-mauve/master_plate_960.png"),
+        Path("/usr/share/plymouth/themes/synapseos/master_plate_960.png"),
+        Path.home() / "synapseOS/packages/desktop/synapse-plymouth/master_plate_960.png",
     ]
     for c in candidates:
         p = Path(c).resolve()
@@ -94,13 +92,34 @@ def update_gtk_settings(settings_path: str, icon_theme: str):
 
 
 class OnboardingWizard(QMainWindow):
+    TOTAL_STEPS = 7
+
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("SynapseOS · Onboarding Experience")
-        self.resize(880, 680)
+        self.setWindowTitle("SynapseOS · Cyberdeck Onboarding Gate")
+        self.resize(980, 720)
+        self.setMinimumSize(920, 660)
         self.center_on_screen()
 
-        # State
+        # State Variables
+        self.operator_name = os.environ.get("USER", "operator")
+        try:
+            self.hostname = socket.gethostname() or "synapse-deck"
+        except Exception:
+            self.hostname = "synapse-deck"
+        self.ai_name = "Synapse"
+
+        self.selected_profile = "ai_deck"
+        self.combos = {
+            "stealth": True,      # Prime Directive Stealth
+            "ollama": True,       # Autonomous Vector AI
+            "bore": True,         # BORE Interactive Burst
+            "firewall": True,     # Strict Inbound Firewall
+            "zram": True,         # ZRAM Transient Temp
+            "wayland": True,      # Wayland Tear-Free Compositor
+            "oled_contrast": False,# OLED Pure Black
+            "hotkey_hud": True    # Mnemonic Keybinding Overlay
+        }
         self.selected_icon_theme = "Synapse-Liquid-Chrome"
         self.selected_wallpaper = "monolith-mauve"
         self.selected_screensaver = "torus"
@@ -119,47 +138,77 @@ class OnboardingWizard(QMainWindow):
     def init_ui(self):
         self.setStyleSheet("""
             QMainWindow {
-                background-color: #11111b;
+                background-color: #09090d;
             }
             QWidget {
                 color: #cdd6f4;
-                font-family: 'JetBrains Mono', monospace;
+                font-family: 'JetBrainsMono Nerd Font', 'JetBrains Mono', 'Segoe UI', monospace;
             }
-            QFrame#card {
-                background-color: #181825;
+            QFrame#panelHeader {
+                background-color: #11111b;
                 border: 1px solid #313244;
                 border-radius: 12px;
+                padding: 10px 16px;
+            }
+            QFrame#card {
+                background-color: #14141e;
+                border: 1px solid #313244;
+                border-radius: 10px;
                 padding: 12px;
             }
             QFrame#card:hover {
                 border: 1px solid #cba6f7;
-                background-color: #1e1e2e;
+                background-color: #181825;
             }
             QFrame#cardSelected {
-                background-color: #1e1e2e;
+                background-color: #181825;
                 border: 2px solid #cba6f7;
-                border-radius: 12px;
+                border-radius: 10px;
                 padding: 11px;
             }
-            QFrame#badgePill {
+            QFrame#toggleCardOn {
                 background-color: #181825;
+                border: 1px solid #cba6f7;
+                border-radius: 10px;
+                padding: 10px 12px;
+            }
+            QFrame#toggleCardOff {
+                background-color: #11111b;
+                border: 1px solid #313244;
+                border-radius: 10px;
+                padding: 10px 12px;
+            }
+            QFrame#toggleCardOff:hover {
                 border: 1px solid #45475a;
-                border-radius: 6px;
-                padding: 4px 8px;
+                background-color: #14141e;
             }
             QPushButton#navBtn {
-                background-color: #1e1e2e;
+                background-color: #181825;
                 color: #cdd6f4;
                 border: 1px solid #45475a;
                 border-radius: 8px;
-                padding: 10px 20px;
+                padding: 10px 22px;
                 font-weight: bold;
                 font-size: 13px;
+                letter-spacing: 0.5px;
             }
             QPushButton#navBtn:hover {
                 background-color: #313244;
                 border: 1px solid #cba6f7;
                 color: #ffffff;
+            }
+            QPushButton#primaryBtn {
+                background-color: #cba6f7;
+                color: #11111b;
+                border: none;
+                border-radius: 8px;
+                padding: 11px 26px;
+                font-weight: bold;
+                font-size: 13px;
+                letter-spacing: 0.5px;
+            }
+            QPushButton#primaryBtn:hover {
+                background-color: #b4befe;
             }
             QPushButton#actionBtn {
                 background-color: #181825;
@@ -175,30 +224,19 @@ class OnboardingWizard(QMainWindow):
                 border: 1px solid #cba6f7;
                 color: #ffffff;
             }
-            QPushButton#primaryBtn {
-                background-color: #cba6f7;
-                color: #11111b;
-                border: none;
-                border-radius: 8px;
-                padding: 11px 24px;
-                font-weight: bold;
-                font-size: 13px;
-            }
-            QPushButton#primaryBtn:hover {
-                background-color: #b4befe;
-            }
             QLineEdit {
-                background-color: #11111b;
-                color: #cdd6f4;
+                background-color: #0d0d15;
+                color: #cba6f7;
                 border: 1px solid #45475a;
                 border-radius: 8px;
-                padding: 8px 12px;
+                padding: 9px 14px;
                 font-size: 13px;
+                font-weight: bold;
                 font-family: 'JetBrainsMono Nerd Font', 'JetBrains Mono', monospace;
             }
             QLineEdit:focus {
                 border: 1px solid #cba6f7;
-                background-color: #181825;
+                background-color: #14141e;
             }
             QRadioButton {
                 font-size: 13px;
@@ -209,7 +247,7 @@ class OnboardingWizard(QMainWindow):
                 height: 16px;
                 border-radius: 8px;
                 border: 2px solid #6c7086;
-                background-color: #181825;
+                background-color: #11111b;
             }
             QRadioButton::indicator:checked {
                 border: 2px solid #cba6f7;
@@ -221,14 +259,14 @@ class OnboardingWizard(QMainWindow):
             }
             QScrollBar:vertical {
                 border: none;
-                background: #181825;
+                background: #11111b;
                 width: 6px;
                 border-radius: 3px;
             }
             QScrollBar::handle:vertical {
-                background: #45475a;
+                background: #313244;
                 border-radius: 3px;
-                min-height: 20px;
+                min-height: 24px;
             }
             QScrollBar::handle:vertical:hover {
                 background: #cba6f7;
@@ -238,218 +276,457 @@ class OnboardingWizard(QMainWindow):
         central = QWidget()
         self.setCentralWidget(central)
         root_layout = QVBoxLayout(central)
-        root_layout.setContentsMargins(32, 22, 32, 22)
+        root_layout.setContentsMargins(28, 16, 28, 18)
         root_layout.setSpacing(14)
 
-        # 1. Header Banner with Official Branding
-        header = QVBoxLayout()
-        header.setSpacing(4)
+        # -------------------------------------------------------------
+        # TOP HEADER: Authentic 3D Liquid Chrome Emblem + Telemetry
+        # -------------------------------------------------------------
+        header_frame = QFrame()
+        header_frame.setObjectName("panelHeader")
+        h_layout = QHBoxLayout(header_frame)
+        h_layout.setContentsMargins(14, 8, 16, 8)
+        h_layout.setSpacing(16)
 
-        title_box = QHBoxLayout()
-        logo_path = find_logo_asset()
-        if logo_path and HAS_SVG and logo_path.endswith(".svg"):
-            try:
-                svg_widget = QSvgWidget(logo_path)
-                svg_widget.setFixedSize(180, 36)
-                title_box.addWidget(svg_widget)
-            except Exception:
-                title = QLabel("SYNAPSE OS")
-                title.setFont(QFont("JetBrains Mono", 18, QFont.Weight.Bold))
-                title.setStyleSheet("color: #cdd6f4; letter-spacing: 2px;")
-                title_box.addWidget(title)
-        else:
-            title = QLabel("SYNAPSE OS")
-            title.setFont(QFont("JetBrains Mono", 18, QFont.Weight.Bold))
-            title.setStyleSheet("color: #cdd6f4; letter-spacing: 2px;")
-            title_box.addWidget(title)
+        # 1. Emblem
+        chrome_emblem_path = find_chrome_emblem()
+        self.logo_label = QLabel()
+        if chrome_emblem_path and os.path.exists(chrome_emblem_path):
+            img = QImage(chrome_emblem_path)
+            if not img.isNull():
+                scaled_pixmap = QPixmap.fromImage(img).scaled(
+                    QSize(110, 62),
+                    Qt.AspectRatioMode.KeepAspectRatio,
+                    Qt.TransformationMode.SmoothTransformation
+                )
+                self.logo_label.setPixmap(scaled_pixmap)
+                self.logo_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        if not self.logo_label.pixmap():
+            self.logo_label.setText("SYNAPSE")
+            self.logo_label.setFont(QFont("JetBrains Mono", 16, QFont.Weight.Bold))
+            self.logo_label.setStyleSheet("color: #cba6f7; letter-spacing: 4px;")
+        h_layout.addWidget(self.logo_label)
 
-        sub_label = QLabel("·  ONBOARDING EXPERIENCE")
-        sub_label.setFont(QFont("JetBrains Mono", 14, QFont.Weight.Bold))
-        sub_label.setStyleSheet("color: #cba6f7; letter-spacing: 1px;")
-        title_box.addWidget(sub_label)
-        title_box.addStretch()
+        # 2. Title & Conduit Lead
+        title_box = QVBoxLayout()
+        title_box.setSpacing(2)
 
-        badge1 = QLabel("x86-64-v3 · BORE")
-        badge1.setStyleSheet("background-color: #1e1e2e; color: #a6adc8; border: 1px solid #313244; border-radius: 6px; padding: 4px 8px; font-size: 11px;")
-        title_box.addWidget(badge1)
+        title_lead = QLabel("SYNAPSE // OPERATOR ONBOARDING GATE")
+        title_lead.setFont(QFont("JetBrains Mono", 14, QFont.Weight.Bold))
+        title_lead.setStyleSheet("color: #cdd6f4; letter-spacing: 2.5px;")
+        title_box.addWidget(title_lead)
 
-        badge2 = QLabel("PRIME DIRECTIVE STEALTH")
-        badge2.setStyleSheet("background-color: #1e1e2e; color: #fab387; border: 1px solid #313244; border-radius: 6px; padding: 4px 8px; font-size: 11px;")
-        title_box.addWidget(badge2)
+        subtitle = QLabel("AUTHENTIC 3D LIQUID CHROME · CYBERDECK PROVISIONING")
+        subtitle.setFont(QFont("JetBrains Mono", 10))
+        subtitle.setStyleSheet("color: #a6adc8; letter-spacing: 1px;")
+        title_box.addWidget(subtitle)
+        h_layout.addLayout(title_box)
 
-        header.addLayout(title_box)
+        h_layout.addStretch()
 
-        quote = QLabel("“System prioritizes zero telemetry, hardened privacy, and autonomous local intelligence without degradation of service.”")
-        quote.setStyleSheet("color: #a6adc8; font-style: italic; font-size: 11px; margin-top: 2px;")
-        quote.setWordWrap(True)
-        header.addWidget(quote)
+        # 3. SDDM Greeter-Matching Readout
+        telemetry_box = QVBoxLayout()
+        telemetry_box.setSpacing(2)
+        telemetry_box.setAlignment(Qt.AlignmentFlag.AlignRight)
 
-        root_layout.addLayout(header)
+        t1 = QLabel("KERNEL: linux-cachyos · BORE")
+        t1.setFont(QFont("JetBrains Mono", 9))
+        t1.setStyleSheet("color: #bac2de;")
+        t2 = QLabel("DNS: Quad9 · DoT (853)")
+        t2.setFont(QFont("JetBrains Mono", 9))
+        t2.setStyleSheet("color: #74c7ec;")
+        t3 = QLabel("STATUS: ● PROVISIONING GATE")
+        t3.setFont(QFont("JetBrains Mono", 9, QFont.Weight.Bold))
+        t3.setStyleSheet("color: #cba6f7;")
 
-        # 2. Main Stacked Pages
+        telemetry_box.addWidget(t1)
+        telemetry_box.addWidget(t2)
+        telemetry_box.addWidget(t3)
+        h_layout.addLayout(telemetry_box)
+
+        root_layout.addWidget(header_frame)
+
+        # -------------------------------------------------------------
+        # STEP PROGRESS RAIL (Conduit Bar)
+        # -------------------------------------------------------------
+        self.step_pills_layout = QHBoxLayout()
+        self.step_pills_layout.setSpacing(6)
+        self.step_labels = []
+        step_names = [
+            "01 IDENTITY",
+            "02 PROFILE",
+            "03 COMBOS",
+            "04 ICONS",
+            "05 THEME",
+            "06 SCREENSAVER",
+            "07 VERIFY"
+        ]
+        for i, name in enumerate(step_names):
+            lbl = QLabel(name)
+            lbl.setFont(QFont("JetBrains Mono", 9, QFont.Weight.Bold))
+            lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            lbl.setFixedHeight(22)
+            self.step_labels.append(lbl)
+            self.step_pills_layout.addWidget(lbl, 1)
+
+        root_layout.addLayout(self.step_pills_layout)
+
+        # -------------------------------------------------------------
+        # MAIN STACKED PAGES (Question-by-Question Flow)
+        # -------------------------------------------------------------
         self.stack = QStackedWidget()
-        self.stack.addWidget(self.create_identity_page())
-        self.stack.addWidget(self.create_icon_page())
-        self.stack.addWidget(self.create_wallpaper_page())
-        self.stack.addWidget(self.create_screensaver_page())
-        self.stack.addWidget(self.create_security_page())
+        self.stack.addWidget(self.create_step1_identity())
+        self.stack.addWidget(self.create_step2_profile())
+        self.stack.addWidget(self.create_step3_combos())
+        self.stack.addWidget(self.create_step4_icons())
+        self.stack.addWidget(self.create_step5_wallpaper())
+        self.stack.addWidget(self.create_step6_screensaver())
+        self.stack.addWidget(self.create_step7_verify())
         root_layout.addWidget(self.stack, 1)
 
-        # 3. Bottom Navigation Bar
+        # -------------------------------------------------------------
+        # BOTTOM NAVIGATION
+        # -------------------------------------------------------------
         nav_layout = QHBoxLayout()
-        self.back_btn = QPushButton("◀ Back")
+        self.back_btn = QPushButton("◀ PREVIOUS")
         self.back_btn.setObjectName("navBtn")
         self.back_btn.clicked.connect(self.prev_page)
         self.back_btn.setEnabled(False)
         nav_layout.addWidget(self.back_btn)
 
-        self.page_indicator = QLabel("Step 1 of 5: Operator Identity Questionnaire")
-        self.page_indicator.setStyleSheet("color: #a6adc8; font-size: 12px; font-weight: bold;")
-        self.page_indicator.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        nav_layout.addWidget(self.page_indicator, 1)
+        self.step_indicator_text = QLabel("Question 1 of 7: Operator Identity & Call-sign")
+        self.step_indicator_text.setFont(QFont("JetBrains Mono", 11, QFont.Weight.Bold))
+        self.step_indicator_text.setStyleSheet("color: #a6adc8; letter-spacing: 0.5px;")
+        self.step_indicator_text.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        nav_layout.addWidget(self.step_indicator_text, 1)
 
-        self.next_btn = QPushButton("Next: Metallic Icons ▶")
+        self.next_btn = QPushButton("CONTINUE ▶")
         self.next_btn.setObjectName("primaryBtn")
         self.next_btn.clicked.connect(self.next_page)
         nav_layout.addWidget(self.next_btn)
 
         root_layout.addLayout(nav_layout)
+        self.update_step_pills()
 
-    # --- Page 1: Operator Identity & Workstation Questionnaire ---
-    def create_identity_page(self):
+    # -----------------------------------------------------------------
+    # STEP 1: Operator Identity & Cyberdeck Call-Sign
+    # -----------------------------------------------------------------
+    def create_step1_identity(self):
         page = QWidget()
         layout = QVBoxLayout(page)
-        layout.setSpacing(12)
+        layout.setSpacing(14)
 
-        intro_box = QVBoxLayout()
-        intro = QLabel("Operator Identity & Workstation Questionnaire:")
-        intro.setStyleSheet("font-size: 15px; font-weight: bold; color: #cdd6f4;")
-        intro_desc = QLabel("Configure your user profile, workstation domain name, and primary operational persona.")
-        intro_desc.setStyleSheet("font-size: 11px; color: #a6adc8;")
-        intro_box.addWidget(intro)
-        intro_box.addWidget(intro_desc)
-        layout.addLayout(intro_box)
+        intro = QLabel("QUESTION 01 // OPERATOR CALL-SIGN & WORKSTATION DESIGNATION")
+        intro.setFont(QFont("JetBrains Mono", 13, QFont.Weight.Bold))
+        intro.setStyleSheet("color: #cba6f7; letter-spacing: 1px;")
+        layout.addWidget(intro)
+
+        desc = QLabel("Establish your cryptographic credentials, cyberdeck node name, and local co-pilot persona.")
+        desc.setStyleSheet("color: #a6adc8; font-size: 11px;")
+        layout.addWidget(desc)
 
         # Form Card
         form_frame = QFrame()
-        form_frame.setStyleSheet("""
-            QFrame {
-                background-color: #181825;
-                border: 1px solid #313244;
-                border-radius: 12px;
-                padding: 14px;
-            }
-        """)
-        form_layout = QVBoxLayout(form_frame)
-        form_layout.setSpacing(10)
+        form_frame.setObjectName("card")
+        f_layout = QVBoxLayout(form_frame)
+        f_layout.setSpacing(12)
 
-        # Field 1: Operator Username
-        lbl_user = QLabel("Operator Call-sign / Username:")
+        # Field 1: Operator
+        lbl_user = QLabel("Operator Call-Sign / User Account:")
         lbl_user.setStyleSheet("color: #cba6f7; font-weight: bold; font-size: 12px;")
-        form_layout.addWidget(lbl_user)
+        f_layout.addWidget(lbl_user)
+        self.input_username = QLineEdit(self.operator_name)
+        self.input_username.setPlaceholderText("e.g. operator, neo, cyberdeck-01")
+        self.input_username.textChanged.connect(self.sync_identity_preview)
+        f_layout.addWidget(self.input_username)
 
-        default_user = os.environ.get("USER", "synapse")
-        self.input_username = QLineEdit(default_user)
-        self.input_username.setPlaceholderText("e.g. cyber-operator, neo, alex")
-        form_layout.addWidget(self.input_username)
-
-        # Field 2: Workstation Domain / Hostname
-        lbl_host = QLabel("Workstation Hostname / Domain:")
+        # Field 2: Workstation Node
+        lbl_host = QLabel("Cyberdeck Node Hostname / Domain:")
         lbl_host.setStyleSheet("color: #74c7ec; font-weight: bold; font-size: 12px;")
-        form_layout.addWidget(lbl_host)
+        f_layout.addWidget(lbl_host)
+        self.input_hostname = QLineEdit(self.hostname)
+        self.input_hostname.setPlaceholderText("e.g. synapse-deck, monolith, neural-core")
+        self.input_hostname.textChanged.connect(self.sync_identity_preview)
+        f_layout.addWidget(self.input_hostname)
 
-        try:
-            import socket
-            default_host = socket.gethostname()
-        except Exception:
-            default_host = "synapse-deck"
-        self.input_hostname = QLineEdit(default_host)
-        self.input_hostname.setPlaceholderText("e.g. synapse-node, cyberdeck-01, monolith")
-        form_layout.addWidget(self.input_hostname)
-
-        # Field 3: AI Co-Pilot Designation
+        # Field 3: AI Designation
         lbl_ai = QLabel("Local AI Assistant Designation:")
         lbl_ai.setStyleSheet("color: #a6e3a1; font-weight: bold; font-size: 12px;")
-        form_layout.addWidget(lbl_ai)
-
-        self.input_ai_name = QLineEdit("Synapse")
-        self.input_ai_name.setPlaceholderText("e.g. Synapse, Jarvis, Argon, Cort")
-        form_layout.addWidget(self.input_ai_name)
+        f_layout.addWidget(lbl_ai)
+        self.input_ai = QLineEdit(self.ai_name)
+        self.input_ai.setPlaceholderText("e.g. Synapse, Neuromancer, Jarvis")
+        self.input_ai.textChanged.connect(self.sync_identity_preview)
+        f_layout.addWidget(self.input_ai)
 
         layout.addWidget(form_frame)
 
-        # Field 4: Persona Selection
-        lbl_persona = QLabel("Select Operational Workflow Persona:")
-        lbl_persona.setStyleSheet("color: #fab387; font-weight: bold; font-size: 12px;")
-        layout.addWidget(lbl_persona)
+        # Live Greeter Preview Card
+        prev_card = QFrame()
+        prev_card.setObjectName("card")
+        p_layout = QVBoxLayout(prev_card)
+        p_layout.setSpacing(6)
 
-        self.persona_group = QButtonGroup(self)
-        personas = [
-            ("dev", "🤖 AI & Agentic Developer", "Pre-loads local Ollama keepalive, vector memory, and high-context coding palettes."),
-            ("sec", "🛡️ Cyber Defense & Security", "Enforces strict incoming packet drops, MAC rotation alerts, and terminal forensics."),
-            ("perf", "⚡ Kernel & Performance", "Unlocks sustained 25W PL1 thermal boost, BORE burst auto-nicing, and lowest audio buffer."),
-            ("daily", "🌌 Minimalist Daily Driver", "Streamlined obsidian workspace, extended battery optimizations, and silent thermals.")
-        ]
+        prev_title = QLabel("● SDDM GREETER & COCKPIT PREVIEW")
+        prev_title.setFont(QFont("JetBrains Mono", 10, QFont.Weight.Bold))
+        prev_title.setStyleSheet("color: #fab387; letter-spacing: 1px;")
+        p_layout.addWidget(prev_title)
 
-        self.selected_persona = "dev"
-        for i, (p_id, title_text, desc_text) in enumerate(personas):
-            card = QFrame()
-            card.setStyleSheet("""
-                QFrame {
-                    background-color: #181825;
-                    border: 1px solid #313244;
-                    border-radius: 10px;
-                    padding: 8px 12px;
-                }
-                QFrame:hover {
-                    border: 1px solid #cba6f7;
-                }
-            """)
-            c_layout = QHBoxLayout(card)
-            c_layout.setContentsMargins(4, 4, 4, 4)
+        self.preview_terminal = QLabel()
+        self.preview_terminal.setStyleSheet("""
+            background-color: #09090d;
+            border: 1px solid #313244;
+            border-radius: 6px;
+            padding: 10px;
+            color: #bac2de;
+            font-size: 11px;
+            font-family: 'JetBrains Mono', monospace;
+        """)
+        p_layout.addWidget(self.preview_terminal)
+        self.sync_identity_preview()
 
-            rb = QRadioButton()
-            rb.setChecked(i == 0)
-            self.persona_group.addButton(rb, i)
-
-            text_box = QVBoxLayout()
-            t_lbl = QLabel(title_text)
-            t_lbl.setStyleSheet("font-weight: bold; color: #cdd6f4; font-size: 12px;")
-            d_lbl = QLabel(desc_text)
-            d_lbl.setStyleSheet("color: #a6adc8; font-size: 10px;")
-            text_box.addWidget(t_lbl)
-            text_box.addWidget(d_lbl)
-
-            c_layout.addWidget(rb)
-            c_layout.addLayout(text_box, 1)
-
-            def make_handler(persona_key):
-                return lambda checked: setattr(self, 'selected_persona', persona_key) if checked else None
-
-            rb.toggled.connect(make_handler(p_id))
-            layout.addWidget(card)
-
+        layout.addWidget(prev_card)
         layout.addStretch()
         return page
 
-    # --- Page 1: Metallic Icon Suites ---
-    def create_icon_page(self):
+    def sync_identity_preview(self):
+        user = self.input_username.text().strip() or "operator"
+        host = self.input_hostname.text().strip() or "synapse-deck"
+        ai = self.input_ai.text().strip() or "Synapse"
+        self.operator_name = user
+        self.hostname = host
+        self.ai_name = ai
+
+        text = (
+            f"<font color='#a6adc8'>synapseos — tty7</font><br>"
+            f"<font color='#a6e3a1'>[&nbsp;&nbsp;OK&nbsp;&nbsp;]</font> Authenticated operator: <font color='#cba6f7'><b>{user}</b></font><br>"
+            f"<font color='#a6e3a1'>[&nbsp;&nbsp;OK&nbsp;&nbsp;]</font> Hostnode: <font color='#74c7ec'><b>{host}</b></font> · Resolver: Quad9 DoT<br>"
+            f"<font color='#a6e3a1'>[&nbsp;&nbsp;OK&nbsp;&nbsp;]</font> Local Neural Engine: <font color='#fab387'><b>{ai}</b></font> (:11434 warm standby)"
+        )
+        self.preview_terminal.setText(text)
+
+    # -----------------------------------------------------------------
+    # STEP 2: System Operational Profile (Archetype Selection)
+    # -----------------------------------------------------------------
+    def create_step2_profile(self):
         page = QWidget()
         layout = QVBoxLayout(page)
         layout.setSpacing(12)
 
-        intro_box = QVBoxLayout()
-        intro = QLabel("Choose your Metallic & Reflective Icon Theme:")
-        intro.setStyleSheet("font-size: 14px; font-weight: bold; color: #cdd6f4;")
-        intro_desc = QLabel("Hardware-accelerated vector suites designed for high-contrast obsidian workspaces.")
-        intro_desc.setStyleSheet("font-size: 11px; color: #a6adc8;")
-        intro_box.addWidget(intro)
-        intro_box.addWidget(intro_desc)
-        layout.addLayout(intro_box)
+        intro = QLabel("QUESTION 02 // WORKSTATION PROFILE ARCHETYPE")
+        intro.setFont(QFont("JetBrains Mono", 13, QFont.Weight.Bold))
+        intro.setStyleSheet("color: #cba6f7; letter-spacing: 1px;")
+        layout.addWidget(intro)
 
-        self.icon_cards = []
+        desc = QLabel("Select your primary operational directive to optimize CPU scheduling, memory caching, and toolchains.")
+        desc.setStyleSheet("color: #a6adc8; font-size: 11px;")
+        layout.addWidget(desc)
+
+        self.profile_cards = []
+        self.profile_button_group = QButtonGroup(self)
+
+        profiles = [
+            ("ai_deck", "🤖 AI & Neural Deck (Agentic Engine)",
+             "Pre-warms local Ollama daemon, keeps 8GB model weights resident in VRAM/RAM, auto-indexes vector brain memory, and unlocks Claude/Gemini CLI tools.",
+             "ACCELERATED", "#cba6f7"),
+            ("sec_ops", "🛡️ Cyber Defense & Hardened SecOps",
+             "Strict inbound firewall packet drops, randomized MAC rotation on link handshake, ephemeral RAM workspaces, and terminal forensics toolchains.",
+             "HARDENED", "#f38ba8"),
+            ("perf_kernel", "⚡ Kernel Extreme Performance & Low Latency",
+             "Unlocks sustained 25W PL1 thermal boost, CachyOS BORE scheduler burst prioritization, and 64-sample PipeWire audio buffer for real-time DSP.",
+             "UNTHROTTLED", "#fab387"),
+            ("stealth_core", "🔒 Sovereign Stealth & Zero Telemetry",
+             "Purges all outbound analytics, strictly routes DNS-over-TLS through Quad9 (port 853), isolates browser storage, and flushes RAM on session lock.",
+             "STEALTH", "#74c7ec"),
+            ("daily_driver", "🌌 Minimalist Cyberdeck Daily Driver",
+             "Clean obsidian aesthetics, silent fan curve, deep C-state battery conservation, and distraction-free keyboard-driven tiling navigation.",
+             "BALANCED", "#a6e3a1")
+        ]
+
+        grid = QVBoxLayout()
+        grid.setSpacing(8)
+
+        for p_id, title_text, desc_text, badge_text, badge_color in profiles:
+            card = QFrame()
+            card.setObjectName("cardSelected" if p_id == self.selected_profile else "card")
+            card.setCursor(Qt.CursorShape.PointingHandCursor)
+
+            c_layout = QHBoxLayout(card)
+            c_layout.setContentsMargins(14, 8, 14, 8)
+            c_layout.setSpacing(12)
+
+            rb = QRadioButton()
+            rb.setChecked(p_id == self.selected_profile)
+            self.profile_button_group.addButton(rb)
+            c_layout.addWidget(rb)
+
+            text_box = QVBoxLayout()
+            text_box.setSpacing(2)
+
+            h_line = QHBoxLayout()
+            t_label = QLabel(title_text)
+            t_label.setFont(QFont("JetBrains Mono", 12, QFont.Weight.Bold))
+            t_label.setStyleSheet("color: #ffffff;")
+            h_line.addWidget(t_label)
+
+            pill = QLabel(f" {badge_text} ")
+            pill.setStyleSheet(f"background-color: #09090d; color: {badge_color}; border: 1px solid {badge_color}; border-radius: 4px; padding: 2px 6px; font-size: 10px; font-weight: bold;")
+            h_line.addWidget(pill)
+            h_line.addStretch()
+            text_box.addLayout(h_line)
+
+            d_label = QLabel(desc_text)
+            d_label.setStyleSheet("color: #a6adc8; font-size: 11px;")
+            d_label.setWordWrap(True)
+            text_box.addWidget(d_label)
+
+            c_layout.addLayout(text_box, 1)
+
+            card.mousePressEvent = lambda ev, pid=p_id, c=card, r=rb: self.select_profile(pid, c, r)
+            self.profile_cards.append((p_id, card, rb))
+            grid.addWidget(card)
+
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll_content = QWidget()
+        scroll_content.setLayout(grid)
+        scroll.setWidget(scroll_content)
+        layout.addWidget(scroll)
+
+        return page
+
+    def select_profile(self, profile_id, card_widget, radio_btn):
+        self.selected_profile = profile_id
+        radio_btn.setChecked(True)
+        for pid, card, rb in self.profile_cards:
+            card.setObjectName("cardSelected" if pid == profile_id else "card")
+            card.style().unpolish(card)
+            card.style().polish(card)
+
+    # -----------------------------------------------------------------
+    # STEP 3: Modular System Hardware & Security Combos (Matrix Toggles)
+    # -----------------------------------------------------------------
+    def create_step3_combos(self):
+        page = QWidget()
+        layout = QVBoxLayout(page)
+        layout.setSpacing(12)
+
+        intro = QLabel("QUESTION 03 // MODULAR SYSTEM FEATURE COMBOS")
+        intro.setFont(QFont("JetBrains Mono", 13, QFont.Weight.Bold))
+        intro.setStyleSheet("color: #cba6f7; letter-spacing: 1px;")
+        layout.addWidget(intro)
+
+        desc = QLabel("Toggle individual hardware acceleration, privacy shielding, and kernel mechanics. Combine according to your workflow.")
+        desc.setStyleSheet("color: #a6adc8; font-size: 11px;")
+        layout.addWidget(desc)
+
+        combo_definitions = [
+            ("stealth", "🛡️ Prime Directive Stealth",
+             "Enforce hardware MAC randomization and Quad9 DNS-over-TLS (853) across all network links.",
+             "#cba6f7"),
+            ("ollama", "🤖 Autonomous Vector AI Engine",
+             "Auto-start local Ollama on port 11434 with persistent background model memory and fast response.",
+             "#a6e3a1"),
+            ("bore", "⚡ BORE Scheduler Burst Prioritization",
+             "Prioritize CPU burst credits for interactive GUI windows, Sway tiling, and terminal latency.",
+             "#fab387"),
+            ("firewall", "🧱 Strict Inbound Firewall Drop",
+             "Drop all unsolicited incoming TCP/UDP connections on Wi-Fi and Ethernet (stealth port mode).",
+             "#f38ba8"),
+            ("zram", "💾 ZRAM Transient Temp Filesystem",
+             "Mount /tmp and swap on compressed RAM for zero NVMe wear and sub-millisecond compile I/O.",
+             "#74c7ec"),
+            ("wayland", "🚀 Wayland Tear-Free Compositor",
+             "Run Sway Wayland compositor with GPU hardware rendering and seamless XFCE fallback.",
+             "#b4befe"),
+            ("oled_contrast", "🌙 OLED Pure Obsidian Contrast",
+             "Enforce pure #09090d black canvas with HDR-grade high-contrast glowing conduit accents.",
+             "#9399b2"),
+            ("hotkey_hud", "⌨️ Mnemonic Keybinding HUD",
+             "Enable Super+key muscle memory overlay HUD on desktop session launch (Super+S, Super+T, etc.).",
+             "#cba6f7")
+        ]
+
+        self.toggle_widgets = {}
+        grid = QGridLayout()
+        grid.setSpacing(10)
+
+        for idx, (key, title, d_text, accent) in enumerate(combo_definitions):
+            row = idx // 2
+            col = idx % 2
+
+            card = QFrame()
+            card.setObjectName("toggleCardOn" if self.combos.get(key, False) else "toggleCardOff")
+            card.setCursor(Qt.CursorShape.PointingHandCursor)
+
+            c_layout = QVBoxLayout(card)
+            c_layout.setContentsMargins(12, 10, 12, 10)
+            c_layout.setSpacing(4)
+
+            top_row = QHBoxLayout()
+            t_label = QLabel(title)
+            t_label.setFont(QFont("JetBrains Mono", 11, QFont.Weight.Bold))
+            t_label.setStyleSheet("color: #ffffff;")
+            top_row.addWidget(t_label)
+
+            status_pill = QLabel("ACTIVE" if self.combos.get(key, False) else "STANDBY")
+            status_pill.setFont(QFont("JetBrains Mono", 9, QFont.Weight.Bold))
+            self.style_status_pill(status_pill, self.combos.get(key, False), accent)
+            top_row.addWidget(status_pill)
+            c_layout.addLayout(top_row)
+
+            d_label = QLabel(d_text)
+            d_label.setStyleSheet("color: #a6adc8; font-size: 10px;")
+            d_label.setWordWrap(True)
+            c_layout.addWidget(d_label)
+
+            card.mousePressEvent = lambda ev, k=key, c=card, p=status_pill, a=accent: self.toggle_combo(k, c, p, a)
+            self.toggle_widgets[key] = (card, status_pill, accent)
+            grid.addWidget(card, row, col)
+
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll_content = QWidget()
+        scroll_content.setLayout(grid)
+        scroll.setWidget(scroll_content)
+        layout.addWidget(scroll)
+
+        return page
+
+    def style_status_pill(self, pill, is_on, accent):
+        if is_on:
+            pill.setText(" ACTIVE ")
+            pill.setStyleSheet(f"background-color: #09090d; color: {accent}; border: 1px solid {accent}; border-radius: 4px; padding: 2px 6px;")
+        else:
+            pill.setText(" STANDBY ")
+            pill.setStyleSheet("background-color: #09090d; color: #6c7086; border: 1px solid #45475a; border-radius: 4px; padding: 2px 6px;")
+
+    def toggle_combo(self, key, card, pill, accent):
+        new_val = not self.combos.get(key, False)
+        self.combos[key] = new_val
+        card.setObjectName("toggleCardOn" if new_val else "toggleCardOff")
+        card.style().unpolish(card)
+        card.style().polish(card)
+        self.style_status_pill(pill, new_val, accent)
+
+    # -----------------------------------------------------------------
+    # STEP 4: Metallic & Reflective Icon Theme
+    # -----------------------------------------------------------------
+    def create_step4_icons(self):
+        page = QWidget()
+        layout = QVBoxLayout(page)
+        layout.setSpacing(12)
+
+        intro = QLabel("QUESTION 04 // METALLIC & REFLECTIVE ICON SUITE")
+        intro.setFont(QFont("JetBrains Mono", 13, QFont.Weight.Bold))
+        intro.setStyleSheet("color: #cba6f7; letter-spacing: 1px;")
+        layout.addWidget(intro)
+
+        desc = QLabel("Hardware-accelerated vector suites designed for high-contrast obsidian workspaces.")
+        desc.setStyleSheet("color: #a6adc8; font-size: 11px;")
+        layout.addWidget(desc)
+
         icons_data = [
-            ("Synapse-Liquid-Chrome", "Liquid Mauve Chrome",
+            ("Synapse-Liquid-Chrome", "Liquid Mauve Chrome (Default)",
              "High-gloss mirror chrome finish with 45° diamond chamfers and liquid mauve sheen.", "✨", "#cba6f7"),
             ("Synapse-Smoked-Obsidian", "Smoked Obsidian & Neon",
              "Mirror-finish jet-black ceramic dish with knurled metal rim and glowing purple conduit.", "🌑", "#b4befe"),
@@ -459,11 +736,12 @@ class OnboardingWizard(QMainWindow):
              "Brushed titanium chassis plate with bead-blasted satin mauve pocket and micro-bolts.", "🛡️", "#74c7ec")
         ]
 
+        self.icon_cards = []
+        self.icon_group = QButtonGroup(self)
         grid = QVBoxLayout()
         grid.setSpacing(10)
-        self.icon_button_group = QButtonGroup(self)
 
-        for theme_id, name, desc, badge_icon, accent in icons_data:
+        for theme_id, name, d_text, badge_icon, accent in icons_data:
             card = QFrame()
             card.setObjectName("cardSelected" if theme_id == self.selected_icon_theme else "card")
             card.setCursor(Qt.CursorShape.PointingHandCursor)
@@ -474,7 +752,7 @@ class OnboardingWizard(QMainWindow):
 
             rb = QRadioButton()
             rb.setChecked(theme_id == self.selected_icon_theme)
-            self.icon_button_group.addButton(rb)
+            self.icon_group.addButton(rb)
             c_layout.addWidget(rb)
 
             text_box = QVBoxLayout()
@@ -482,23 +760,23 @@ class OnboardingWizard(QMainWindow):
 
             h_line = QHBoxLayout()
             t_label = QLabel(f"{badge_icon}  {name}")
-            t_label.setFont(QFont("JetBrains Mono", 13, QFont.Weight.Bold))
+            t_label.setFont(QFont("JetBrains Mono", 12, QFont.Weight.Bold))
             t_label.setStyleSheet("color: #ffffff;")
             h_line.addWidget(t_label)
 
-            accent_pill = QLabel(theme_id.split("-")[-1].upper())
-            accent_pill.setStyleSheet(f"background-color: #11111b; color: {accent}; border: 1px solid {accent}; border-radius: 4px; padding: 2px 6px; font-size: 10px; font-weight: bold;")
+            accent_pill = QLabel(f" {theme_id.split('-')[-1].upper()} ")
+            accent_pill.setStyleSheet(f"background-color: #09090d; color: {accent}; border: 1px solid {accent}; border-radius: 4px; padding: 2px 6px; font-size: 10px; font-weight: bold;")
             h_line.addWidget(accent_pill)
             h_line.addStretch()
             text_box.addLayout(h_line)
 
-            d_label = QLabel(desc)
+            d_label = QLabel(d_text)
             d_label.setStyleSheet("color: #a6adc8; font-size: 11px;")
             d_label.setWordWrap(True)
             text_box.addWidget(d_label)
             c_layout.addLayout(text_box, 1)
 
-            card.mousePressEvent = lambda ev, tid=theme_id, c=card, r=rb: self.select_icon_theme(tid, c, r)
+            card.mousePressEvent = lambda ev, tid=theme_id, c=card, r=rb: self.select_icon(tid, c, r)
             self.icon_cards.append((theme_id, card, rb))
             grid.addWidget(card)
 
@@ -506,7 +784,7 @@ class OnboardingWizard(QMainWindow):
         layout.addStretch()
         return page
 
-    def select_icon_theme(self, theme_id, card_widget, radio_btn):
+    def select_icon(self, theme_id, card_widget, radio_btn):
         self.selected_icon_theme = theme_id
         radio_btn.setChecked(True)
         for tid, card, rb in self.icon_cards:
@@ -514,20 +792,22 @@ class OnboardingWizard(QMainWindow):
             card.style().unpolish(card)
             card.style().polish(card)
 
-    # --- Page 2: Wallpapers & Accents ---
-    def create_wallpaper_page(self):
+    # -----------------------------------------------------------------
+    # STEP 5: Cyberdeck Wallpaper & Accent Variant
+    # -----------------------------------------------------------------
+    def create_step5_wallpaper(self):
         page = QWidget()
         layout = QVBoxLayout(page)
         layout.setSpacing(12)
 
-        intro_box = QVBoxLayout()
-        intro = QLabel("Select your Cyberdeck Wallpaper & Accent Variant:")
-        intro.setStyleSheet("font-size: 14px; font-weight: bold; color: #cdd6f4;")
-        intro_desc = QLabel("Each wallpaper dynamically configures SDDM greeter, Waybar telemetry, and HUD accent borders.")
-        intro_desc.setStyleSheet("font-size: 11px; color: #a6adc8;")
-        intro_box.addWidget(intro)
-        intro_box.addWidget(intro_desc)
-        layout.addLayout(intro_box)
+        intro = QLabel("QUESTION 05 // CYBERDECK THEME & ACCENT VARIANT")
+        intro.setFont(QFont("JetBrains Mono", 13, QFont.Weight.Bold))
+        intro.setStyleSheet("color: #cba6f7; letter-spacing: 1px;")
+        layout.addWidget(intro)
+
+        desc = QLabel("Each variant dynamically updates SDDM greeter, Waybar telemetry leads, and HUD glowing borders.")
+        desc.setStyleSheet("color: #a6adc8; font-size: 11px;")
+        layout.addWidget(desc)
 
         wallpapers = [
             ("monolith-mauve", "Monolith · Mauve (Default)", "Classic monolithic geometry in deep Mauve", "#cba6f7"),
@@ -543,7 +823,7 @@ class OnboardingWizard(QMainWindow):
         grid = QVBoxLayout()
         grid.setSpacing(8)
 
-        for wp_id, name, desc, color_hex in wallpapers:
+        for wp_id, name, d_text, color_hex in wallpapers:
             card = QFrame()
             card.setObjectName("cardSelected" if wp_id == self.selected_wallpaper else "card")
             card.setCursor(Qt.CursorShape.PointingHandCursor)
@@ -566,7 +846,7 @@ class OnboardingWizard(QMainWindow):
             t_label = QLabel(name)
             t_label.setFont(QFont("JetBrains Mono", 12, QFont.Weight.Bold))
             text_box.addWidget(t_label)
-            d_label = QLabel(desc)
+            d_label = QLabel(d_text)
             d_label.setStyleSheet("color: #a6adc8; font-size: 11px;")
             text_box.addWidget(d_label)
             c_layout.addLayout(text_box, 1)
@@ -581,6 +861,7 @@ class OnboardingWizard(QMainWindow):
         scroll_content.setLayout(grid)
         scroll.setWidget(scroll_content)
         layout.addWidget(scroll)
+
         return page
 
     def select_wallpaper(self, wp_id, card_widget, radio_btn):
@@ -591,32 +872,34 @@ class OnboardingWizard(QMainWindow):
             card.style().unpolish(card)
             card.style().polish(card)
 
-    # --- Page 3: Screensaver Experience ---
-    def create_screensaver_page(self):
+    # -----------------------------------------------------------------
+    # STEP 6: Idle Screensaver Experience
+    # -----------------------------------------------------------------
+    def create_step6_screensaver(self):
         page = QWidget()
         layout = QVBoxLayout(page)
-        layout.setSpacing(14)
+        layout.setSpacing(12)
 
-        intro_box = QVBoxLayout()
-        intro = QLabel("Choose your Idle Terminal Screensaver Experience:")
-        intro.setStyleSheet("font-size: 14px; font-weight: bold; color: #cdd6f4;")
-        intro_desc = QLabel("Mathematical Braille ASCII wireframes rendered on OLED obsidian black. Any key resumes session.")
-        intro_desc.setStyleSheet("font-size: 11px; color: #a6adc8;")
-        intro_box.addWidget(intro)
-        intro_box.addWidget(intro_desc)
-        layout.addLayout(intro_box)
+        intro = QLabel("QUESTION 06 // TERMINAL IDLE SCREENSAVER")
+        intro.setFont(QFont("JetBrains Mono", 13, QFont.Weight.Bold))
+        intro.setStyleSheet("color: #cba6f7; letter-spacing: 1px;")
+        layout.addWidget(intro)
+
+        desc = QLabel("Mathematical Braille ASCII wireframes rendered on OLED obsidian black. Any keystroke resumes session.")
+        desc.setStyleSheet("color: #a6adc8; font-size: 11px;")
+        layout.addWidget(desc)
 
         screensavers = [
             ("torus", "🟣 The Purple Donut (Geodesic Neon Torus)",
-             "Rotating mathematical 3D geodesic torus wireframe rendered in Braille Unicode on OLED black."),
+             "Rotating mathematical 3D geodesic torus wireframe rendered in Braille Unicode on OLED black.", "#cba6f7"),
             ("brand", "⚡ Decrypted Cyber Matrix & Brand Reveal",
-             "Terminal matrix stream resolving into the glowing SYNAPSE master cipher glyph."),
+             "Terminal matrix data stream resolving into the glowing SYNAPSE master cipher glyph.", "#fab387"),
             ("cycle", "🌌 Continuous Singularity Cycle",
-             "Seamlessly alternates between the orbital torus (40s) and cipher brand reveal (12s).")
+             "Seamlessly alternates between the orbital torus (40s) and cipher brand reveal (12s).", "#74c7ec")
         ]
 
         self.ss_cards = []
-        for ss_id, name, desc in screensavers:
+        for ss_id, name, d_text, accent in screensavers:
             card = QFrame()
             card.setObjectName("cardSelected" if ss_id == self.selected_screensaver else "card")
             card.setCursor(Qt.CursorShape.PointingHandCursor)
@@ -633,7 +916,7 @@ class OnboardingWizard(QMainWindow):
             h_box.addStretch()
             c_layout.addLayout(h_box)
 
-            d_label = QLabel(desc)
+            d_label = QLabel(d_text)
             d_label.setStyleSheet("color: #a6adc8; font-size: 11px; margin-left: 24px;")
             d_label.setWordWrap(True)
             c_layout.addWidget(d_label)
@@ -642,10 +925,10 @@ class OnboardingWizard(QMainWindow):
             self.ss_cards.append((ss_id, card, rb))
             layout.addWidget(card)
 
-        # Test Screensaver Button
+        # Live Test Screensaver
         test_box = QHBoxLayout()
         test_btn = QPushButton("👁️ Test-Fire Screensaver in Fullscreen")
-        test_btn.setObjectName("navBtn")
+        test_btn.setObjectName("actionBtn")
         test_btn.clicked.connect(self.preview_screensaver)
         test_box.addWidget(test_btn)
         test_box.addStretch()
@@ -673,46 +956,37 @@ class OnboardingWizard(QMainWindow):
             except Exception:
                 pass
 
-    # --- Page 4: Security & Summary ---
-    def create_security_page(self):
+    # -----------------------------------------------------------------
+    # STEP 7: System Primed & Verification Cockpit
+    # -----------------------------------------------------------------
+    def create_step7_verify(self):
         page = QWidget()
         layout = QVBoxLayout(page)
         layout.setSpacing(12)
 
-        intro_box = QVBoxLayout()
-        intro = QLabel("System Security, Anonymity & Ready Status:")
-        intro.setStyleSheet("font-size: 14px; font-weight: bold; color: #cdd6f4;")
-        intro_desc = QLabel("Your hardened AI cyberdeck workstation is primed. Review system architecture and core workflows.")
-        intro_desc.setStyleSheet("font-size: 11px; color: #a6adc8;")
-        intro_box.addWidget(intro)
-        intro_box.addWidget(intro_desc)
-        layout.addLayout(intro_box)
+        intro = QLabel("QUESTION 07 // SYSTEM VERIFICATION & LAUNCH COCKPIT")
+        intro.setFont(QFont("JetBrains Mono", 13, QFont.Weight.Bold))
+        intro.setStyleSheet("color: #cba6f7; letter-spacing: 1px;")
+        layout.addWidget(intro)
 
-        specs = [
-            ("🛡️ Prime Directive", "Active: MAC address randomization on scan & links; Quad9 DoT (9.9.9.9:853)"),
-            ("🌐 Zero-Telemetry Web", "Chromium configured with telemetry, sync, and cloud reporting purged"),
-            ("🤖 Local Autonomous AI", "Ollama daemon running locally (port 11434); background model warming"),
-            ("🚀 Cyberdeck Command HUD", "Quickfire HUD accessible at Super+Space with keyboard hotkeys & mouse tiles")
-        ]
+        desc = QLabel("All cyberdeck parameters configured and verified. Review your operational profile and launch the desktop.")
+        desc.setStyleSheet("color: #a6adc8; font-size: 11px;")
+        layout.addWidget(desc)
 
-        for title, desc in specs:
-            card = QFrame()
-            card.setObjectName("card")
-            c_layout = QVBoxLayout(card)
-            c_layout.setContentsMargins(12, 8, 12, 8)
-            c_layout.setSpacing(2)
+        # Verification Readout Box
+        self.verify_readout = QLabel()
+        self.verify_readout.setStyleSheet("""
+            background-color: #09090d;
+            border: 1px solid #313244;
+            border-radius: 8px;
+            padding: 12px;
+            color: #bac2de;
+            font-size: 11px;
+            font-family: 'JetBrains Mono', monospace;
+        """)
+        layout.addWidget(self.verify_readout)
 
-            t = QLabel(title)
-            t.setFont(QFont("JetBrains Mono", 11, QFont.Weight.Bold))
-            t.setStyleSheet("color: #cba6f7;")
-            c_layout.addWidget(t)
-
-            d = QLabel(desc)
-            d.setStyleSheet("color: #bac2de; font-size: 11px;")
-            c_layout.addWidget(d)
-            layout.addWidget(card)
-
-        # Mnemonic Hotkey Shortcuts Quick Tour
+        # Mnemonic Hotkey Guide
         shortcuts_frame = QFrame()
         shortcuts_frame.setObjectName("card")
         sc_layout = QVBoxLayout(shortcuts_frame)
@@ -734,40 +1008,57 @@ class OnboardingWizard(QMainWindow):
             ("Super + I", "Calamares Installer"),
             ("Super + K", "Cheat Sheet HUD")
         ]
-        for idx, (hotkey, desc) in enumerate(keys):
+        for idx, (hotkey, d_text) in enumerate(keys):
             row = idx // 2
             col = (idx % 2) * 2
             k_lbl = QLabel(hotkey)
-            k_lbl.setStyleSheet("background-color: #11111b; color: #cdd6f4; border: 1px solid #45475a; border-radius: 4px; padding: 2px 6px; font-weight: bold; font-size: 10px;")
-            d_lbl = QLabel(desc)
+            k_lbl.setStyleSheet("background-color: #09090d; color: #cdd6f4; border: 1px solid #45475a; border-radius: 4px; padding: 2px 6px; font-weight: bold; font-size: 10px;")
+            d_lbl = QLabel(d_text)
             d_lbl.setStyleSheet("color: #a6adc8; font-size: 10px;")
             grid.addWidget(k_lbl, row, col)
             grid.addWidget(d_lbl, row, col + 1)
         sc_layout.addLayout(grid)
         layout.addWidget(shortcuts_frame)
 
-        # Quick Action Cockpit Buttons
-        action_layout = QHBoxLayout()
-        action_layout.setSpacing(8)
+        # Quick Actions
+        actions_row = QHBoxLayout()
+        actions_row.setSpacing(8)
 
         btn_hud = QPushButton("🚀 Open HUD (Super+S)")
         btn_hud.setObjectName("actionBtn")
         btn_hud.clicked.connect(lambda: self.launch_cmd("synapse-hud"))
-        action_layout.addWidget(btn_hud)
+        actions_row.addWidget(btn_hud)
 
         btn_calamares = QPushButton("💿 Install OS (Super+I)")
         btn_calamares.setObjectName("actionBtn")
         btn_calamares.clicked.connect(lambda: self.launch_cmd("calamares -d"))
-        action_layout.addWidget(btn_calamares)
+        actions_row.addWidget(btn_calamares)
 
         btn_shortcuts = QPushButton("⌨️ Keybindings (Super+K)")
         btn_shortcuts.setObjectName("actionBtn")
         btn_shortcuts.clicked.connect(lambda: self.launch_cmd("synapse-shortcuts"))
-        action_layout.addWidget(btn_shortcuts)
+        actions_row.addWidget(btn_shortcuts)
 
-        layout.addLayout(action_layout)
+        layout.addLayout(actions_row)
         layout.addStretch()
         return page
+
+    def update_verify_summary(self):
+        active_combos_count = sum(1 for v in self.combos.values() if v)
+        combo_labels = [k.upper() for k, v in self.combos.items() if v]
+
+        text = (
+            f"<font color='#a6e3a1'>[&nbsp;&nbsp;OK&nbsp;&nbsp;]</font> <b>OPERATOR CALL-SIGN:</b> <font color='#cba6f7'>{self.operator_name}</font><br>"
+            f"<font color='#a6e3a1'>[&nbsp;&nbsp;OK&nbsp;&nbsp;]</font> <b>CYBERDECK HOSTNODE:</b> <font color='#74c7ec'>{self.hostname}</font><br>"
+            f"<font color='#a6e3a1'>[&nbsp;&nbsp;OK&nbsp;&nbsp;]</font> <b>LOCAL AI DESIGNATION:</b> <font color='#fab387'>{self.ai_name}</font> (:11434)<br>"
+            f"<font color='#a6e3a1'>[&nbsp;&nbsp;OK&nbsp;&nbsp;]</font> <b>OPERATIONAL PROFILE:</b> <font color='#cba6f7'>{self.selected_profile.upper()}</font><br>"
+            f"<font color='#a6e3a1'>[&nbsp;&nbsp;OK&nbsp;&nbsp;]</font> <b>ACTIVE FEATURE COMBOS ({active_combos_count}/8):</b> <font color='#bac2de'>{', '.join(combo_labels)}</font><br>"
+            f"<font color='#a6e3a1'>[&nbsp;&nbsp;OK&nbsp;&nbsp;]</font> <b>METALLIC ICON SUITE:</b> <font color='#ffffff'>{self.selected_icon_theme}</font><br>"
+            f"<font color='#a6e3a1'>[&nbsp;&nbsp;OK&nbsp;&nbsp;]</font> <b>WALLPAPER & ACCENT:</b> <font color='#cba6f7'>{self.selected_wallpaper}</font><br>"
+            f"<font color='#a6e3a1'>[&nbsp;&nbsp;OK&nbsp;&nbsp;]</font> <b>IDLE SCREENSAVER:</b> <font color='#fab387'>{self.selected_screensaver.upper()}</font><br>"
+            f"<font color='#a6e3a1'>[&nbsp;&nbsp;OK&nbsp;&nbsp;]</font> <b>PRIME DIRECTIVE STEALTH:</b> <font color='#a6e3a1'>ACTIVE (Quad9 DoT · MAC Randomized)</font>"
+        )
+        self.verify_readout.setText(text)
 
     def launch_cmd(self, cmd):
         try:
@@ -775,10 +1066,12 @@ class OnboardingWizard(QMainWindow):
         except Exception:
             pass
 
-    # --- Navigation Logic ---
+    # -----------------------------------------------------------------
+    # NAVIGATION LOGIC
+    # -----------------------------------------------------------------
     def next_page(self):
         idx = self.stack.currentIndex()
-        if idx < self.stack.count() - 1:
+        if idx < self.TOTAL_STEPS - 1:
             self.stack.setCurrentIndex(idx + 1)
             self.update_nav()
         else:
@@ -790,44 +1083,65 @@ class OnboardingWizard(QMainWindow):
             self.stack.setCurrentIndex(idx - 1)
             self.update_nav()
 
+    def update_step_pills(self):
+        cur_idx = self.stack.currentIndex()
+        for i, lbl in enumerate(self.step_labels):
+            if i == cur_idx:
+                lbl.setStyleSheet("background-color: #cba6f7; color: #11111b; border-radius: 4px; padding: 2px 4px;")
+            elif i < cur_idx:
+                lbl.setStyleSheet("background-color: #1e1e2e; color: #a6e3a1; border: 1px solid #313244; border-radius: 4px; padding: 2px 4px;")
+            else:
+                lbl.setStyleSheet("background-color: #11111b; color: #6c7086; border: 1px solid #1e1e2e; border-radius: 4px; padding: 2px 4px;")
+
     def update_nav(self):
         idx = self.stack.currentIndex()
         self.back_btn.setEnabled(idx > 0)
+        self.update_step_pills()
 
         titles = [
-            "Step 1 of 5: Operator Identity Questionnaire",
-            "Step 2 of 5: Metallic Icons",
-            "Step 3 of 5: Wallpapers & Accents",
-            "Step 4 of 5: Idle Screensaver",
-            "Step 5 of 5: Cyberdeck Verification"
+            "Question 1 of 7: Operator Identity & Workstation Designation",
+            "Question 2 of 7: Operational Profile Archetype",
+            "Question 3 of 7: Modular System Feature Combos",
+            "Question 4 of 7: Metallic & Reflective Icon Theme",
+            "Question 5 of 7: Cyberdeck Wallpaper & Accent Variant",
+            "Question 6 of 7: Terminal Idle Screensaver",
+            "Question 7 of 7: System Verification & Launch Cockpit"
         ]
-        self.page_indicator.setText(titles[idx])
+        self.step_indicator_text.setText(titles[idx])
 
-        if idx == self.stack.count() - 1:
-            self.next_btn.setText("✨ Apply & Launch Cyberdeck")
+        if idx == self.TOTAL_STEPS - 1:
+            self.update_verify_summary()
+            self.next_btn.setText("✨ INITIATE CYBERDECK ▶")
         else:
-            labels = ["Metallic Icons ▶", "Wallpapers ▶", "Screensaver ▶", "Verify & Finish ▶"]
-            self.next_btn.setText(f"Next: {labels[idx]}")
+            labels = ["Profile Archetype ▶", "Feature Combos ▶", "Metallic Icons ▶", "Theme & Accent ▶", "Screensaver ▶", "Verify & Finish ▶"]
+            self.next_btn.setText(f"CONTINUE: {labels[idx]}")
 
+    # -----------------------------------------------------------------
+    # APPLY SETTINGS & FINISH
+    # -----------------------------------------------------------------
     def apply_and_finish(self):
         os.makedirs(CONFIG_DIR, exist_ok=True)
 
-        # 0. Save Operator Profile Questionnaire
+        # 1. Save Full Operator Profile & Feature Combos
         try:
             profile = {
-                "operator": self.input_username.text().strip() or "synapse",
-                "hostname": self.input_hostname.text().strip() or "synapse-deck",
-                "ai_copilot": self.input_ai_name.text().strip() or "Synapse",
-                "persona": getattr(self, "selected_persona", "dev")
+                "operator": self.operator_name,
+                "hostname": self.hostname,
+                "ai_copilot": self.ai_name,
+                "profile_archetype": self.selected_profile,
+                "feature_combos": self.combos,
+                "icon_theme": self.selected_icon_theme,
+                "wallpaper_variant": self.selected_wallpaper,
+                "screensaver_mode": self.selected_screensaver
             }
             with open(os.path.join(CONFIG_DIR, "operator_profile.json"), "w", encoding="utf-8") as f:
                 json.dump(profile, f, indent=2)
             with open(os.path.join(CONFIG_DIR, "operator"), "w", encoding="utf-8") as f:
-                f.write(profile["operator"] + "\n")
+                f.write(self.operator_name + "\n")
         except Exception:
             pass
 
-        # 1. Apply Icon Theme (XFCE / GTK)
+        # 2. Apply Metallic Icon Theme (GTK / XFCE / GNOME)
         try:
             subprocess.run([
                 "xfconf-query", "-c", "xsettings", "-p", "/Net/IconThemeName", "-s", self.selected_icon_theme
@@ -835,7 +1149,6 @@ class OnboardingWizard(QMainWindow):
             with open(os.path.join(CONFIG_DIR, "icon_theme"), "w") as f:
                 f.write(self.selected_icon_theme + "\n")
 
-            # Write to ~/.config/gtk-3.0/settings.ini & ~/.config/gtk-4.0/settings.ini
             gtk3_file = os.path.expanduser("~/.config/gtk-3.0/settings.ini")
             gtk4_file = os.path.expanduser("~/.config/gtk-4.0/settings.ini")
             for gtk_file in (gtk3_file, gtk4_file):
@@ -844,7 +1157,6 @@ class OnboardingWizard(QMainWindow):
                 except Exception:
                     pass
 
-            # Update via gsettings if available
             if shutil.which("gsettings"):
                 subprocess.run([
                     "gsettings", "set", "org.gnome.desktop.interface", "icon-theme", self.selected_icon_theme
@@ -852,27 +1164,27 @@ class OnboardingWizard(QMainWindow):
         except Exception:
             pass
 
-        # 2. Apply Wallpaper
+        # 3. Apply Wallpaper & Accent
         try:
             subprocess.run(["synapse-theme", self.selected_wallpaper], check=False)
         except Exception:
             pass
 
-        # 3. Save Screensaver Preference
+        # 4. Save Screensaver Preference
         try:
             with open(os.path.join(CONFIG_DIR, "screensaver_mode"), "w") as f:
                 f.write(self.selected_screensaver + "\n")
         except Exception:
             pass
 
-        # 4. Mark Onboarding Complete
+        # 5. Mark Onboarding Complete
         try:
             with open(ONBOARDING_FLAG, "w") as f:
                 f.write("completed\n")
         except Exception:
             pass
 
-        # 5. Launch HUD or notify
+        # 6. Launch Command HUD Cockpit
         try:
             subprocess.Popen(["synapse-hud"])
         except Exception:
