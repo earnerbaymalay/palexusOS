@@ -404,7 +404,7 @@ Window {
                                         radius: 6
                                         border.color: opInput.activeFocus ? root.accent : root.borderMuted
                                     }
-                                    onTextChanged: if (typeof backend !== "undefined") backend.operator = text
+                                    onTextChanged: if (typeof backend !== "undefined" && backend) backend.operator = text
                                 }
 
                                 // Field 2: Hostname
@@ -421,7 +421,7 @@ Window {
                                         radius: 6
                                         border.color: hostInput.activeFocus ? "#74c7ec" : root.borderMuted
                                     }
-                                    onTextChanged: if (typeof backend !== "undefined") backend.hostname = text
+                                    onTextChanged: if (typeof backend !== "undefined" && backend) backend.hostname = text
                                 }
                             }
                         }
@@ -515,7 +515,7 @@ Window {
                                     MouseArea {
                                         anchors.fill: parent
                                         cursorShape: Qt.PointingHandCursor
-                                        onClicked: if (typeof backend !== "undefined") backend.selectedAiEngine = modelData.id
+                                        onClicked: if (typeof backend !== "undefined" && backend) backend.selectedAiEngine = modelData.id
                                     }
                                 }
                             }
@@ -573,7 +573,7 @@ Window {
                                             color: root.accent
                                             font { family: root.mono; pixelSize: 11 }
                                             background: Rectangle { color: "#0d0d15"; radius: 6; border.color: claudeKeyInput.activeFocus ? root.accent : root.borderMuted }
-                                            onTextChanged: if (typeof backend !== "undefined") backend.claudeApiKey = text
+                                            onTextChanged: if (typeof backend !== "undefined" && backend) backend.claudeApiKey = text
                                         }
                                     }
 
@@ -589,7 +589,7 @@ Window {
                                             color: "#74c7ec"
                                             font { family: root.mono; pixelSize: 11 }
                                             background: Rectangle { color: "#0d0d15"; radius: 6; border.color: root.borderMuted }
-                                            onTextChanged: if (typeof backend !== "undefined") backend.claudeModel = text
+                                            onTextChanged: if (typeof backend !== "undefined" && backend) backend.claudeModel = text
                                         }
                                     }
                                 }
@@ -622,7 +622,7 @@ Window {
                                             anchors.fill: parent
                                             cursorShape: Qt.PointingHandCursor
                                             onClicked: {
-                                                if (typeof backend !== "undefined") {
+                                                if (typeof backend !== "undefined" && backend) {
                                                     claudeResponseText.text = "Handshaking with neural copilot..."
                                                     backend.testClaudeQuery(testPromptInput.text, claudeKeyInput.text, claudeModelInput.text)
                                                 }
@@ -727,7 +727,7 @@ Window {
                                 MouseArea {
                                     anchors.fill: parent
                                     cursorShape: Qt.PointingHandCursor
-                                    onClicked: if (typeof backend !== "undefined") backend.selectedProfile = modelData.id
+                                    onClicked: if (typeof backend !== "undefined" && backend) backend.selectedProfile = modelData.id
                                 }
                             }
                         }
@@ -810,7 +810,7 @@ Window {
                                     MouseArea {
                                         anchors.fill: parent
                                         cursorShape: Qt.PointingHandCursor
-                                        onClicked: if (typeof backend !== "undefined") backend.toggleCombo(modelData.k)
+                                        onClicked: if (typeof backend !== "undefined" && backend) backend.toggleCombo(modelData.k)
                                     }
                                 }
                             }
@@ -882,7 +882,7 @@ Window {
                                 MouseArea {
                                     anchors.fill: parent
                                     cursorShape: Qt.PointingHandCursor
-                                    onClicked: if (typeof backend !== "undefined") backend.selectedIconTheme = modelData.id
+                                    onClicked: if (typeof backend !== "undefined" && backend) backend.selectedIconTheme = modelData.id
                                 }
                             }
                         }
@@ -960,7 +960,7 @@ Window {
                                     MouseArea {
                                         anchors.fill: parent
                                         cursorShape: Qt.PointingHandCursor
-                                        onClicked: if (typeof backend !== "undefined") backend.selectedWallpaper = modelData.id
+                                        onClicked: if (typeof backend !== "undefined" && backend) backend.selectedWallpaper = modelData.id
                                     }
                                 }
                             }
@@ -1031,7 +1031,7 @@ Window {
                                 MouseArea {
                                     anchors.fill: parent
                                     cursorShape: Qt.PointingHandCursor
-                                    onClicked: if (typeof backend !== "undefined") backend.selectedScreensaver = modelData.id
+                                    onClicked: if (typeof backend !== "undefined" && backend) backend.selectedScreensaver = modelData.id
                                 }
                             }
                         }
@@ -1055,7 +1055,7 @@ Window {
                             MouseArea {
                                 anchors.fill: parent
                                 cursorShape: Qt.PointingHandCursor
-                                onClicked: if (typeof backend !== "undefined") backend.previewScreensaver()
+                                onClicked: if (typeof backend !== "undefined" && backend) backend.previewScreensaver()
                             }
                         }
                     }
@@ -1162,17 +1162,17 @@ Window {
                             Rectangle {
                                 width: (parent.width - 16) / 3; height: parent.height; radius: 6; color: "#181825"; border.color: root.borderMuted
                                 Text { anchors.centerIn: parent; text: "🚀 Open HUD (Super+S)"; color: root.accent; font { family: root.mono; pixelSize: 11; bold: true } }
-                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: if (typeof backend !== "undefined") backend.launchCmd("synapse-hud") }
+                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: if (typeof backend !== "undefined" && backend) backend.launchCmd("synapse-hud") }
                             }
                             Rectangle {
                                 width: (parent.width - 16) / 3; height: parent.height; radius: 6; color: "#181825"; border.color: root.borderMuted
                                 Text { anchors.centerIn: parent; text: "💿 Install OS (Super+I)"; color: root.accent; font { family: root.mono; pixelSize: 11; bold: true } }
-                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: if (typeof backend !== "undefined") backend.launchCmd("calamares -d") }
+                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: if (typeof backend !== "undefined" && backend) backend.launchCmd("calamares -d") }
                             }
                             Rectangle {
                                 width: (parent.width - 16) / 3; height: parent.height; radius: 6; color: "#181825"; border.color: root.borderMuted
                                 Text { anchors.centerIn: parent; text: "⌨️ Keybindings (Super+K)"; color: root.accent; font { family: root.mono; pixelSize: 11; bold: true } }
-                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: if (typeof backend !== "undefined") backend.launchCmd("synapse-shortcuts") }
+                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: if (typeof backend !== "undefined" && backend) backend.launchCmd("synapse-shortcuts") }
                             }
                         }
                     }
@@ -1247,7 +1247,7 @@ Window {
                             if (root.currentStep < root.totalSteps - 1) {
                                 root.currentStep++
                             } else {
-                                if (typeof backend !== "undefined") backend.applyAndFinish()
+                                if (typeof backend !== "undefined" && backend) backend.applyAndFinish()
                             }
                         }
                     }
