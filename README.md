@@ -1,122 +1,146 @@
+<div align="center">
+
 # SynapseOS
 
-> **An AI-Native Rolling Linux Distribution**  
-> *Surgical precision. Zero friction. One Brain. All Models.*
->
-> *"System aims for minimal if not 0 telemetry and prioritises anonymisation without degradation of service."*
+### **The AI-Native Rolling Linux Workstation**  
+*Surgical Precision. Zero Friction. One Brain. All Models.*
 
-<p align="center">
-  <img src="docs/assets/synapseos-banner.png" alt="SynapseOS Banner" width="100%"/>
-</p>
+[![Build & Engineering Gates](https://img.shields.io/github/actions/workflow/status/earnerbaymalay/synapseOS/build-iso.yml?branch=main&label=Build%20%26%20Gates&logo=githubactions&logoColor=cdd6f4&color=cba6f7&style=flat-square)](https://github.com/earnerbaymalay/synapseOS/actions/workflows/build-iso.yml)
+[![Verification Gates](https://img.shields.io/badge/Gates-279%2F279%20Passing-3fb950?style=flat-square&logo=shield&logoColor=ffffff)](build/verify-gates.sh)
+[![Release](https://img.shields.io/github/v/release/earnerbaymalay/synapseOS?include_prereleases&label=Latest%20Release&color=74c7ec&style=flat-square)](https://github.com/earnerbaymalay/synapseOS/releases)
+[![Rolling Base](https://img.shields.io/badge/Rolling%20Base-Arch%20Linux-1793d1?style=flat-square&logo=archlinux&logoColor=ffffff)](https://archlinux.org)
+[![Kernel](https://img.shields.io/badge/Kernel-linux--cachyos%20(BORE)-fab387?style=flat-square&logo=linux&logoColor=ffffff)](https://github.com/CachyOS/linux-cachyos)
+[![Telemetry](https://img.shields.io/badge/Telemetry-0%20(Prime%20Directive)-f38ba8?style=flat-square&logo=privatedivision&logoColor=ffffff)](#-the-prime-directive-zero-telemetry-sovereignty)
+[![License](https://img.shields.io/badge/License-MIT%20%2F%20GPLv3-d4dae2?style=flat-square)](LICENSE)
 
-<p align="center">
-  <a href="https://github.com/earnerbaymalay/synapseOS/actions/workflows/build-iso.yml"><img src="https://img.shields.io/github/actions/workflow/status/earnerbaymalay/synapseOS/build-iso.yml?branch=main&label=Build%20%26%20Gates&logo=githubactions&logoColor=cdd6f4&color=cba6f7&style=flat-square" alt="Build Status"/></a>
-  <a href="build/verify-gates.sh"><img src="https://img.shields.io/badge/Gates-279%2F279%20Passing-3fb950?style=flat-square&logo=shield&logoColor=ffffff" alt="Verification Gates"/></a>
-  <a href="https://github.com/earnerbaymalay/synapseOS/releases"><img src="https://img.shields.io/github/v/release/earnerbaymalay/synapseOS?include_prereleases&label=Release&color=74c7ec&style=flat-square" alt="Release"/></a>
-  <img src="https://img.shields.io/badge/Arch%20Linux-Rolling%20Core-1793d1?style=flat-square&logo=archlinux&logoColor=ffffff" alt="Arch Linux"/>
-  <img src="https://img.shields.io/badge/Kernel-linux--cachyos%20(BORE)-fab387?style=flat-square&logo=linux&logoColor=ffffff" alt="CachyOS BORE Kernel"/>
-  <img src="https://img.shields.io/badge/Hardware-Any%20x86--64%20PC-a6e3a1?style=flat-square" alt="Hardware Support"/>
-  <img src="https://img.shields.io/badge/Telemetry-0%20(Prime%20Directive)-f38ba8?style=flat-square&logo=privatedivision&logoColor=ffffff" alt="Zero Telemetry"/>
-  <img src="https://img.shields.io/badge/License-MIT%20%2F%20GPLv3-d4dae2?style=flat-square" alt="License"/>
-</p>
+<br/>
 
----
+<img src="docs/assets/synapseos-banner.png" alt="SynapseOS Monolithic Banner" width="100%"/>
 
-## ✨ What is SynapseOS? (The Plain-English Pitch)
+<br/>
 
-Most operating systems treat AI as a cloud subscription designed to harvest your data, while bombarding your desktop with advertisements, background telemetry, and forced updates that slow your computer down.
+**SynapseOS** is an open-source, AI-native operating system designed to liberate personal computing from cloud telemetry, forced subscriptions, and interface bloat. Powered by low-latency schedulers, aggressive memory compression, and deeply integrated local neural models, SynapseOS converts any modern PC into an ultra-fast sovereign cyberdeck.
 
-**SynapseOS is different.**
+[**Get Started in 3 Steps**](#-get-started-in-3-steps) • [**1-Command Instant Demo**](#-test-drive-in-60-seconds-no-usb-required) • [**Architecture**](#-deep-system-architecture) • [**Hardware Support**](#-supported-hardware-matrix) • [**Documentation**](docs/)
 
-SynapseOS is a complete, modern operating system designed from scratch for the AI era. It turns your laptop or desktop into an intelligent, private workstation:
-- 🧠 **Your AI Lives on Your Machine**: Press **`Super + Space`** anywhere to summon your local AI assistant. Ask questions, draft documents, analyze code, or take notes. It runs **100% locally on your computer**—never uploads your keystrokes to the cloud, requires zero subscriptions, and works even when you're completely offline on an airplane.
-- 🛡️ **Zero Spying, Zero Tracking (The Prime Directive)**: No corporate telemetry, no analytics beacons, no tracking IDs, and no ads in your search bar. Even your Wi-Fi address is randomized automatically so public networks cannot track your movements.
-- ⚡ **Breathtaking Speed**: Built on low-latency kernels and high-efficiency memory compression, SynapseOS feels instantaneous. Apps launch immediately, animations glide at your monitor's full refresh rate, and older laptops feel brand new.
-- 🎨 **Drop-Dead Gorgeous Cyberdeck Design**: Thoughtfully crafted with dark glass accents, liquid metal styling, custom themes, and natural neural voice streaming.
-- 🛡️ **Unbreakable Updates (Time Machine Snapshots)**: Never fear an update again. SynapseOS automatically captures a system snapshot before any changes. If anything ever goes wrong, you can turn back the clock to a working state in 5 seconds.
+</div>
 
 ---
 
-## 🪟 Thinking of Switching from Windows or macOS?
+## ⚡ Why SynapseOS? (The Plain-English Breakdown)
 
-If you've never used Linux before or found other distributions intimidating, **you are in the right place**. SynapseOS is engineered to give you all the power and privacy of Linux without the headaches:
+Modern commercial operating systems increasingly treat your hardware as a client terminal to harvest data, deliver unsolicited promotions, and charge ongoing subscriptions for basic intelligence features.
 
+**SynapseOS turns the paradigm inside-out:**
+
+* 🧠 **Your AI Lives on Your Silicon**: Tap **`Super + Space`** from any screen to summon your local AI assistant. Query documentation, generate code, draft technical reports, and execute system commands. The weights run **100% locally on your CPU and GPU via resident Ollama models**—no internet connection required, zero token meters, and total privacy on airplane mode.
+* 🛡️ **The Prime Directive (Zero Telemetry)**: Every network interface enforces hardware MAC address randomization. IPv6 privacy extensions (RFC 4941) are active by default. Outbound DNS queries are encrypted over TLS via Quad9 (`9.9.9.9:853`), and system daemons operate with a default-drop inbound firewall posture.
+* 🚀 **Instantaneous Response (BORE Scheduler & AVX2)**: Utilizing `linux-cachyos` with the **Burst-Oriented Response Enhancer (BORE)**, interactive terminal typing and UI animations retain zero-latency priority even during 100% CPU multi-threaded local AI inference or kernel compilation.
+* 🛡️ **Bulletproof Snapshot Protection (Time Machine)**: Every `pacman` update automatically generates a read-only Btrfs snapshot. If an upstream regression ever occurs, roll your entire workstation back to a pristine working state in under 5 seconds directly from the bootloader.
+* 🎨 **Bespoke Cyberdeck Aesthetic**: Built with dark obsidian glass, liquid chrome typography, Catppuccin Mocha Mauve palettes, laser-engraved Plymouth boot animations, and 4 precision CNC vector icon suites.
+
+---
+
+## 📊 How SynapseOS Compares
+
+| Feature | Windows 11 Copilot+ | Ubuntu 24.04 LTS | Vanilla Arch Linux | CachyOS | **SynapseOS** |
+| :--- | :---: | :---: | :---: | :---: | :---: |
+| **Local AI Subsystem** | ❌ Cloud / NPU Only | ❌ None | ❌ DIY | ❌ DIY | **✅ Native Core & HUD** |
+| **Context & Secret Firewall**| ❌ Telemetry Ingestion | ❌ None | ❌ None | ❌ None | **✅ Bidirectional Proxy** |
+| **System Telemetry** | ⚠️ Pervasive / Diagnostic | ⚠️ Opt-out Metrics | ✅ Zero Default | ✅ Minimal | **🛡️ 0 (Prime Directive)** |
+| **CPU Scheduler Tuning** | Standard Round-Robin | CFS / EEVDF | Standard EEVDF | BORE / BMQ | **🚀 BORE + Auto-Nicing** |
+| **Microarchitecture Binaries**| Generic x86-64 | Generic x86-64 | Generic x86-64 | x86-64-v3/v4 | **⚡ x86-64-v3 (AVX2/BMI2)** |
+| **Memory Compression** | Basic Pagefile | Basic Swap | DIY | ZRAM zstd | **💾 8GB ZRAM (180 Swappiness)** |
+| **Rollback Time Machine** | System Restore (Slow) | Manual TimeShift | DIY Btrfs | Automated Snapper | **✅ 5-Second Boot Snapshots** |
+| **First-Boot Experience** | Mandatory Online Account | Generic Installer | Terminal CLI | Calamares | **✨ Guided Cyberdeck Wizard** |
+
+---
+
+## 🧪 Test Drive in 60 Seconds (No USB Required!)
+
+Want to experience SynapseOS right now without touching your disk or flashing a USB drive? Run this single command on any Linux or macOS machine with QEMU installed:
+
+```bash
+# Download the latest 2.9GB verified ISO and launch in an accelerated VM:
+curl -LO https://github.com/earnerbaymalay/synapseOS/releases/latest/download/synapseos-x86_64.iso
+
+qemu-system-x86_64 \
+  -enable-kvm -m 8G -smp 4 -cpu host \
+  -vga virtio -display gtk,gl=on \
+  -audiodev pa,id=snd0 -device intel-hda -device hda-duplex,audiodev=snd0 \
+  -cdrom synapseos-x86_64.iso -boot d
 ```
-┌────────────────────────────────────────────────────────────────────────┐
-│               "DO I HAVE TO BE A LINUX HACKER TO USE THIS?"            │
-│  No! You can do everything with a mouse, keyboard, and gorgeous apps.   │
-│  The terminal is always there when you want it, but never forced.      │
-└────────────────────────────────────────────────────────────────────────┘
-```
 
-### Quick Myth-Busters for Newcomers:
-| Question | What It's Really Like on SynapseOS |
-| :--- | :--- |
-| **"Will I lose all my Windows files?"** | **No.** You can install SynapseOS **alongside Windows** (dual-boot). Every time you turn on your PC, you simply choose whether you want to boot into Windows or SynapseOS. |
-| **"Can I test it before changing anything?"** | **Yes!** You can boot SynapseOS directly from a USB stick in **Live Mode**. It runs entirely in memory without touching your hard drive. Play with it, test your Wi-Fi, audio, and AI, and unplug it when you're done. |
-| **"How do I install apps?"** | Forget hunting down `.exe` or `.dmg` files on sketchy websites. SynapseOS gives you access to a safe, verified repository with thousands of popular apps—including **Google Chrome / Chromium, VS Code, Spotify, Steam, Discord, OBS, VLC**, and more—installable with one click. |
-| **"Do I need an expensive AI GPU?"** | **No.** SynapseOS is heavily optimized with AVX2 CPU acceleration and intelligent thermal management. Standard laptop processors (Intel Core i5/i7/i9, AMD Ryzen) run local models smoothly. |
-| **"What's the 'Super' key everyone talks about?"** | The **Super** key is simply the **`Windows`** key on a PC keyboard or the **`Command`** key on a Mac. In SynapseOS, pressing `Super` is your primary superpower! |
+*(On Windows, you can launch the ISO directly inside Hyper-V, VMware Workstation, or VirtualBox with 3D Acceleration enabled).*
 
 ---
 
 ## 🚀 Get Started in 3 Steps
 
-You can test SynapseOS on almost any PC or laptop (Dell, Lenovo ThinkPad, Framework, HP, ASUS, Acer, or custom desktops) in under 10 minutes:
+SynapseOS runs seamlessly on standard laptops, workstations, and custom desktops (Dell Latitude, ThinkPad, Framework, ASUS ROG, HP, Razer, Intel/AMD/NVIDIA).
 
-### 1. Download & Prepare a USB Drive
-We recommend using **[Ventoy](https://www.ventoy.net)**, a free open-source tool that turns any USB flash drive into a multi-boot disk:
-1. Install Ventoy onto your USB drive (one-click installer on Windows or Linux).
-2. Download the latest `synapseos-x86_64.iso` from our [Releases](https://github.com/earnerbaymalay/synapseOS/releases).
-3. Drag and drop the `.iso` file straight onto your USB drive! That's it—no complicated burning tools needed.
+> [!NOTE]
+> **No Linux experience required.** You do not need to be a programmer or terminal expert. Everything can be operated via standard mouse and keyboard. When you choose to install, Calamares offers safe dual-boot alongside Windows without touching your existing personal files.
 
-📖 **Step-by-step flashing guide with screenshots:**  
-➡️ [**docs/VENTOY_BOOT_GUIDE.md**](docs/VENTOY_BOOT_GUIDE.md)
+### 1. Prepare Your Media (The Ventoy Multi-Boot Way)
+We recommend **[Ventoy](https://www.ventoy.net)** because it turns any USB flash drive into a reusable drag-and-drop installer:
+1. Install Ventoy onto a USB drive (16 GB or larger) using the Ventoy GUI or CLI.
+2. Download `synapseos-x86_64.iso` from our [GitHub Releases](https://github.com/earnerbaymalay/synapseOS/releases).
+3. Copy the `.iso` file directly onto the USB partition.
 
-### 2. Plug In & Boot
-1. Plug the USB drive into your computer and turn it on.
-2. Immediately tap your computer's boot menu key (**`F12`** on Dell, Lenovo, and Framework; **`F9`** on HP; **`F8`** on ASUS).
-3. Select your USB drive, choose **SynapseOS**, and hit Enter.
+> [!TIP]
+> Prefer classic flashing tools? You can write the image directly using [BalenaEtcher](https://etcher.balena.io/) or the terminal:
+> ```bash
+> sudo dd if=synapseos-x86_64.iso of=/dev/sdX bs=4M status=progress oflag=direct
+> ```
 
-### 3. Explore or Install
-You are now in the live environment!
-- Tap **`Super + Space`** to open the **Synapse Command HUD** and chat with your local AI.
-- Test your Wi-Fi, sound, and web browser.
-- When you're ready to make it permanent, double-click the **Install SynapseOS** icon on your desktop to launch the friendly Calamares installer (choose whether to replace your drive or install alongside Windows).
+### 2. Boot into the Live Cyberdeck
+1. Insert the USB drive and power on your PC.
+2. Press your computer's boot selection key immediately:
+   * **`F12`** for Dell, Lenovo, and Framework
+   * **`F9`** for HP
+   * **`F8`** or **`F11`** for ASUS, MSI, and ASRock
+3. Select your USB drive and choose **SynapseOS (Live Mode)**.
 
-📖 **Dual-boot preparation, Windows BitLocker suspension, & partitioning:**  
-➡️ [**docs/DUAL_BOOT_AND_HARDWARE.md**](docs/DUAL_BOOT_AND_HARDWARE.md)
+### 3. Explore & Install
+You are now in the live environment running directly in memory:
+* Press **`Super + Space`** to open the **Synapse Command HUD** and test your local AI.
+* Verify your Wi-Fi, audio output, multi-monitor display scaling, and trackpad gestures.
+* When ready to install permanently, double-click **Install SynapseOS** on the desktop to launch the Calamares installer (select **Install Alongside Windows** or **Replace Entire Disk** with Btrfs).
+
+📖 **Comprehensive walkthroughs:**
+* ➡️ [**Ventoy Flashing & Boot Guide**](docs/VENTOY_BOOT_GUIDE.md)
+* ➡️ [**Dual-Boot Safety & BitLocker Suspension Guide**](docs/DUAL_BOOT_AND_HARDWARE.md)
 
 ---
 
-## ⌨️ Essential Keyboard Shortcuts
+## ⌨️ Fluid Cyberdeck Navigation
 
-SynapseOS is designed for seamless flow. Memorize just three shortcuts to master your workstation:
+SynapseOS is engineered around keyboard-driven ergonomics. Learn these primary shortcuts to command your workspace:
 
-| Shortcut | What It Does | Why You'll Love It |
+| Shortcut | Action | Description |
 | :--- | :--- | :--- |
-| **`Super + Space`** | **Open Synapse HUD** | Your central command deck. Launch apps, ask your AI questions, search files, and trigger shortcuts instantly. |
-| **`Super + Return`** | **Open Terminal** | Ultra-crisp, hardware-accelerated Kitty terminal with syntax highlighting and auto-suggestions. |
-| **`Super + Ctrl + T`** | **Cycle Themes & Accents** | Instantly switch between Liquid Chrome, Monolith Mauve, Sapphire, Tungsten, and Emerald styling. |
-| **`Super + /`** | **Shortcut Cheat Sheet** | Can't remember a key? Tap this to bring up an interactive on-screen cheat sheet anytime. |
-| **`Super + i`** | **Launch System Installer** | Opens the guided graphical installer whenever you're ready to install to your drive. |
-| **`Super + Alt + S`** | **Read Aloud (Neural Voice)** | Has your local AI read the latest answer or selected text aloud via natural human speech. |
+| **`Super + Space`** | **Synapse Command HUD** | Universal quick-launcher, local AI prompt bar, calculation engine, and application index. |
+| **`Super + Return`** | **Kitty Terminal** | Ultra-responsive hardware-accelerated GPU terminal with JetBrains Mono and auto-completion. |
+| **`Super + Ctrl + T`** | **Cycle Desktop Themes** | Instantly switch between *Liquid Chrome*, *Smoked Obsidian*, *Radial Tungsten*, and *Mauve*. |
+| **`Super + Alt + S`** | **Neural Read Aloud** | Reads selected text or the latest AI response aloud using natural low-latency local speech. |
+| **`Super + /`** | **Cheat Sheet Overlay** | Summons an interactive on-screen shortcut matrix at any time. |
+| **`Super + Shift + Q`** | **Close Window** | Instantly closes active focused window with zero visual tearing. |
 
 ---
 
-## 💻 Supported Hardware
+## 💻 Supported Hardware Matrix
 
-SynapseOS runs on any standard 64-bit (`x86_64`) computer built in the last decade:
+SynapseOS features an automated hardware sensing engine (`synapse-hardware`) that configures thermal governors, CPU instruction paths, and GPU acceleration on boot:
 
-| Tier | Category | Example Models | Experience |
+| Tier | Classification | Reference Machines | Hardware Tuning |
 | :--- | :--- | :--- | :--- |
-| **Tier 0: Reference** | Official Engineering Hardware | **Dell Latitude 7490** (Intel 8th-Gen, UHD 620, 16–32 GB RAM) | **100% Certified** with custom 25W sustained thermal governor and zero-latency audio tuning. |
-| **Tier 1: Certified** | Premium Laptops | **ThinkPad T14 / T480 / X1 Carbon**, **Framework Laptop 13 & 16**, AMD Ryzen 5000–8000 series, Intel 11th–14th Gen | **Flawless Out-of-the-Box**: Wi-Fi, Bluetooth, trackpad gestures, sleep/wake, and display scaling work automatically. |
-| **Tier 2: Universal** | Any Modern PC | Custom gaming desktops, ASUS ROG / ZenBook, HP Spectre, Acer Swift, Intel/AMD/NVIDIA | **Full Performance**: Utilizes AVX2 CPU acceleration and automatic Vulkan graphics rendering. |
+| **Tier 0** | **Engineering Reference** | **Dell Latitude 7490** (Intel Core i5/i7 8th-Gen, UHD 620, 16–32 GB RAM) | **100% Certified**. Custom 25W sustained PL1 thermal profile, sub-5ms PipeWire audio, tuned trackpad gestures. |
+| **Tier 1** | **Certified Laptops** | **Lenovo ThinkPad** (T14, T480, X1 Carbon), **Framework Laptop 13 & 16**, Dell XPS 13/15 | Flawless out-of-the-box hardware enablement, Wi-Fi 6E/7, Bluetooth LE, deep sleep S3/Modern Standby, automatic brightness. |
+| **Tier 2** | **Universal x86-64** | AMD Ryzen 3000–9000 series, Intel 9th–14th Gen, custom gaming PCs, ASUS ROG, HP Spectre | Full AVX2 CPU vector utilization, Vulkan compute acceleration for Ollama, NVIDIA proprietary / open-kernel drivers. |
 
-SynapseOS also includes an automatic hardware manager:
+Verify your hardware health and AI thermal acceleration status anytime:
 ```bash
-# Check your CPU temps, battery, and AI performance status:
 synapse-hardware status
 ```
 
@@ -125,186 +149,240 @@ synapse-hardware status
 
 ---
 
-## 📦 Release Channels: Choose Your Pace
+## ⚙️ Deep System Architecture
 
-SynapseOS is available in three release channels depending on your needs:
+SynapseOS synthesizes four proven engineering foundations into a single cohesive operating system:
 
-- 🟢 **Stable Channel (`main`)**: Thoroughly tested and verified across all 279 engineering quality gates. Recommended for daily work, laptops, and primary PCs.
-- 🟡 **Canary / Dev (`canary`)**: Updated bi-weekly with the newest experimental features and kernel enhancements. Great for enthusiasts who want the latest improvements early.
-- 🟣 **Nightly (`staging-ci`)**: Continuously built from source code commits for automated testing.
-
-📖 **Switching channels and configuring package mirrors:**  
-➡️ [**docs/RELEASE_CHANNELS.md**](docs/RELEASE_CHANNELS.md)
-
----
-
-<details>
-<summary><h2>⚙️ Under the Hood: Deep Architecture & Technical Specs (Click to Expand)</h2></summary>
-
-For developers, system architects, and Linux power users, here is the complete technical blueprint behind SynapseOS:
-
-### The Five Architectural Pillars
-
-1. **CachyOS Performance & Schedulers**: Deploys `linux-cachyos` with the **BORE (Burst-Oriented Response Enhancer)** scheduler, `x86-64-v3` AVX2 instruction optimizations, aggressive ZRAM `zstd` memory compression (`vm.swappiness=180`, `page-cluster=0`), TCP BBR congestion control, and `ananicy-cpp` dynamic process auto-nicing.
-2. **Arch Linux & EndeavourOS Rolling Foundation**: Pure upstream rolling release base with clean PKGBUILD recipes, native systemd service isolation, and Calamares installer supporting Btrfs `@` subvolumes with automated `snapper` rollbacks.
-3. **Cyberdeck Desktop & Monolithic Aesthetics**: Monospace terminal-first workflow, Qt6 chamfered SDDM login greeter (`synapse-greeter`), animated border light trails, Picom `dual_kawase` background blur, Catppuccin Mocha Mauve + Liquid Silver Chrome palettes, dual compositors (XFCE 4.20 and Sway Wayland), 4 metallic vector icon suites, and the laser-engraved Plymouth boot splash (`synapse-plymouth`).
-4. **Synapse AI Core & Context Firewall**: Deeply integrated native `synapse-core` loopback gateway (`127.0.0.1:8000`), bidirectional context firewall (outbound token masking of MACs, private IPs, and keys with inbound rehydration), local resident Ollama models (`qwen2.5-coder:latest`), lossless token squasher (`/usr/bin/squash`), and persistent 3-layer vector memory.
-5. **Prime Directive (Zero Telemetry & Anonymization)**: Strict hardware MAC address randomization on scanning and per-session links, RFC 4941 IPv6 privacy extensions, encrypted Quad9 DNS-over-TLS (`9.9.9.9:853`), hardened zero-telemetry Chromium, and firewalld default-drop posture:
-   > *"System aims for minimal if not 0 telemetry and prioritises anonymisation without degradation of service."*
-
-### Subsystem Hierarchy & Inter-Process Communication
 ```mermaid
 flowchart TD
+    classDef ui fill:#1e1e2e,stroke:#cba6f7,stroke-width:2px,color:#cdd6f4;
+    classDef ai fill:#181825,stroke:#74c7ec,stroke-width:2px,color:#cdd6f4;
+    classDef os fill:#11111b,stroke:#a6e3a1,stroke-width:2px,color:#cdd6f4;
+    classDef kern fill:#0b0b10,stroke:#fab387,stroke-width:2px,color:#cdd6f4;
+
     subgraph UI ["Layer 4: Cyberdeck Interface & Presentation"]
         direction TB
-        COMP["XFCE 4.20 (Picom dual_kawase) / Sway Wayland Session"]
-        HUD["synapse-hud (Qt6/QML Material You HUD — Super+Space)"]
-        PANEL["llm-quickfire-panel / synapse-notes / synapse-settings"]
-        TERM["Kitty Monospace Terminal (ble.sh + JetBrains Mono)"]
+        COMP["Dual Compositor: XFCE 4.20 (Picom dual_kawase) & Sway Wayland"]:::ui
+        HUD["synapse-hud (Qt6/QML Material You HUD — Super+Space)"]:::ui
+        KITTY["Kitty Terminal (ble.sh + JetBrains Mono Nerd Font)"]:::ui
+        THEMES["4 Metallic Icon Suites (Chrome, Obsidian, Tungsten, Billet)"]:::ui
     end
 
     subgraph AI ["Layer 3: Synapse AI Core & Context Engine"]
         direction TB
-        GW["synapse-core Daemon (127.0.0.1:8000 REST/SSE Gateway)"]
-        CFW["Bidirectional Context Firewall (firewall.rs)"]
-        MEM["3-Layer Agent Memory (~/AIBrain/notes & Vector Index)"]
-        OLLAMA["Resident Ollama Engine (qwen2.5-coder:latest, 24h Keepalive)"]
+        GW["synapse-core Loopback Gateway (127.0.0.1:8000 REST/SSE)"]:::ai
+        CFW["Bidirectional Context Firewall (Entropy & Secret Masking)"]:::ai
+        SQUASH["Lossless Token Squasher (/usr/bin/squash)"]:::ai
+        MEM["3-Layer Vector Memory Engine (~/AIBrain/notes)"]:::ai
+        OLLAMA["Resident Ollama Engine (qwen2.5-coder:latest, 24h Keepalive)"]:::ai
     end
 
     subgraph OS ["Layer 2: Base System & Stealth Network Posture"]
         direction TB
-        UPSTREAM["Upstream Arch Linux Rolling Package Pool"]
-        OVERLAY["[synapseos] Custom Native Repository & Overlay"]
-        SEC["NetworkManager Stealth (MAC Randomization + RFC 4941 IPv6)"]
-        DNS["Quad9 Encrypted DNS-over-TLS (9.9.9.9:853 via systemd-resolved)"]
-        FW["firewalld (Default Inbound Drop Posture)"]
+        ARCH["Upstream Arch Linux Rolling Repositories"]:::os
+        OVERLAY["[synapseos] Optimized Overlay Repository (x86-64-v3)"]:::os
+        SEC["NetworkManager Stealth (MAC Randomization + RFC 4941 IPv6)"]:::os
+        DNS["Quad9 Encrypted DNS-over-TLS (9.9.9.9:853 via systemd-resolved)"]:::os
+        BTRFS["Btrfs @ Subvolumes with Automated Snapper Rollbacks"]:::os
     end
 
-    subgraph KERN ["Layer 1: Low-Latency Performance Kernel"]
+    subgraph KERN ["Layer 1: Low-Latency High-Throughput Kernel"]
         direction TB
-        CK["linux-cachyos (BORE Interactive Burst Scheduler + TCP BBR)"]
-        V3["x86-64-v3 Binary Optimization (AVX2, BMI2, FMA3)"]
-        ZRAM["8 GB ZRAM Block Device (zstd, vm.swappiness=180, page-cluster=0)"]
-        ANAN["ananicy-cpp (Dynamic Process Autogrouping & Auto-Nice)"]
-        GOV["synapse-governor (Neural Hardware & Thermal Auto-Tuner)"]
+        BORE["linux-cachyos Kernel (BORE Interactive Burst Scheduler)"]:::kern
+        ZRAM["8 GB ZRAM Block Device (zstd, vm.swappiness=180, page-cluster=0)"]:::kern
+        ANAN["ananicy-cpp (Dynamic Process Autogrouping & Auto-Nicing)"]:::kern
+        GOV["synapse-governor (Dynamic PL1/PL2 CPU Thermal Tuner)"]:::kern
     end
 
-    UI --> AI
-    AI --> OS
-    OS --> KERN
+    UI ==> AI
+    AI ==> OS
+    OS ==> KERN
 ```
 
-### Monolithic Boot Kinematics Sequence
+### 1. Bidirectional Context Firewall (`firewall.rs`)
+All application interactions with local or remote models pass through the loopback proxy at `127.0.0.1:8000`. The Context Firewall performs deep inspection to prevent credential leakage:
+* **Outbound Secret Redaction**: Intercepts high-entropy hashes, private SSH/GPG keys, bearer tokens, hardware MAC addresses, and internal network IP addresses before prompts reach model weights.
+* **Semantic Token Squashing**: Automatically compresses verbose terminal logs and build traces via `/usr/bin/squash`, preserving semantic density while minimizing context memory overhead.
+* **Inbound Rehydration**: Reconstitutes redacted local variable names during the markdown streaming phase so you see clean, actionable code.
+
 ```mermaid
 sequenceDiagram
     autonumber
-    participant BIOS as UEFI / BIOS
+    actor User as User / App / Script
+    participant HUD as synapse-hud (Super+Space)
+    participant FW as Context Firewall (127.0.0.1:8000)
+    participant OLLAMA as Local Ollama (qwen2.5-coder)
+    participant EXT as Optional Cloud Fallback
+
+    User->>HUD: Enter prompt with source code / logs
+    HUD->>FW: Forward raw payload via local loopback
+    critical Deep Token Sanitization
+        FW->>FW: High-entropy secret detection (API keys, tokens)
+        FW->>FW: Redact hardware MAC addresses & RFC 1918 private IPs
+        FW->>FW: Token squashing & semantic distillation (/usr/bin/squash)
+    end
+    alt Local Inference (Prime Directive Standard)
+        FW->>OLLAMA: Dispatch sanitized context to local resident weights
+        OLLAMA-->>FW: Stream raw generated markdown tokens
+    else Cloud Endpoint (User Explicitly Configured)
+        FW->>EXT: Transmit sanitized, de-identified prompt via TLS
+        EXT-->>FW: Stream response back
+    end
+    FW->>FW: Inbound rehydration (restore local variable identifiers)
+    FW-->>HUD: Stream clean, natural response to desktop HUD
+    HUD-->>User: Display markdown output & trigger neural TTS (Super+Alt+S)
+```
+
+### 2. Time Machine Btrfs Subvolume Rollback
+SynapseOS partitions disks with clean Btrfs subvolumes (`@` for root, `@home` for user data, `@snapshots` for Snapper). Before `pacman` writes a single byte during system upgrades, `snap-pac` captures an atomic snapshot:
+
+```mermaid
+stateDiagram-v2
+    [*] --> RunningState: Healthy Running System
+    RunningState --> PackageUpdateTriggered: pacman -Syu or setup update
+    state PackageUpdateTriggered {
+        [*] --> PreSnapshot: snap-pac triggers Snapper
+        PreSnapshot --> SubvolumeSnapshot: Capture read-only @ and @home snapshot
+        SubvolumeSnapshot --> ApplyBinaries: Unpack & verify signed packages
+        ApplyBinaries --> PostSnapshot: Capture post-update state
+        PostSnapshot --> [*]
+    }
+    PackageUpdateTriggered --> VerificationCheck: Reboot / Service Restart
+    VerificationCheck --> RunningState: Update Verified Successful
+    VerificationCheck --> SystemRegressionDetected: Issue / Driver Crash / Kernel Panic
+    state SystemRegressionDetected {
+        [*] --> SelectSnapshotInBootloader: Tap GRUB / systemd-boot menu
+        SelectSnapshotInBootloader --> RollbackSnapshot: Run 'sudo snapper rollback'
+        RollbackSnapshot --> InstantReboot: Re-point default @ subvolume
+    }
+    SystemRegressionDetected --> RunningState: Restored to Previous Working State in 5s
+```
+
+### 3. Monolithic Laser Boot Kinematics
+During system boot, the GPU directly renders a 120 FPS twin-hook laser fabrication animation via Plymouth:
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant BIOS as UEFI / Firmware
     participant BOOT as systemd-boot / GRUB
-    participant PLY as synapse-plymouth (Twin-Hook Laser Splash)
-    participant SDDM as synapse-greeter (Qt6 Chamfered SDDM)
-    participant SESS as Session Manager (XFCE / Sway)
-    participant CORE as synapse-core & ollama.service
+    participant PLY as synapse-plymouth (Laser Fabrication Splash)
+    participant SDDM as synapse-greeter (Chamfered Obsidian SDDM)
+    participant SESS as Session Manager (XFCE 4.20 / Sway)
+    participant DAEMON as synapse-core & ollama.service
 
     BIOS->>BOOT: Hand off EFI execution
-    BOOT->>PLY: Kernel init (linux-cachyos BORE)
-    PLY->>PLY: Render relativistic laser cuts & dielectric ion arc (120 FPS)
-    PLY->>SDDM: Handoff display to SDDM greeter
-    SDDM->>SESS: Authenticate local user (Wheel sudo, zero GeoIP)
-    par Parallel User Session Launch
-        SESS->>UI: Launch XFCE/Sway desktop + picom dual_kawase
-        SESS->>CORE: Trigger synapse.service (127.0.0.1:8000) & ollama.service
-        SESS->>HUD: Initialize synapse-hud & register Super+Space trigger
+    BOOT->>PLY: Kernel init (linux-cachyos BORE, x86-64-v3)
+    activate PLY
+    PLY->>PLY: Phase 1: Dual laser collimators cut Twin-Hook Cipher (120 FPS)
+    PLY->>PLY: Phase 2: Dielectric ion arc convergence across central gap
+    PLY->>PLY: Phase 3: Liquid chrome typography reveal & status telemetry
+    PLY->>SDDM: Seamless graphical handoff (Zero display flicker)
+    deactivate PLY
+    activate SDDM
+    SDDM->>SESS: Local authentication (Wheel group, zero GeoIP lookup)
+    deactivate SDDM
+    par Parallel Subsystem Initialization
+        SESS->>SESS: Composite desktop (Picom dual_kawase glass blur)
+        SESS->>DAEMON: Spawn synapse.service (127.0.0.1:8000) & resident Ollama
+        SESS->>SESS: Initialize synapse-hud daemon & register Super+Space hotkey
     end
 ```
 
-### Real-Time Hardware & Thermal Governor (`synapse-governor`)
-SynapseOS runs a dedicated neural governor daemon (`synapse-governor.service`) that interfaces with `/sys/devices/system/cpu`:
-- Continuously inspects CPU inference loads from Ollama and local LLM engines.
-- Elevates CPU Energy Performance Preference (EPP) to `performance` during model generation, unlocking sustained 25W PL1 operation.
-- Steps down to `balance_power` after 10 seconds of idle, saving battery life and keeping your chassis cool and quiet.
+---
 
-### Engineering Verification Gates (279/279 Passing)
-Every commit and ISO image is subjected to strict automated verification across four quality gates in [`build/verify-gates.sh`](build/verify-gates.sh):
-- **Gate G1**: Arch Linux PKGBUILD syntax, checksum validity, and packaging integrity.
-- **Gate G2**: Kernel sysctl tuning, BORE scheduler parameters, ZRAM zstd swappiness, and stealth networking rules.
-- **Gate G3**: UI themes, picom blur configurations, SDDM greeter QML compliance, and Sway hotkey collision audits.
-- **Gate G4**: Calamares installer configuration, Btrfs subvolume layout (`@` and `@snapshots`), and security compliance.
+## 🛠️ Building & Verifying from Source
 
-</details>
+The entire distribution image is fully reproducible and audited against **279 strict engineering quality gates**.
+
+### 1. Verification Gate Harness (279/279 Passing)
+Run the automated test suite locally to verify packaging syntax, kernel sysctls, theme assets, and Calamares installer recipes:
+
+```bash
+git clone https://github.com/earnerbaymalay/synapseOS.git
+cd synapseOS
+./build/verify-gates.sh
+```
+
+### 2. Building the Bootable ISO Image
+Generate a pristine `synapseos-x86_64.iso` locally using the clean Archiso profile:
+
+```bash
+# Requires Arch Linux, archiso, and squashfs-tools:
+sudo ./build/build-iso.sh
+```
+The finished bootable image is emitted into `out/synapseos-<timestamp>-x86_64.iso`.
+
+### 3. Public Package Repository & SDK Recipes
+Community and custom packages are built using our standalone recipe harness in [`SynapseOS/public-repo`](https://github.com/SynapseOS/public-repo):
+```bash
+# Clone the package recipe tree:
+git clone https://github.com/SynapseOS/public-repo.git
+cd public-repo
+
+# Build and verify packages with GNU Make:
+make check
+make all JOBS=4
+```
+Packages are bundled into cryptographic `.spkg` archives with USTAR formatting and Ed25519 repository index v2 signatures.
 
 ---
 
-## ❓ Frequently Asked Questions
+## 🗺️ Engineering Roadmap
 
-### What makes SynapseOS different from standard Arch, EndeavourOS, or CachyOS?
-> SynapseOS combines the best attributes of all three while adding a dedicated local AI architecture:
-> - From **CachyOS**, it inherits the BORE low-latency kernel and `x86-64-v3` microarchitecture packages.
-> - From **EndeavourOS**, it inherits a clean Arch base, native systemd service isolation, and Calamares.
-> - On top of both, SynapseOS introduces **Synapse AI Core** (`synapse-core`), an offline-first **Bidirectional Context Firewall** on port 8000, 3-layer persistent agent memory, lossless token compression (`squash`), and strict **Prime Directive** zero-telemetry anonymization.
-
-### Can I run AI completely offline without internet connectivity?
-> **Yes.** Local models (such as `qwen2.5-coder:latest`) reside on disk in `/usr/share/ollama/.ollama/models`. All inference executes locally on CPU/Vulkan GPU via Ollama with 24h memory keepalive. Outbound requests through `synapse-core` undergo strict entropy inspection, ensuring zero prompt or credential leakage.
-
-### How does the automated snapshot rollback work?
-> Before any package update is written via `pacman -Syu`, `snap-pac` captures a Btrfs snapshot into `/.snapshots`. If a regression occurs, simply select **SynapseOS Snapshots** from the GRUB boot menu or run `sudo snapper rollback` from the terminal to instantly revert the system state.
-
-📖 **Read the full Technical FAQ covering networking, sysctl, and audio:**  
-➡️ [**docs/TECHNICAL_FAQ.md**](docs/TECHNICAL_FAQ.md)
-
----
-
-## 🗺️ Roadmap & Future Phases
-
-```
-Phase 1–8 (Complete)  ──►  Phase 9 (In Progress)  ──►  Phase 10 (Q2 2027)  ──►  Phase 11–12
-Live ISO & Hardware        Thermal Governor & eBPF    Distributed Agent Swarm    Immutable & CAD Kit
+```mermaid
+gantt
+    title SynapseOS Engineering Milestones
+    dateFormat  YYYY-MM
+    section Core Infrastructure
+    BORE Kernel & Arch Foundation (Phases 1–5)       :done,    des1, 2026-01, 2026-06
+    Laser Plymouth & Material You HUD (Phases 6–7)   :done,    des2, 2026-07, 2026-09
+    Release v0.1.0-alpha.2 (279 Gates Passing)       :done,    des3, 2026-10, 2026-11
+    section Active & Upcoming
+    Dynamic Thermal Governor & Tuning (Phase 9.1)    :active,  des4, 2026-11, 2026-12
+    eBPF Kernel Secret Leak Interceptor (Phase 9.2)  :         des5, 2027-01, 2027-03
+    Peer-to-Peer Distributed Swarm Memory (Phase 10) :         des6, 2027-04, 2027-06
+    Immutable Root Filesystem Mode (Phase 11)        :         des7, 2027-07, 2027-09
+    Open-Source Cyberdeck Hardware Spec (Phase 12)   :         des8, 2027-10, 2027-12
 ```
 
-- [x] **Phase 1–5**: Core daemons, BORE kernel, cyberdeck styling, live archiso profile, Calamares Btrfs.
-- [x] **Phase 6–7**: V4 visual identity, laser Plymouth boot splash, Material You HUD ecosystem, token squasher.
-- [x] **Phase 8**: Clean 2.9 GB ISO compilation, `synapse-hardware` CLI orchestration, 279/279 engineering gate verification, release `v0.1.0-alpha.2`.
-- [x] **Phase 9.1**: Dynamic PL1/PL2 CPU thermal and neural governor (`synapse-governor`).
-- [ ] **Phase 9.2 (Q1 2027)**: Kernel-level eBPF secret leak interceptor and Vulkan compute offloading.
-- [ ] **Phase 10 (Q2 2027)**: Peer-to-peer encrypted WireGuard/Libp2p brain synchronization and LAN inference offloading.
-- [ ] **Phase 11**: Optional Ostree / Composefs read-only immutable root filesystem mode.
-- [ ] **Phase 12**: Open-source CAD cyberdeck chassis hardware specifications.
-
-📖 **Inspect the complete milestone history:**  
+📖 **Detailed milestone specifications & changelog:**  
 ➡️ [**ROADMAP.md**](ROADMAP.md)
 
 ---
 
-## 📂 Repository File Tree
+## 📂 Repository Directory Layout
 
 ```
 synapseOS/
-├── .github/workflows/       # CI/CD ISO build & Gate G1-G4 verification pipeline
-│   └── build-iso.yml
+├── .github/workflows/       # Automated CI/CD ISO generation & 279-gate harness
+├── build/                   # Archiso live image definitions & build tooling
+│   ├── archiso/             # Profile definition, package lists, syslinux/systemd-boot
+│   ├── build-iso.sh         # ISO packaging script
+│   └── verify-gates.sh      # 279/279 Engineering gate test harness
 ├── docs/                    # Technical whitepapers & installation manuals
-│   ├── VENTOY_BOOT_GUIDE.md
-│   ├── DUAL_BOOT_AND_HARDWARE.md
-│   ├── HARDWARE_COMPATIBILITY.md
-│   ├── TECHNICAL_FAQ.md
-│   ├── RELEASE_CHANNELS.md
-│   └── ARCHITECTURE.md
-├── build/                   # Archiso live image profile & verification tooling
-│   ├── archiso/             # Profiledef, package manifest, pacman.conf, bootloaders & airootfs
-│   ├── build-iso.sh         # Automated ISO build & overlay staging script
-│   └── verify-gates.sh      # Gate G1-G4 verification test harness (279/279 checks)
-├── packages/                # Native Arch Linux PKGBUILD recipes & installer configs
-│   ├── core/synapse-core/   # PKGBUILD for Synapse runtime gateway & systemd units
-│   ├── desktop/             # llm-quickfire-panel, synapse-hud, synapse-themes & synapse-greeter
-│   └── installer/calamares/ # Calamares settings, Catppuccin branding & Btrfs modules
-├── overlay/                 # Root filesystem overlays (/etc, sysctl, NetworkManager, skel)
-├── out/                     # Compiled ISO artifacts, repo databases & cryptographic checksums
-├── AGENTS.md                # System instructions & Prime Directive
-├── ROADMAP.md               # Completed & upcoming implementation milestones
-└── README.md                # Primary repository documentation
+│   ├── VENTOY_BOOT_GUIDE.md # Detailed USB burning instructions
+│   ├── DUAL_BOOT_AND_HARDWARE.md # BitLocker, EFI, and partitioning manual
+│   ├── HARDWARE_COMPATIBILITY.md # Detailed laptop & desktop validation matrix
+│   ├── ARCHITECTURE.md      # Subsystem technical whitepaper
+│   └── TECHNICAL_FAQ.md     # Audio, networking, and memory tuning FAQ
+├── packages/                # Native PKGBUILD recipes & desktop components
+│   ├── core/synapse-core/   # AI proxy gateway daemon & systemd services
+│   ├── desktop/             # synapse-hud, synapse-greeter, themes, and plymouth
+│   └── installer/calamares/ # Calamares installer branding and Btrfs configuration
+├── overlay/                 # Root filesystem live overlays (sysctl, NetworkManager)
+├── AGENTS.md                # System instructions & Prime Directive policies
+└── ROADMAP.md               # Feature timeline & version history
 ```
 
 ---
 
-## 📜 License
+## 📜 Licensing & Community
 
-SynapseOS is open-source software licensed under the **MIT License** and **GNU General Public License v3.0**.  
-See [`LICENSE`](LICENSE) for full details.
+* **SynapseOS Base & Tooling**: Licensed under the **MIT License** and **GNU General Public License v3.0**. See [`LICENSE`](LICENSE) for terms.
+* **Component Licenses**: Upstream packages retain their respective open-source licenses (GPL, Apache 2.0, BSD, MIT).
+* **The Prime Directive**: System telemetry is permanently disabled by default. SynapseOS does not track IP addresses, usage metrics, or AI token prompts.
+
+<div align="center">
+<sub>Crafted with surgical precision for sovereign computing. Built on Arch Linux & CachyOS.</sub>
+</div>

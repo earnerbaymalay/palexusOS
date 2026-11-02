@@ -4,19 +4,12 @@
 
 **SynapseOS** is an AI-native rolling Linux operating system engineered from the ground up for developers, security researchers, and AI-assisted workflows. It synthesizes four distinct paradigms:
 
-```
-┌────────────────────────────────────────────────────────────────────────┐
-│                              SynapseOS                                 │
-├──────────────────┬─────────────────┬──────────────────┬────────────────┤
-│     CachyOS      │   EndeavourOS   │     Omarchy      │    Synapse     │
-│   Performance    │  Arch Simplicity│ Cyber Aesthetic  │ AI Subsystem   │
-├──────────────────┼─────────────────┼──────────────────┼────────────────┤
-│ • BORE/EEVDF     │ • Minimal base  │ • Terminal-first │ • Runtime proxy│
-│ • x86-64-v3/v4   │ • Arch Rolling  │ • Monospace HUD  │ • Context FW   │
-│ • ZRAM zstd      │ • Pacman hooks  │ • Liquid chrome  │ • Agent memory │
-│ • ananicy-cpp    │ • Transparent   │ • Catppuccin     │ • Local LLMs   │
-└──────────────────┴─────────────────┴──────────────────┴────────────────┘
-```
+| Paradigm | Engineering Source | Core Technical Focus | Distro Implementation |
+| :--- | :--- | :--- | :--- |
+| **Performance** | CachyOS | Low-latency BORE scheduler & AVX2 binaries | `linux-cachyos` BORE/EEVDF, `x86-64-v3`, 8GB ZRAM `zstd`, `ananicy-cpp` |
+| **Arch Simplicity** | EndeavourOS | Transparent rolling package foundation | Clean Arch rolling sync, transparent `pacman.conf`, modular Calamares Btrfs |
+| **Cyber Aesthetic** | Omarchy | Terminal-first monospace HUD & metallic themes | Kitty + `ble.sh`, Catppuccin Mocha Mauve + Liquid Chrome, dual compositors |
+| **AI Subsystem** | Synapse Native | Offline-first private neural intelligence | `synapse-core` gateway (port 8000), Bidirectional Context Firewall, resident Ollama |
 
 ---
 
