@@ -21,7 +21,7 @@
 
 **SynapseOS** is an open-source, AI-native operating system designed to liberate personal computing from cloud telemetry, forced subscriptions, and interface bloat. Powered by low-latency schedulers, aggressive memory compression, and deeply integrated local neural models, SynapseOS converts any modern PC into an ultra-fast sovereign cyberdeck.
 
-[**Get Started in 3 Steps**](#-get-started-in-3-steps) • [**1-Command Instant Demo**](#-test-drive-in-60-seconds-no-usb-required) • [**Architecture**](#-deep-system-architecture) • [**Hardware Support**](#-supported-hardware-matrix) • [**Documentation**](docs/)
+[**60-Second Virtual Test Drive**](#-test-drive-in-60-seconds-no-usb-required) • [**Install in 3 Steps**](#-get-started-in-3-steps) • [**System Architecture**](#-system-architecture--subsystems) • [**Hardware Support**](#-supported-hardware-matrix) • [**Documentation**](docs/)
 
 </div>
 
@@ -58,12 +58,17 @@ Modern commercial operating systems increasingly treat your hardware as a client
 
 ## 🧪 Test Drive in 60 Seconds (No USB Required!)
 
-Want to experience SynapseOS right now without touching your disk or flashing a USB drive? Run this single command on any Linux or macOS machine with QEMU installed:
+Want to test SynapseOS right now without touching your hard drive or flashing a USB stick? You can run it inside a virtual machine in under a minute:
+
+### Option A: Linux & macOS (1-Command QEMU Walkthrough)
+
+If you have `qemu` installed, copy and paste this command into your terminal:
 
 ```bash
-# Download the latest 2.9GB verified ISO and launch in an accelerated VM:
+# 1. Download the latest verified ISO:
 curl -LO https://github.com/earnerbaymalay/synapseOS/releases/latest/download/synapseos-x86_64.iso
 
+# 2. Launch the accelerated virtual machine:
 qemu-system-x86_64 \
   -enable-kvm -m 8G -smp 4 -cpu host \
   -vga virtio -display gtk,gl=on \
@@ -71,13 +76,48 @@ qemu-system-x86_64 \
   -cdrom synapseos-x86_64.iso -boot d
 ```
 
-*(On Windows, you can launch the ISO directly inside Hyper-V, VMware Workstation, or VirtualBox with 3D Acceleration enabled).*
+#### What happens next:
+1. **Boot**: The QEMU window opens immediately and plays the authentic 3D liquid chrome boot loading sequence.
+2. **Desktop**: Within 10 seconds, you are on the SynapseOS desktop in Live Mode.
+3. **Controls**:
+   - Tap **`Ctrl + Alt`** at any time to release your mouse cursor back to your host system.
+   - Tap **`Ctrl + Alt + F`** to toggle fullscreen.
+4. **Try Local AI**: Press **`Super + Space`** (the `Windows` key + `Space`) to summon the Synapse Command HUD and prompt the local model.
+5. **Exit**: Simply close the QEMU window when you're done. No traces are left on your computer.
+
+---
+
+### Option B: Windows (VirtualBox / Hyper-V Step-by-Step Walkthrough)
+
+You can run SynapseOS inside Windows using free virtualization tools:
+
+#### Using VirtualBox:
+1. **Download**: Grab `synapseos-x86_64.iso` from our [Releases](https://github.com/earnerbaymalay/synapseOS/releases).
+2. **Create VM**:
+   - Open VirtualBox and click **New**.
+   - Name: `SynapseOS` • Type: `Linux` • Version: `Arch Linux (64-bit)`.
+   - **Hardware**: Set Base Memory to **`8192 MB`** (8 GB) and Processors to **`4 CPUs`** (minimum 2).
+   - **Hard Disk**: Select *"Do not add a virtual hard disk"* if you only want to test the live ISO (or create a 30 GB disk if you want to test the installer).
+3. **Configure Display**:
+   - Go to **Settings > Display**.
+   - Set Video Memory to **`128 MB`** and check **Enable 3D Acceleration**.
+4. **Attach ISO & Start**:
+   - Under **Settings > Storage**, click the optical drive icon and select `synapseos-x86_64.iso`.
+   - Click **Start**! Within seconds, you are in the live Cyberdeck environment.
+   - Tap the **Right `Ctrl`** key to release the mouse back to Windows.
+
+#### Using Hyper-V (Windows 11/10 Pro & Enterprise):
+1. Open **Hyper-V Manager** and click **Quick Create**.
+2. Select **Local Installation Source**, click **Change Installation Source**, and select `synapseos-x86_64.iso`.
+3. Uncheck *"This machine will run Windows"*.
+4. Under **More Options**, ensure Memory is set to at least `8192 MB`.
+5. Click **Create Virtual Machine** and launch!
 
 ---
 
 ## 🚀 Get Started in 3 Steps
 
-SynapseOS runs seamlessly on standard laptops, workstations, and custom desktops (Dell Latitude, ThinkPad, Framework, ASUS ROG, HP, Razer, Intel/AMD/NVIDIA).
+SynapseOS runs natively on standard laptops, workstations, and custom desktops (Dell Latitude, ThinkPad, Framework, ASUS ROG, HP, Razer, Intel/AMD/NVIDIA).
 
 > [!NOTE]
 > **No Linux experience required.** You do not need to be a programmer or terminal expert. Everything can be operated via standard mouse and keyboard. When you choose to install, Calamares offers safe dual-boot alongside Windows without touching your existing personal files.
@@ -149,145 +189,33 @@ synapse-hardware status
 
 ---
 
-## ⚙️ Deep System Architecture
+## ⚙️ System Architecture & Subsystems
 
-SynapseOS synthesizes four proven engineering foundations into a single cohesive operating system:
+SynapseOS replaces complex legacy distributions with four tightly integrated architectural layers designed for speed, privacy, and local intelligence:
 
-```mermaid
-flowchart TD
-    classDef ui fill:#1e1e2e,stroke:#cba6f7,stroke-width:2px,color:#cdd6f4;
-    classDef ai fill:#181825,stroke:#74c7ec,stroke-width:2px,color:#cdd6f4;
-    classDef os fill:#11111b,stroke:#a6e3a1,stroke-width:2px,color:#cdd6f4;
-    classDef kern fill:#0b0b10,stroke:#fab387,stroke-width:2px,color:#cdd6f4;
+### Layer 1: Low-Latency Silicon & Kernel
+* **Kernel**: `linux-cachyos` with the **Burst-Oriented Response Enhancer (BORE)** scheduler and dynamic EEVDF. Interactive terminal typing, desktop compositing, and audio threads never stutter, even during 100% CPU multi-threaded LLM token generation.
+* **Microarchitecture Binaries**: Compiled targeting `x86-64-v3` microarchitecture with AVX2, FMA3, and BMI2 vectorization.
+* **Aggressive Memory Compression**: 8 GB ZRAM block device compressed with `zstd` (`vm.swappiness=180`, `page-cluster=0`, `vfs_cache_pressure=50`).
+* **Dynamic Thermal Governor**: Dedicated neural governor (`synapse-governor.service`) elevating CPU Energy Performance Preference (EPP) to `performance` during model generation, then stepping down to `balance_power` during idle.
 
-    subgraph UI ["Layer 4: Cyberdeck Interface & Presentation"]
-        direction TB
-        COMP["Dual Compositor: XFCE 4.20 (Picom dual_kawase) & Sway Wayland"]:::ui
-        HUD["synapse-hud (Qt6/QML Material You HUD — Super+Space)"]:::ui
-        KITTY["Kitty Terminal (ble.sh + JetBrains Mono Nerd Font)"]:::ui
-        THEMES["4 Metallic Icon Suites (Chrome, Obsidian, Tungsten, Billet)"]:::ui
-    end
+### Layer 2: Base Distribution & Stealth Network Posture
+* **Rolling Arch Base**: Rolling synchronization with upstream Arch Linux repositories, transparent package management, and systemd isolation.
+* **Hardware Anonymization**: NetworkManager automatically randomizes MAC addresses on every Wi-Fi scan and connection.
+* **Encrypted DNS & IPv6 Privacy**: Outbound DNS queries route via Quad9 DNS-over-TLS (`9.9.9.9:853` via systemd-resolved) with RFC 4941 temporary IPv6 addresses.
+* **Time Machine Rollbacks**: Every `pacman` update captures a read-only Btrfs snapshot into `/.snapshots`. If an update ever fails, roll back to the previous working state in 5 seconds directly from the bootloader.
 
-    subgraph AI ["Layer 3: Synapse AI Core & Context Engine"]
-        direction TB
-        GW["synapse-core Loopback Gateway (127.0.0.1:8000 REST/SSE)"]:::ai
-        CFW["Bidirectional Context Firewall (Entropy & Secret Masking)"]:::ai
-        SQUASH["Lossless Token Squasher (/usr/bin/squash)"]:::ai
-        MEM["3-Layer Vector Memory Engine (~/AIBrain/notes)"]:::ai
-        OLLAMA["Resident Ollama Engine (qwen2.5-coder:latest, 24h Keepalive)"]:::ai
-    end
+### Layer 3: Sovereign AI Core & Context Firewall
+* **Local Loopback Gateway**: `synapse-core` daemon listening exclusively on `127.0.0.1:8000` with bearer-token authentication and DNS-rebinding protection.
+* **Bidirectional Context Firewall**: Automatically intercepts prompts and redacts private SSH/GPG keys, high-entropy tokens, MAC addresses, and private IPs before prompts reach model weights.
+* **Lossless Token Squashing**: Built-in `/usr/bin/squash` utility compresses repetitive compiler traces and terminal dumps, preserving semantic meaning while dramatically reducing context memory usage.
+* **Resident Neural Models**: Resident Ollama engine running quantized local models (`qwen2.5-coder:latest`) directly on CPU AVX2 and Vulkan GPU memory with 24-hour keepalive.
 
-    subgraph OS ["Layer 2: Base System & Stealth Network Posture"]
-        direction TB
-        ARCH["Upstream Arch Linux Rolling Repositories"]:::os
-        OVERLAY["[synapseos] Optimized Overlay Repository (x86-64-v3)"]:::os
-        SEC["NetworkManager Stealth (MAC Randomization + RFC 4941 IPv6)"]:::os
-        DNS["Quad9 Encrypted DNS-over-TLS (9.9.9.9:853 via systemd-resolved)"]:::os
-        BTRFS["Btrfs @ Subvolumes with Automated Snapper Rollbacks"]:::os
-    end
-
-    subgraph KERN ["Layer 1: Low-Latency High-Throughput Kernel"]
-        direction TB
-        BORE["linux-cachyos Kernel (BORE Interactive Burst Scheduler)"]:::kern
-        ZRAM["8 GB ZRAM Block Device (zstd, vm.swappiness=180, page-cluster=0)"]:::kern
-        ANAN["ananicy-cpp (Dynamic Process Autogrouping & Auto-Nicing)"]:::kern
-        GOV["synapse-governor (Dynamic PL1/PL2 CPU Thermal Tuner)"]:::kern
-    end
-
-    UI ==> AI
-    AI ==> OS
-    OS ==> KERN
-```
-
-### 1. Bidirectional Context Firewall (`firewall.rs`)
-All application interactions with local or remote models pass through the loopback proxy at `127.0.0.1:8000`. The Context Firewall performs deep inspection to prevent credential leakage:
-* **Outbound Secret Redaction**: Intercepts high-entropy hashes, private SSH/GPG keys, bearer tokens, hardware MAC addresses, and internal network IP addresses before prompts reach model weights.
-* **Semantic Token Squashing**: Automatically compresses verbose terminal logs and build traces via `/usr/bin/squash`, preserving semantic density while minimizing context memory overhead.
-* **Inbound Rehydration**: Reconstitutes redacted local variable names during the markdown streaming phase so you see clean, actionable code.
-
-```mermaid
-sequenceDiagram
-    autonumber
-    actor User as User / App / Script
-    participant HUD as synapse-hud (Super+Space)
-    participant FW as Context Firewall (127.0.0.1:8000)
-    participant OLLAMA as Local Ollama (qwen2.5-coder)
-    participant EXT as Optional Cloud Fallback
-
-    User->>HUD: Enter prompt with source code / logs
-    HUD->>FW: Forward raw payload via local loopback
-    critical Deep Token Sanitization
-        FW->>FW: High-entropy secret detection (API keys, tokens)
-        FW->>FW: Redact hardware MAC addresses & RFC 1918 private IPs
-        FW->>FW: Token squashing & semantic distillation (/usr/bin/squash)
-    end
-    alt Local Inference (Prime Directive Standard)
-        FW->>OLLAMA: Dispatch sanitized context to local resident weights
-        OLLAMA-->>FW: Stream raw generated markdown tokens
-    else Cloud Endpoint (User Explicitly Configured)
-        FW->>EXT: Transmit sanitized, de-identified prompt via TLS
-        EXT-->>FW: Stream response back
-    end
-    FW->>FW: Inbound rehydration (restore local variable identifiers)
-    FW-->>HUD: Stream clean, natural response to desktop HUD
-    HUD-->>User: Display markdown output & trigger neural TTS (Super+Alt+S)
-```
-
-### 2. Time Machine Btrfs Subvolume Rollback
-SynapseOS partitions disks with clean Btrfs subvolumes (`@` for root, `@home` for user data, `@snapshots` for Snapper). Before `pacman` writes a single byte during system upgrades, `snap-pac` captures an atomic snapshot:
-
-```mermaid
-stateDiagram-v2
-    [*] --> RunningState: Healthy Running System
-    RunningState --> PackageUpdateTriggered: pacman -Syu or setup update
-    state PackageUpdateTriggered {
-        [*] --> PreSnapshot: snap-pac triggers Snapper
-        PreSnapshot --> SubvolumeSnapshot: Capture read-only @ and @home snapshot
-        SubvolumeSnapshot --> ApplyBinaries: Unpack & verify signed packages
-        ApplyBinaries --> PostSnapshot: Capture post-update state
-        PostSnapshot --> [*]
-    }
-    PackageUpdateTriggered --> VerificationCheck: Reboot / Service Restart
-    VerificationCheck --> RunningState: Update Verified Successful
-    VerificationCheck --> SystemRegressionDetected: Issue / Driver Crash / Kernel Panic
-    state SystemRegressionDetected {
-        [*] --> SelectSnapshotInBootloader: Tap GRUB / systemd-boot menu
-        SelectSnapshotInBootloader --> RollbackSnapshot: Run 'sudo snapper rollback'
-        RollbackSnapshot --> InstantReboot: Re-point default @ subvolume
-    }
-    SystemRegressionDetected --> RunningState: Restored to Previous Working State in 5s
-```
-
-### 3. Monolithic Laser Boot Kinematics
-During system boot, the GPU directly renders a 120 FPS twin-hook laser fabrication animation via Plymouth:
-
-```mermaid
-sequenceDiagram
-    autonumber
-    participant BIOS as UEFI / Firmware
-    participant BOOT as systemd-boot / GRUB
-    participant PLY as synapse-plymouth (Laser Fabrication Splash)
-    participant SDDM as synapse-greeter (Chamfered Obsidian SDDM)
-    participant SESS as Session Manager (XFCE 4.20 / Sway)
-    participant DAEMON as synapse-core & ollama.service
-
-    BIOS->>BOOT: Hand off EFI execution
-    BOOT->>PLY: Kernel init (linux-cachyos BORE, x86-64-v3)
-    activate PLY
-    PLY->>PLY: Phase 1: Dual laser collimators cut Twin-Hook Cipher (120 FPS)
-    PLY->>PLY: Phase 2: Dielectric ion arc convergence across central gap
-    PLY->>PLY: Phase 3: Liquid chrome typography reveal & status telemetry
-    PLY->>SDDM: Seamless graphical handoff (Zero display flicker)
-    deactivate PLY
-    activate SDDM
-    SDDM->>SESS: Local authentication (Wheel group, zero GeoIP lookup)
-    deactivate SDDM
-    par Parallel Subsystem Initialization
-        SESS->>SESS: Composite desktop (Picom dual_kawase glass blur)
-        SESS->>DAEMON: Spawn synapse.service (127.0.0.1:8000) & resident Ollama
-        SESS->>SESS: Initialize synapse-hud daemon & register Super+Space hotkey
-    end
-```
+### Layer 4: Cyberdeck Interface & Presentation
+* **Dual Compositor Choice**: Ultra-fast XFCE 4.20 with `picom dual_kawase` glass blur, alongside an optional hardware-accelerated Sway Wayland tiling session.
+* **Qt6 Chamfered HUD**: Standalone `Super + Space` command HUD for instant AI chatting, calculations, file search, and app launching.
+* **Hardware-Accelerated Terminal**: GPU-rendered Kitty terminal with JetBrains Mono Nerd Font and `ble.sh` syntax highlighting.
+* **Authentic 3D Chrome Aesthetics**: Four metallic vector icon suites (*Liquid Chrome*, *Smoked Obsidian*, *Radial Tungsten*, *Aerospace Billet*) and custom embossed SDDM greeter.
 
 ---
 
@@ -328,23 +256,16 @@ Packages are bundled into cryptographic `.spkg` archives with USTAR formatting a
 
 ---
 
-## 🗺️ Engineering Roadmap
+## 🗺️ Roadmap & Engineering Milestones
 
-```mermaid
-gantt
-    title SynapseOS Engineering Milestones
-    dateFormat  YYYY-MM
-    section Core Infrastructure
-    BORE Kernel & Arch Foundation (Phases 1–5)       :done,    des1, 2026-01, 2026-06
-    Laser Plymouth & Material You HUD (Phases 6–7)   :done,    des2, 2026-07, 2026-09
-    Release v0.1.0-alpha.2 (279 Gates Passing)       :done,    des3, 2026-10, 2026-11
-    section Active & Upcoming
-    Dynamic Thermal Governor & Tuning (Phase 9.1)    :active,  des4, 2026-11, 2026-12
-    eBPF Kernel Secret Leak Interceptor (Phase 9.2)  :         des5, 2027-01, 2027-03
-    Peer-to-Peer Distributed Swarm Memory (Phase 10) :         des6, 2027-04, 2027-06
-    Immutable Root Filesystem Mode (Phase 11)        :         des7, 2027-07, 2027-09
-    Open-Source Cyberdeck Hardware Spec (Phase 12)   :         des8, 2027-10, 2027-12
-```
+* **Phase 1–5**: Core daemons, BORE kernel, cyberdeck styling, live archiso profile, Calamares Btrfs.
+* **Phase 6–7**: V4 visual identity, 3D liquid chrome boot loading sequence, Material You HUD ecosystem, token squasher.
+* **Phase 8**: Clean 2.9 GB ISO compilation, `synapse-hardware` CLI orchestration, 279/279 engineering gate verification, release `v0.1.0-alpha.2`.
+* **Phase 9.1 (Active)**: Dynamic PL1/PL2 CPU thermal and neural governor (`synapse-governor`).
+* **Phase 9.2 (Upcoming)**: Kernel-level eBPF secret leak interceptor and Vulkan compute offloading.
+* **Phase 10 (Q2 2027)**: Peer-to-peer encrypted WireGuard/Libp2p brain synchronization and LAN inference offloading.
+* **Phase 11**: Optional Ostree / Composefs read-only immutable root filesystem mode.
+* **Phase 12**: Open-source CAD cyberdeck chassis hardware specifications.
 
 📖 **Detailed milestone specifications & changelog:**  
 ➡️ [**ROADMAP.md**](ROADMAP.md)
