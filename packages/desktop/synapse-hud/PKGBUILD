@@ -28,9 +28,11 @@ source=(
   "synapse-notes.desktop"
   "synapse-welcome.desktop"
   "master_plate_960.png"
+  "Welcome.qml"
 )
 sha256sums=(
   "SKIP"
+  'SKIP'
   'SKIP'
   'SKIP'
   'SKIP'
@@ -73,6 +75,7 @@ package() {
   install -dm755 "${pkgdir}/usr/share/synapse-hud"
   install -Dm644 "${srcdir}/Main.qml" "${pkgdir}/usr/share/synapse-hud/Main.qml"
   install -Dm644 "${srcdir}/CommandCategoryCard.qml" "${pkgdir}/usr/share/synapse-hud/CommandCategoryCard.qml"
+  install -Dm644 "${srcdir}/Welcome.qml" "${pkgdir}/usr/share/synapse-hud/Welcome.qml"
   install -Dm644 "${srcdir}/master_plate_960.png" "${pkgdir}/usr/share/synapse-hud/master_plate_960.png"
 
   # Desktop Entries
