@@ -53,6 +53,25 @@ def find_chrome_emblem():
     return None
 
 
+def resolve_command_path(cmd_name: str) -> str:
+    """Find command either in system PATH or in repository directories."""
+    found = shutil.which(cmd_name)
+    if found:
+        return found
+    script_dir = Path(__file__).resolve().parent
+    local_candidates = [
+        script_dir / cmd_name,
+        script_dir.parent / "synapse-themes" / cmd_name,
+        script_dir.parent / "synapse-hud" / cmd_name,
+        script_dir.parent / "synapse-greeter" / cmd_name,
+        script_dir.parent / "synapse-core" / cmd_name,
+    ]
+    for c in local_candidates:
+        if c.is_file():
+            return str(c)
+    return cmd_name
+
+
 def update_gtk_settings(settings_path: str, icon_theme: str):
     """Write or update gtk-icon-theme-name under [Settings] in GTK settings.ini."""
     os.makedirs(os.path.dirname(settings_path), exist_ok=True)
@@ -947,12 +966,13 @@ class OnboardingWizard(QMainWindow):
 
     def preview_screensaver(self):
         try:
+            exe = resolve_command_path("synapse-screensaver")
             subprocess.Popen([
-                "synapse-screensaver", "--launch", "--mode", self.selected_screensaver
-            ])
+                exe, "--launch", "--mode", self.selected_screensaver
+            ], start_new_session=True)
         except Exception:
             try:
-                subprocess.Popen(["bash", "-c", f"synapse-screensaver --launch --mode {self.selected_screensaver}"])
+                subprocess.Popen(["bash", "-c", f"synapse-screensaver --launch --mode {self.selected_screensaver}"], start_new_session=True)
             except Exception:
                 pass
 
@@ -1060,11 +1080,20 @@ class OnboardingWizard(QMainWindow):
         )
         self.verify_readout.setText(text)
 
-    def launch_cmd(self, cmd):
+    def launch_cmd(self, cmd_str):
         try:
-            subprocess.Popen(["bash", "-c", cmd], start_new_session=True)
+            parts = cmd_str.split()
+            if parts:
+                exe = resolve_command_path(parts[0])
+                full_cmd = [exe] + parts[1:]
+                subprocess.Popen(full_cmd, start_new_session=True)
+            else:
+                subprocess.Popen(["bash", "-c", cmd_str], start_new_session=True)
         except Exception:
-            pass
+            try:
+                subprocess.Popen(["bash", "-c", cmd_str], start_new_session=True)
+            except Exception:
+                pass
 
     # -----------------------------------------------------------------
     # NAVIGATION LOGIC
@@ -1186,7 +1215,8 @@ class OnboardingWizard(QMainWindow):
 
         # 6. Launch Command HUD Cockpit
         try:
-            subprocess.Popen(["synapse-hud"])
+            hud_exe = resolve_command_path("synapse-hud")
+            subprocess.Popen([hud_exe], start_new_session=True)
         except Exception:
             pass
 
