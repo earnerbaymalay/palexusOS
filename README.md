@@ -6,7 +6,7 @@
 *Surgical Precision. Zero Friction. One Brain. All Models.*
 
 [![Build & Engineering Gates](https://img.shields.io/github/actions/workflow/status/earnerbaymalay/synapseOS/build-iso.yml?branch=main&label=Build%20%26%20Gates&logo=githubactions&logoColor=cdd6f4&color=cba6f7&style=flat-square)](https://github.com/earnerbaymalay/synapseOS/actions/workflows/build-iso.yml)
-[![Verification Gates](https://img.shields.io/badge/Gates-279%2F279%20Passing-3fb950?style=flat-square&logo=shield&logoColor=ffffff)](build/verify-gates.sh)
+[![Verification Gates](https://img.shields.io/badge/Gates-270%2F270%20Passing-3fb950?style=flat-square&logo=shield&logoColor=ffffff)](build/verify-gates.sh)
 [![Release](https://img.shields.io/github/v/release/earnerbaymalay/synapseOS?include_prereleases&label=Latest%20Release&color=74c7ec&style=flat-square)](https://github.com/earnerbaymalay/synapseOS/releases)
 [![Rolling Base](https://img.shields.io/badge/Rolling%20Base-Arch%20Linux-1793d1?style=flat-square&logo=archlinux&logoColor=ffffff)](https://archlinux.org)
 [![Kernel](https://img.shields.io/badge/Kernel-linux--cachyos%20(BORE)-fab387?style=flat-square&logo=linux&logoColor=ffffff)](https://github.com/CachyOS/linux-cachyos)
@@ -213,6 +213,9 @@ SynapseOS replaces complex legacy distributions with four tightly integrated arc
 
 ### Layer 4: Cyberdeck Interface & Presentation
 * **Dual Compositor Choice**: Ultra-fast XFCE 4.20 with `picom dual_kawase` glass blur, alongside an optional hardware-accelerated Sway Wayland tiling session.
+* **QtQuick Cyberdeck Onboarding Wizard**: Guided 8-step first-boot gate (`synapse-welcome`) in native QtQuick/QML. Matches the SDDM lock screen with chamfered obsidian glass, animated traveling border trails, horizontal circuit leads with light pulses, and authentic 3D liquid chrome master emblem stamping.
+* **Dedicated Claude & Multi-Model AI Console**: Integrated directly into onboarding with Anthropic API key configuration, Claude 3.7 Sonnet / Opus model targeting, and live interactive query testing.
+* **12-Toggle Modular Combo Matrix**: Interactive cyberdeck hardware, privacy, and kernel switches (Prime Directive stealth MAC, Quad9 DoT, strict firewall drop, volatile RAM scrub, Ollama daemon, vector memory, GPU tensor boost, BORE scheduler, ZRAM filesystem, 64-sample audio).
 * **Qt6 Chamfered HUD**: Standalone `Super + Space` command HUD for instant AI chatting, calculations, file search, and app launching.
 * **Hardware-Accelerated Terminal**: GPU-rendered Kitty terminal with JetBrains Mono Nerd Font and `ble.sh` syntax highlighting.
 * **Authentic 3D Chrome Aesthetics**: Four metallic vector icon suites (*Liquid Chrome*, *Smoked Obsidian*, *Radial Tungsten*, *Aerospace Billet*) and custom embossed SDDM greeter.
@@ -221,9 +224,9 @@ SynapseOS replaces complex legacy distributions with four tightly integrated arc
 
 ## 🛠️ Building & Verifying from Source
 
-The entire distribution image is fully reproducible and audited against **279 strict engineering quality gates**.
+The entire distribution image is fully reproducible and audited against **270 strict engineering quality gates**.
 
-### 1. Verification Gate Harness (279/279 Passing)
+### 1. Verification Gate Harness (270/270 Passing)
 Run the automated test suite locally to verify packaging syntax, kernel sysctls, theme assets, and Calamares installer recipes:
 
 ```bash

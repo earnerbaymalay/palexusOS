@@ -505,7 +505,11 @@ for icon_theme in "Synapse-Liquid-Chrome" "Synapse-Smoked-Obsidian" "Synapse-Rad
         fail "Metallic Icon Theme missing: ${icon_theme}"
     fi
 done
-if [[ "$(readlink "${REPO_ROOT}/build/archiso/airootfs/etc/resolv.conf" 2>/dev/null)" == "/run/systemd/resolve/stub-resolv.conf" ]]; then
+resolv_target="$(readlink "${REPO_ROOT}/build/archiso/airootfs/etc/resolv.conf" 2>/dev/null || true)"
+if [[ -z "${resolv_target}" && -f "${REPO_ROOT}/build/archiso/airootfs/etc/resolv.conf" ]]; then
+    resolv_target="$(tr -d '\r\n' < "${REPO_ROOT}/build/archiso/airootfs/etc/resolv.conf" 2>/dev/null || true)"
+fi
+if [[ "${resolv_target}" == "/run/systemd/resolve/stub-resolv.conf" ]]; then
     pass "Live resolv.conf links to the systemd-resolved stub (Quad9 DoT)"
 else
     fail "Live resolv.conf links to the systemd-resolved stub (Quad9 DoT)"

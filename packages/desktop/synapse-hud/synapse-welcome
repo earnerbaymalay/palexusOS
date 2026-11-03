@@ -49,6 +49,38 @@ def find_chrome_emblem():
     return ""
 
 
+def find_chrome_logo():
+    """Find the isolated 3D poured liquid chrome emblem."""
+    script_dir = Path(__file__).resolve().parent
+    candidates = [
+        script_dir / "synapse_chrome_logo.png",
+        script_dir / "chrome_poured_logo.png",
+        Path("/usr/share/synapse-hud/synapse_chrome_logo.png"),
+        Path("/usr/share/synapseos/branding/synapse_chrome_logo.png"),
+    ]
+    for c in candidates:
+        p = Path(c).resolve()
+        if p.is_file() and p.stat().st_size > 0:
+            return str(p)
+    return find_chrome_emblem()
+
+
+def find_chrome_spin():
+    """Find the pre-rendered 360-degree spinning chrome animation."""
+    script_dir = Path(__file__).resolve().parent
+    candidates = [
+        script_dir / "synapse_chrome_spin_360.gif",
+        script_dir / "synapse_chrome_spin_360.webp",
+        Path("/usr/share/synapse-hud/synapse_chrome_spin_360.gif"),
+        Path("/usr/share/synapse-hud/synapse_chrome_spin_360.webp"),
+    ]
+    for c in candidates:
+        p = Path(c).resolve()
+        if p.is_file() and p.stat().st_size > 0:
+            return str(p)
+    return ""
+
+
 def resolve_command_path(cmd_name: str) -> str:
     """Find command either in system PATH or in repository directories."""
     found = shutil.which(cmd_name)
@@ -114,6 +146,8 @@ class WelcomeBackend(QObject):
         super().__init__(parent)
         self.app = app
         self._chrome_path = find_chrome_emblem()
+        self._chrome_logo_path = find_chrome_logo()
+        self._chrome_spin_path = find_chrome_spin()
         self._operator = os.environ.get("USER", "operator")
         try:
             self._hostname = socket.gethostname() or "synapse-deck"
@@ -148,6 +182,14 @@ class WelcomeBackend(QObject):
     @pyqtProperty(str, notify=stateChanged)
     def chromeEmblemPath(self):
         return self._chrome_path
+
+    @pyqtProperty(str, notify=stateChanged)
+    def chromeLogoPath(self):
+        return self._chrome_logo_path
+
+    @pyqtProperty(str, notify=stateChanged)
+    def chromeSpinPath(self):
+        return self._chrome_spin_path
 
     @pyqtProperty(str, notify=stateChanged)
     def operator(self):

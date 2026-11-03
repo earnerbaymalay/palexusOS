@@ -50,6 +50,8 @@ Window {
     readonly property string backendScreensaver: (typeof backend !== "undefined" && backend && backend.selectedScreensaver) ? backend.selectedScreensaver : "torus"
     readonly property var backendCombos: (typeof backend !== "undefined" && backend && backend.combos) ? backend.combos : ({})
     readonly property string chromePath: (typeof backend !== "undefined" && backend && backend.chromeEmblemPath) ? backend.chromeEmblemPath : ""
+    readonly property string chromeLogoPath: (typeof backend !== "undefined" && backend && backend.chromeLogoPath) ? backend.chromeLogoPath : ""
+    readonly property string chromeSpinPath: (typeof backend !== "undefined" && backend && backend.chromeSpinPath) ? backend.chromeSpinPath : ""
     readonly property string claudeKey: (typeof backend !== "undefined" && backend && backend.claudeApiKey) ? backend.claudeApiKey : ""
     readonly property string claudeResponse: (typeof backend !== "undefined" && backend && backend.claudeTestResponse) ? backend.claudeTestResponse : "Ready. Enter prompt above and click 'Query Claude' to test live communication."
 
@@ -237,15 +239,74 @@ Window {
                     anchors.verticalCenter: parent.verticalCenter
                     spacing: 16
 
-                    // Stamped 3D Liquid Chrome Master Plate
-                    Image {
-                        width: 96
-                        height: 54
-                        source: root.chromePath ? ("file://" + root.chromePath) : ""
-                        fillMode: Image.PreserveAspectFit
-                        smooth: true
-                        mipmap: true
+                    // Spinning 360° 3D Liquid Chrome Logo (top-left)
+                    Item {
+                        id: chromeSpinBox
+                        width: 58
+                        height: 58
                         anchors.verticalCenter: parent.verticalCenter
+
+                        // Ambient Breathing Accent Halo
+                        Rectangle {
+                            id: logoHalo
+                            anchors.centerIn: parent
+                            width: 54; height: 54
+                            radius: 27
+                            color: root.withAlpha(root.accent, 0.20)
+                            scale: 1.0
+                            SequentialAnimation on scale {
+                                loops: Animation.Infinite
+                                NumberAnimation { from: 0.88; to: 1.15; duration: 2200; easing.type: Easing.InOutSine }
+                                NumberAnimation { from: 1.15; to: 0.88; duration: 2200; easing.type: Easing.InOutSine }
+                            }
+                        }
+
+                        // Rotating 360° Liquid Chrome Emblem
+                        Item {
+                            anchors.fill: parent
+
+                            Image {
+                                id: chromeSpinImg
+                                anchors.fill: parent
+                                source: root.chromeLogoPath ? ("file://" + root.chromeLogoPath) : (root.chromePath ? ("file://" + root.chromePath) : "")
+                                fillMode: Image.PreserveAspectFit
+                                smooth: true
+                                mipmap: true
+
+                                // Continuous smooth 360-degree spin in place
+                                RotationAnimation on rotation {
+                                    id: spinAnim
+                                    loops: Animation.Infinite
+                                    from: 0
+                                    to: 360
+                                    duration: spinHover.containsMouse ? 2400 : 7000
+                                    direction: RotationAnimation.Clockwise
+                                }
+                            }
+                        }
+
+                        // Specular shimmer glint
+                        Rectangle {
+                            anchors.centerIn: parent
+                            width: 5; height: 5
+                            radius: 2.5
+                            color: "#ffffff"
+                            SequentialAnimation on opacity {
+                                loops: Animation.Infinite
+                                NumberAnimation { from: 0.15; to: 0.85; duration: 1500; easing.type: Easing.InOutQuad }
+                                NumberAnimation { from: 0.85; to: 0.15; duration: 1500; easing.type: Easing.InOutQuad }
+                            }
+                        }
+
+                        MouseArea {
+                            id: spinHover
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            ToolTip.visible: containsMouse
+                            ToolTip.text: "Authentic 3D Liquid Chrome Emblem · 360° Spin"
+                            ToolTip.delay: 300
+                        }
                     }
 
                     Column {
