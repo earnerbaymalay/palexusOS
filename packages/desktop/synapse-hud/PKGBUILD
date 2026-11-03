@@ -1,7 +1,7 @@
 # Maintainer: SynapseOS Engineering Team <maintainers@synapseos.org>
 pkgname=synapse-hud
 pkgver=0.1.0
-pkgrel=5
+pkgrel=6
 pkgdesc="Native Qt6/QML Material You Command HUD, Synapse Settings Control Center, Brain Notes, Metallic Icon Suites, and Neural Governor"
 arch=('any')
 url="https://github.com/earnerbaymalay/synapseOS"
@@ -31,9 +31,13 @@ source=(
   "Welcome.qml"
   "synapse_chrome_logo.png"
   "synapse_chrome_spin_360.gif"
+  "synapse_chrome_spin_360.webp"
+  "synapse_chrome_plate_4d.png"
   "generate_spinning_chrome.py"
 )
 sha256sums=(
+  'SKIP'
+  'SKIP'
   'SKIP'
   'SKIP'
   'SKIP'
@@ -85,6 +89,8 @@ package() {
   install -Dm644 "${srcdir}/master_plate_960.png" "${pkgdir}/usr/share/synapse-hud/master_plate_960.png"
   install -Dm644 "${srcdir}/synapse_chrome_logo.png" "${pkgdir}/usr/share/synapse-hud/synapse_chrome_logo.png"
   install -Dm644 "${srcdir}/synapse_chrome_spin_360.gif" "${pkgdir}/usr/share/synapse-hud/synapse_chrome_spin_360.gif"
+  install -Dm644 "${srcdir}/synapse_chrome_spin_360.webp" "${pkgdir}/usr/share/synapse-hud/synapse_chrome_spin_360.webp"
+  install -Dm644 "${srcdir}/synapse_chrome_plate_4d.png" "${pkgdir}/usr/share/synapse-hud/synapse_chrome_plate_4d.png"
   install -Dm755 "${srcdir}/generate_spinning_chrome.py" "${pkgdir}/usr/share/synapse-hud/generate_spinning_chrome.py"
 
   # Desktop Entries

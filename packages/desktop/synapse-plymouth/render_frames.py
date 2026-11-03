@@ -55,21 +55,21 @@ def main():
     xx = np.arange(w, dtype=np.float32)[None, :]
     yy = np.arange(h, dtype=np.float32)[:, None]
 
-    # Window mask around the 3D chrome letters & liquid puddle
-    wx = np.clip(1.0 - (np.abs(xx - 480.0) - 340.0) / 40.0, 0, 1)
-    wy = np.clip(1.0 - (np.abs(yy - 280.0) - 90.0) / 30.0, 0, 1)
+    # Full uncropped window mask around the 3D chrome letters & liquid puddle (Y: 115..465, X: 200..760)
+    wx = np.clip(1.0 - (np.abs(xx - 480.0) - 275.0) / 25.0, 0, 1)
+    wy = np.clip(1.0 - (np.abs(yy - 290.0) - 170.0) / 25.0, 0, 1)
     chrome_mask *= (wx * wy)
 
     # Save glow.png (breathing ambient accent glow)
-    glow_mask = Image.fromarray((chrome_mask * 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(14))
+    glow_mask = Image.fromarray((chrome_mask * 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(16))
     glow_rgba = Image.new("RGBA", (w, h), (0, 0, 0, 0))
-    glow_fill = Image.new("RGBA", (w, h), (*accent_rgb, 160))
+    glow_fill = Image.new("RGBA", (w, h), (*accent_rgb, 175))
     glow_rgba.paste(glow_fill, (0, 0), glow_mask)
     glow_rgba.save(out_dir / "glow.png", optimize=True)
 
     # Render 40 looping specular reflection frames:
     # 20 frames Left -> Right, 20 frames Right -> Left
-    center_y = 280.0
+    center_y = 290.0
     passes = [
         (260.0, 700.0, 0.35, 20), # L -> R
         (700.0, 260.0, -0.35, 20), # R -> L
