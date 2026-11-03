@@ -267,8 +267,8 @@ Window {
                         { key: "1", label: "synapse hud", desc: "Cockpit TUI", cmd: "kitty --title 'Synapse HUD' synapse hud" },
                         { key: "2", label: "synapse sync", desc: "Sync Brain", cmd: "kitty --hold synapse sync --once" },
                         { key: "3", label: "synapse vibe", desc: "Line Stats", cmd: "kitty --hold synapse vibe --hours 24" },
-                        { key: "4", label: "agy", desc: "Interactive CLI", cmd: "kitty agy" },
-                        { key: "5", label: "claude", desc: "Agent CLI", cmd: "kitty claude" }
+                        { key: "4", label: "synapse mem", desc: "Memory Search", cmd: "kitty bash -c 'read -p \"Search Memory: \" q; [[ -n \"$q\" ]] && synapse mem search \"$q\"; echo; read -p \"Press enter to close...\"'" },
+                        { key: "5", label: "synapse doctor", desc: "System Health", cmd: "kitty --hold synapse doctor" }
                     ]
                     filterText: searchBox.text
                     onItemTriggered: function(c) { root.launchCommand(c) }
@@ -279,11 +279,11 @@ Window {
                     title: "⚡ LOCAL INFERENCE"
                     accentColor: "#fab387"
                     items: [
-                        { key: "Q", label: "ask-qwen", desc: "Qwen 2.5 Coder", cmd: "kitty bash -c 'read -p \"Ask Qwen: \" q; [[ -n \"$q\" ]] && ask-qwen \"$q\"; echo; read -p \"Press enter to close...\"'" },
-                        { key: "L", label: "ask-llama", desc: "LLaMA 3.2", cmd: "kitty bash -c 'read -p \"Ask LLaMA: \" q; [[ -n \"$q\" ]] && ask-llama \"$q\"; echo; read -p \"Press enter to close...\"'" },
-                        { key: "W", label: "ai warm", desc: "Preload RAM", cmd: "bash -c 'ai warm && notify-send \"AI Engine\" \"Pre-warmed code model\"'" },
-                        { key: "F", label: "ai flush", desc: "Free RAM", cmd: "bash -c 'ai flush && notify-send \"AI Engine\" \"Flushed resident models\"'" },
-                        { key: "O", label: "oterm", desc: "Chat TUI", cmd: "kitty oterm" }
+                        { key: "Q", label: "ask-qwen", desc: "Qwen 2.5 Coder", cmd: "kitty bash -c 'read -p \"Code Query: \" q; [[ -n \"$q\" ]] && ask-qwen \"$q\"; echo; read -p \"Press enter to close...\"'" },
+                        { key: "L", label: "ask-llama", desc: "LLaMA 3.2 Chat", cmd: "kitty bash -c 'read -p \"Ask LLaMA: \" q; [[ -n \"$q\" ]] && ask-llama \"$q\"; echo; read -p \"Press enter to close...\"'" },
+                        { key: "W", label: "ai warm", desc: "Pre-warm Model", cmd: "bash -c 'curl -s -X POST http://127.0.0.1:11434/api/generate -d '\''{\"model\": \"qwen2.5-coder:latest\", \"prompt\": \"Ready\"}'\'' >/dev/null 2>&1 && notify-send \"AI Engine\" \"Pre-warmed code model in RAM\"'" },
+                        { key: "F", label: "ai flush", desc: "Flush RAM", cmd: "bash -c 'ollama stop $(ollama ps 2>/dev/null | awk \"NR>1 {print \\$1}\") 2>/dev/null; notify-send \"AI Engine\" \"Flushed resident models\"'" },
+                        { key: "O", label: "ollama cli", desc: "Interactive Shell", cmd: "kitty bash -c 'ollama run qwen2.5-coder:latest'" }
                     ]
                     filterText: searchBox.text
                     onItemTriggered: function(c) { root.launchCommand(c) }
@@ -294,11 +294,11 @@ Window {
                     title: "🛡️ STEALTH & SECURITY"
                     accentColor: "#a6e3a1"
                     items: [
-                        { key: "A", label: "lab audit", desc: "Prime Directive", cmd: "kitty --hold lab audit" },
-                        { key: "S", label: "sec-status", desc: "MAC & DoT Check", cmd: "kitty --hold sec-status" },
-                        { key: "H", label: "wifi-home", desc: "Home WPA3-SAE", cmd: "wifi-home" },
-                        { key: "T", label: "wifi-hotspot", desc: "Mobile Failover", cmd: "wifi-hotspot" },
-                        { key: "D", label: "firewall-drop", desc: "Drop Inbound", cmd: "kitty --hold sudo firewall-cmd --state" }
+                        { key: "A", label: "sec-status", desc: "Security Audit", cmd: "kitty --hold sec-status" },
+                        { key: "S", label: "synapse-stealth", desc: "Shield Status", cmd: "kitty --hold synapse-stealth" },
+                        { key: "N", label: "nmtui", desc: "Network Manager", cmd: "kitty nmtui" },
+                        { key: "F", label: "firewall", desc: "Firewall State", cmd: "kitty --hold sudo firewall-cmd --state" },
+                        { key: "D", label: "dns-dot", desc: "Quad9 DoT Status", cmd: "kitty --hold resolvectl status" }
                     ]
                     filterText: searchBox.text
                     onItemTriggered: function(c) { root.launchCommand(c) }
@@ -310,25 +310,25 @@ Window {
                     accentColor: "#74c7ec"
                     items: [
                         { key: "Z", label: "audio-switch", desc: "Output Picker", cmd: "audio-switch" },
-                        { key: "X", label: "q1-mode", desc: "FiiO SBC-XQ", cmd: "bash -c 'q1-mode music && notify-send \"Audio\" \"Q1 set to SBC-XQ\"'" },
-                        { key: "C", label: "pipewire", desc: "Restart Audio", cmd: "bash -c 'systemctl --user restart pipewire wireplumber && notify-send \"Audio\" \"Restarted services\"'" },
-                        { key: "V", label: "throttled", desc: "25W PL1 Boost", cmd: "kitty --hold systemctl status throttled" },
-                        { key: "M", label: "mem-search", desc: "Agent Memory", cmd: "kitty bash -c 'read -p \"Search Memory: \" q; [[ -n \"$q\" ]] && synapse mem search \"$q\"; echo; read -p \"Press enter to close...\"'" }
+                        { key: "H", label: "hw-status", desc: "Hardware Status", cmd: "kitty --hold synapse-hardware status" },
+                        { key: "P", label: "pipewire", desc: "Restart Audio", cmd: "bash -c 'systemctl --user restart pipewire wireplumber && notify-send \"Audio\" \"Restarted audio services\"'" },
+                        { key: "V", label: "boost 25W", desc: "Thermal Max", cmd: "bash -c 'synapse-hardware boost && notify-send \"Hardware\" \"25W PL1 Performance Mode Active\"'" },
+                        { key: "E", label: "eco 15W", desc: "Battery Eco", cmd: "bash -c 'synapse-hardware eco && notify-send \"Hardware\" \"15W Eco Mode Active\"'" }
                     ]
                     filterText: searchBox.text
                     onItemTriggered: function(c) { root.launchCommand(c) }
                 }
 
-                // Section 5: Lab & Pentest
+                // Section 5: Dev & Terminal Tools
                 CommandCategoryCard {
-                    title: "🎯 LAB & PENTEST"
+                    title: "🛠️ DEV & TERMINAL"
                     accentColor: "#f38ba8"
                     items: [
-                        { key: "P", label: "rf-scan", desc: "Passive Survey", cmd: "kitty --hold rf-lab scan" },
-                        { key: "R", label: "auto-pentest", desc: "AI Audit Loop", cmd: "kitty lab pentest" },
-                        { key: "G", label: "lazygit", desc: "Delta Git TUI", cmd: "kitty lazygit" },
+                        { key: "G", label: "lazygit", desc: "Git Client TUI", cmd: "kitty lazygit" },
                         { key: "Y", label: "yazi", desc: "File Manager", cmd: "kitty yazi" },
-                        { key: "K", label: "squash", desc: "Token Compressor", cmd: "kitty bash -c 'read -p \"Command to squash: \" cmd; [[ -n \"$cmd\" ]] && squash $cmd; echo; read -p \"Press enter to close...\"'" }
+                        { key: "K", label: "squash", desc: "Token Squasher", cmd: "kitty bash -c 'read -p \"Command to squash: \" cmd; [[ -n \"$cmd\" ]] && squash $cmd; echo; read -p \"Press enter to close...\"'" },
+                        { key: "T", label: "fastfetch", desc: "System Info", cmd: "kitty --hold fastfetch" },
+                        { key: "B", label: "btop", desc: "Resource Monitor", cmd: "kitty btop" }
                     ]
                     filterText: searchBox.text
                     onItemTriggered: function(c) { root.launchCommand(c) }
@@ -340,10 +340,10 @@ Window {
                     accentColor: root.accent
                     items: [
                         { key: "N", label: "synapse-notes", desc: "Scratchpad Notes", cmd: "synapse-notes" },
-                        { key: "E", label: "synapse-settings", desc: "Control Center", cmd: "synapse-settings" },
-                        { key: "B", label: "chromium", desc: "Web Browser", cmd: "chromium" },
+                        { key: "C", label: "synapse-settings", desc: "Control Center", cmd: "synapse-settings" },
+                        { key: "W", label: "chromium", desc: "Web Browser", cmd: "chromium" },
                         { key: "J", label: "galculator", desc: "Calculator", cmd: "galculator" },
-                        { key: "U", label: "screensaver", desc: "Purple Donut", cmd: "synapse-screensaver --mode donut" }
+                        { key: "U", label: "screensaver", desc: "Unified Matrix", cmd: "synapse-screensaver --launch" }
                     ]
                     filterText: searchBox.text
                     onItemTriggered: function(c) { root.launchCommand(c) }

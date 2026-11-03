@@ -188,15 +188,32 @@ class SynapseSettingsWindow(QMainWindow):
         # Ollama status
         ollama_status = "Inactive"
         try:
-            res = subprocess.run(["systemctl", "is-active", "ollama"], capture_output=True, text=True)
-            if res.stdout.strip() == "active":
-                ollama_status = "Active (Port 11434)"
+            res = subprocess.run(["curl", "-s", "--connect-timeout", "1", "http://127.0.0.1:11434/api/tags"], capture_output=True, text=True)
+            if res.returncode == 0:
+                ollama_status = "Active (Port 11434) ✔"
         except Exception:
             pass
 
         st_lbl = QLabel(f"Ollama Local Daemon:  {ollama_status}")
         st_lbl.setStyleSheet("color: #a6e3a1; font-family: 'JetBrainsMono Nerd Font'; font-weight: 700; font-size: 12px;")
         vbox.addWidget(st_lbl)
+
+        # Installed models summary
+        models_str = "None installed"
+        try:
+            res = subprocess.run(["curl", "-s", "http://127.0.0.1:11434/api/tags"], capture_output=True, text=True)
+            if res.returncode == 0:
+                import json
+                data = json.loads(res.stdout)
+                names = [m.get("name", "") for m in data.get("models", [])]
+                if names:
+                    models_str = ", ".join(names[:4])
+        except Exception:
+            pass
+
+        models_lbl = QLabel(f"Installed Models:  {models_str}")
+        models_lbl.setStyleSheet("color: #cdd6f4; font-family: 'JetBrainsMono Nerd Font'; font-size: 11px;")
+        vbox.addWidget(models_lbl)
 
         # Context Squasher status
         squash_lbl = QLabel("Context Squasher (`synapse squash`): Enabled (Zero Telemetry, Lossless)")
@@ -205,7 +222,7 @@ class SynapseSettingsWindow(QMainWindow):
 
         # Control Pills
         hbox = QHBoxLayout()
-        btn_warm = QPushButton("⚡ Pre-warm Qwen 2.5 Coder")
+        btn_warm = QPushButton("⚡ Pre-warm Models")
         btn_warm.setCursor(Qt.CursorShape.PointingHandCursor)
         btn_warm.setStyleSheet(f"""
             QPushButton {{
@@ -219,7 +236,7 @@ class SynapseSettingsWindow(QMainWindow):
             }}
             QPushButton:hover {{ background-color: #ffffff; }}
         """)
-        btn_warm.clicked.connect(lambda: subprocess.Popen(["bash", "-c", "ai warm && notify-send 'AI Engine' 'Pre-warmed code model'"]))
+        btn_warm.clicked.connect(lambda: subprocess.Popen(["synapse-setup", "--warm"]))
         hbox.addWidget(btn_warm)
 
         btn_flush = QPushButton("🗑 Flush Models (Free RAM)")
@@ -236,8 +253,26 @@ class SynapseSettingsWindow(QMainWindow):
             }}
             QPushButton:hover {{ background-color: #f38ba8; color: #11111b; }}
         """)
-        btn_flush.clicked.connect(lambda: subprocess.Popen(["bash", "-c", "ai flush && notify-send 'AI Engine' 'Flushed resident models'"]))
+        btn_flush.clicked.connect(lambda: subprocess.Popen(["synapse-setup", "--flush"]))
         hbox.addWidget(btn_flush)
+
+        btn_manage = QPushButton("📦 Model Manager TUI")
+        btn_manage.setCursor(Qt.CursorShape.PointingHandCursor)
+        btn_manage.setStyleSheet("""
+            QPushButton {{
+                background-color: #11111b;
+                color: #74c7ec;
+                font-family: 'JetBrainsMono Nerd Font';
+                font-weight: 700;
+                padding: 8px 16px;
+                border-radius: 14px;
+                border: 1px solid #74c7ec;
+            }}
+            QPushButton:hover {{ background-color: #74c7ec; color: #11111b; }}
+        """)
+        btn_manage.clicked.connect(lambda: subprocess.Popen(["kitty", "synapse-setup", "--interactive"]))
+        hbox.addWidget(btn_manage)
+
         vbox.addLayout(hbox)
 
         vbox.addStretch()
@@ -273,7 +308,7 @@ class SynapseSettingsWindow(QMainWindow):
         fw_lbl.setStyleSheet("color: #a6e3a1; font-family: 'JetBrainsMono Nerd Font'; font-size: 11px;")
         vbox.addWidget(fw_lbl)
 
-        btn_audit = QPushButton("🛡 Run Full Privacy Audit (`lab audit`)")
+        btn_audit = QPushButton("🛡 Run Security & Privacy Audit (`sec-status`)")
         btn_audit.setCursor(Qt.CursorShape.PointingHandCursor)
         btn_audit.setStyleSheet(f"""
             QPushButton {{
@@ -287,7 +322,7 @@ class SynapseSettingsWindow(QMainWindow):
             }}
             QPushButton:hover {{ background-color: {self.accent}; color: #11111b; }}
         """)
-        btn_audit.clicked.connect(lambda: subprocess.Popen(["kitty", "--hold", "lab", "audit"]))
+        btn_audit.clicked.connect(lambda: subprocess.Popen(["kitty", "--hold", "sec-status"]))
         vbox.addWidget(btn_audit)
 
         vbox.addStretch()
