@@ -2,7 +2,7 @@
 
 **Project:** SynapseOS (`https://github.com/earnerbaymalay/synapseOS`)  
 **Workspace Root:** `/home/ebaymlay/Desktop/AI CLI WORK/synapseOS`  
-**Assigned Model:** Gemini 4 Argon (High Reasoning)  
+**Maintainer:** earnerbaymalay  
 **Handover Status:** Phases 1–7 Complete (**279/279 Gates Passing** | **17/17 pytest UI/UX Passing**); Laser Monolith Plymouth Splash & Branding Review Ready (see [`docs/BRANDING_LASER_BOOT_REVIEW.md`](file:///home/ebaymlay/Desktop/AI%20CLI%20WORK/synapseOS/docs/BRANDING_LASER_BOOT_REVIEW.md))
 
 ---
@@ -27,7 +27,7 @@ All structural specifications, packaging recipes, system overlays, and live ISO 
 
 ## 2. Next Execution Objectives in Antigravity IDE
 
-Now that the workspace is open in **Antigravity IDE**, the IDE agent (running **Gemini 4 Argon**) should execute the live build & runtime verification stages:
+Now that the workspace is open in **Antigravity IDE**, the IDE agent should execute the live build & runtime verification stages:
 
 1. **Stage A — Local Custom Repository & Native Package Compilation (`[synapseos]`)**:
    - Compile `synapse-core`, `llm-quickfire-panel`, `synapse-themes` and `synapse-greeter` using `./build/build-iso.sh --build-pkgs --dry-run` (or `makepkg -sf` in each package dir).

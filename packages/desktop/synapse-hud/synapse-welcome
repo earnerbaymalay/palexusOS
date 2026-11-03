@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
-"""synapse-welcome — SynapseOS Native Cyberdeck Onboarding Gate.
+"""synapse-welcome — SynapseOS Cyberdeck Onboarding Gate.
+Author: earnerbaymalay
 
 Matches the SDDM greeter (synapse-greeter) and HUD (synapse-hud) QtQuick/QML obsidian aesthetic:
   - Hardware-accelerated QtQuick/QML UI
   - Stamped 3D liquid chrome master emblem (master_plate_960.png)
   - Chamfered obsidian glass panel with traveling border trails and bloom
   - Circuit leads with pulse animations
-  - Dedicated Claude & Multi-Model AI Engine configuration console with live query testing
+  - Claude & Multi-Model AI Engine configuration console with live query testing
   - 12 modular hardware, kernel, and privacy feature combos
-  - 8-step sequential cyberdeck provisioning sequence
+  - 6-step sequential cyberdeck provisioning sequence
 """
 
 import os
@@ -176,7 +177,6 @@ class WelcomeBackend(QObject):
         self._claude_model = "claude-3-7-sonnet-20250219"
         self._claude_response = "Ready. Enter prompt above and click 'Query Claude' to test live communication."
 
-        self._selected_profile = "ai_deck"
         self._combos = {
             "stealth": True,
             "dot": True,
@@ -193,7 +193,7 @@ class WelcomeBackend(QObject):
         }
         self._selected_icon_theme = "Synapse-Liquid-Chrome"
         self._selected_wallpaper = "monolith-mauve"
-        self._selected_screensaver = "torus"
+        self._selected_screensaver = "unified"
 
     # Properties exposed to QML
     @pyqtProperty(str, notify=stateChanged)
@@ -266,16 +266,6 @@ class WelcomeBackend(QObject):
     def claudeTestResponse(self):
         return self._claude_response
 
-    @pyqtProperty(str, notify=stateChanged)
-    def selectedProfile(self):
-        return self._selected_profile
-
-    @selectedProfile.setter
-    def selectedProfile(self, val):
-        if self._selected_profile != val:
-            self._selected_profile = val
-            self.stateChanged.emit()
-
     @pyqtProperty("QVariantMap", notify=stateChanged)
     def combos(self):
         return self._combos
@@ -298,16 +288,6 @@ class WelcomeBackend(QObject):
     def selectedWallpaper(self, val):
         if self._selected_wallpaper != val:
             self._selected_wallpaper = val
-            self.stateChanged.emit()
-
-    @pyqtProperty(str, notify=stateChanged)
-    def selectedScreensaver(self):
-        return self._selected_screensaver
-
-    @selectedScreensaver.setter
-    def selectedScreensaver(self, val):
-        if self._selected_screensaver != val:
-            self._selected_screensaver = val
             self.stateChanged.emit()
 
     # Slots
@@ -366,17 +346,6 @@ class WelcomeBackend(QObject):
         self._claude_response = f"[Neural Gate Handshake OK]: Directive logged for operator '{self._operator}'. Model: {model}. Prime Directive stealth active."
         self.claudeResponseChanged.emit()
 
-    @pyqtSlot()
-    def previewScreensaver(self):
-        try:
-            exe = resolve_command_path("synapse-screensaver")
-            subprocess.Popen([exe, "--launch", "--mode", self._selected_screensaver], start_new_session=True)
-        except Exception:
-            try:
-                subprocess.Popen(["bash", "-c", f"synapse-screensaver --launch --mode {self._selected_screensaver}"], start_new_session=True)
-            except Exception:
-                pass
-
     @pyqtSlot(str)
     def launchCmd(self, cmd_str):
         try:
@@ -405,11 +374,10 @@ class WelcomeBackend(QObject):
                 "ai_engine": self._ai_engine,
                 "claude_model": self._claude_model,
                 "has_claude_key": bool(self._claude_key),
-                "profile_archetype": self._selected_profile,
                 "feature_combos": self._combos,
                 "icon_theme": self._selected_icon_theme,
                 "wallpaper_variant": self._selected_wallpaper,
-                "screensaver_mode": self._selected_screensaver
+                "screensaver_mode": "unified"
             }
             with open(os.path.join(CONFIG_DIR, "operator_profile.json"), "w", encoding="utf-8") as f:
                 json.dump(profile, f, indent=2)
@@ -454,7 +422,7 @@ class WelcomeBackend(QObject):
         # 4. Save Screensaver Preference
         try:
             with open(os.path.join(CONFIG_DIR, "screensaver_mode"), "w") as f:
-                f.write(self._selected_screensaver + "\n")
+                f.write("unified\n")
         except Exception:
             pass
 

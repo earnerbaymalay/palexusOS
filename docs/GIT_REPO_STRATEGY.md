@@ -23,7 +23,7 @@ SynapseOS strictly adopts the **Metadata-as-Code** pattern used by Arch Linux, D
 
 ```
 synapseOS/
-├── .agents/                    # Antigravity / Gemini 4 Argon agent rules & skills
+├── .agents/                    # Antigravity agent rules & skills
 │   └── rules/
 ├── .vscode/                    # Antigravity IDE workspace configuration
 ├── docs/                       # Architecture, research papers, specifications

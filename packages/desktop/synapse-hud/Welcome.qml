@@ -1,12 +1,11 @@
 // SynapseOS — Cyberdeck Onboarding Gate (QtQuick / QML)
-// Military-Grade Luxury Aerospace / Obsidian Glass Cyberdeck Console:
-// - Authentic 3D liquid chrome 4D plate rotating 360° right to left with tesseract aura
-// - Chamfered obsidian glass panels with dual traveling white-hot light trails
-// - Fluid cinematic step transitions with cubic easing and motion blur
-// - Segmented orbital conduit progress rail
-// - Dedicated Claude & Multi-Model AI Engine console with interactive live query terminal
-// - 12 modular hardware, kernel, and privacy feature combos
-// - Fully unified with SDDM greeter (synapse-greeter) Catppuccin Mocha obsidian design
+// author: earnerbaymalay
+// Chamfered obsidian glass panels with dual traveling white-hot light trails,
+// fluid cinematic step transitions with cubic easing, segmented orbital conduit
+// progress rail, Claude & Multi-Model AI Engine console with live query testing,
+// 12 modular hardware/kernel/privacy feature combos across 4 categories,
+// fully unified with SDDM greeter (synapse-greeter) Catppuccin Mocha obsidian design.
+// 6-step onboarding sequence.
 
 import QtQuick
 import QtQuick.Controls.Basic
@@ -42,9 +41,7 @@ Window {
     readonly property string backendOperator: (typeof backend !== "undefined" && backend && backend.operator) ? backend.operator : "operator"
     readonly property string backendHostname: (typeof backend !== "undefined" && backend && backend.hostname) ? backend.hostname : "synapse-deck"
     readonly property string backendAiEngine: (typeof backend !== "undefined" && backend && backend.selectedAiEngine) ? backend.selectedAiEngine : "claude"
-    readonly property string backendProfile: (typeof backend !== "undefined" && backend && backend.selectedProfile) ? backend.selectedProfile : "ai_deck"
     readonly property string backendIconTheme: (typeof backend !== "undefined" && backend && backend.selectedIconTheme) ? backend.selectedIconTheme : "Synapse-Liquid-Chrome"
-    readonly property string backendScreensaver: (typeof backend !== "undefined" && backend && backend.selectedScreensaver) ? backend.selectedScreensaver : "torus"
     readonly property var backendCombos: (typeof backend !== "undefined" && backend && backend.combos) ? backend.combos : ({})
     readonly property string chromePath: (typeof backend !== "undefined" && backend && backend.chromeEmblemPath) ? backend.chromeEmblemPath : ""
     readonly property string chromeLogoPath: (typeof backend !== "undefined" && backend && backend.chromeLogoPath) ? backend.chromeLogoPath : ""
@@ -54,7 +51,7 @@ Window {
     readonly property string claudeResponse: (typeof backend !== "undefined" && backend && backend.claudeTestResponse) ? backend.claudeTestResponse : "Ready. Enter prompt above and click 'EXECUTE NEURAL QUERY' to test live communication."
 
     property int currentStep: 0
-    readonly property int totalSteps: 8
+    readonly property int totalSteps: 6
     property bool showClaudeKey: false
 
     function withAlpha(c, a) { return Qt.rgba(c.r, c.g, c.b, a) }
@@ -380,7 +377,7 @@ Window {
                         anchors.right: parent.right
                         spacing: 6
                         Rectangle { width: 6; height: 6; radius: 3; color: root.accent; anchors.verticalCenter: parent.verticalCenter }
-                        Text { text: "STAGE // 0" + (root.currentStep + 1) + " OF 08 · ONLINE"; color: root.accent; font { family: root.mono; pixelSize: 10; bold: true } }
+                        Text { text: "STAGE // 0" + (root.currentStep + 1) + " OF 06 · ONLINE"; color: root.accent; font { family: root.mono; pixelSize: 10; bold: true } }
                     }
                 }
             }
@@ -403,13 +400,11 @@ Window {
 
                 readonly property var stepsMeta: [
                     { idx: "01", name: "IDENTITY" },
-                    { idx: "02", name: "CLAUDE AI" },
-                    { idx: "03", name: "ARCHETYPE" },
-                    { idx: "04", name: "COMBOS" },
-                    { idx: "05", name: "METALLIC" },
-                    { idx: "06", name: "THEME" },
-                    { idx: "07", name: "SCREENSAVER" },
-                    { idx: "08", name: "LAUNCH" }
+                    { idx: "02", name: "AI ENGINE" },
+                    { idx: "03", name: "CONTROLS" },
+                    { idx: "04", name: "ICONS" },
+                    { idx: "05", name: "THEME" },
+                    { idx: "06", name: "LAUNCH" }
                 ]
 
                 Repeater {
@@ -505,7 +500,7 @@ Window {
                 }
 
                 // ========================================================
-                // STEP 1: IDENTITY & CALL-SIGN
+                // STEP 1: IDENTITY — Operator Call-Sign & Hostname
                 // ========================================================
                 Item {
                     anchors.fill: parent
@@ -518,14 +513,14 @@ Window {
                         Row {
                             spacing: 8
                             Text {
-                                text: "QUESTION 01 // OPERATOR CALL-SIGN & NODE DESIGNATION"
+                                text: "Step 1 · Operator Identity"
                                 color: root.accent
                                 font { family: root.mono; pixelSize: 13; bold: true; letterSpacing: 1.2 }
                             }
                             Rectangle { width: 50; height: 16; radius: 3; color: "#09090d"; border.color: root.accent; Text { anchors.centerIn: parent; text: "AUTH"; color: root.accent; font { family: root.mono; pixelSize: 8; bold: true } } }
                         }
                         Text {
-                            text: "Establish your cryptographic operator credentials, cyberdeck hostname, and localized terminal identity."
+                            text: "Set your username and hostname for this system. These identify you in the terminal and on the network."
                             color: root.textSub
                             font { family: root.mono; pixelSize: 11 }
                         }
@@ -550,8 +545,8 @@ Window {
                                     spacing: 4
                                     Row {
                                         spacing: 6
-                                        Text { text: "OPERATOR CALL-SIGN / PRIMARY USER ACCOUNT:"; color: root.accent; font { family: root.mono; pixelSize: 11; bold: true } }
-                                        Text { text: "[AUTONOMOUS]"; color: "#a6e3a1"; font { family: root.mono; pixelSize: 9; bold: true } }
+                                        Text { text: "Username / Call-Sign:"; color: root.accent; font { family: root.mono; pixelSize: 11; bold: true } }
+                                        Text { text: "[PRIMARY ACCOUNT]"; color: "#a6e3a1"; font { family: root.mono; pixelSize: 9; bold: true } }
                                     }
                                     TextField {
                                         id: opInput
@@ -576,8 +571,8 @@ Window {
                                     spacing: 4
                                     Row {
                                         spacing: 6
-                                        Text { text: "CYBERDECK NODE HOSTNAME / LOCAL CLASSIFIED DOMAIN:"; color: "#74c7ec"; font { family: root.mono; pixelSize: 11; bold: true } }
-                                        Text { text: "[STATIC NODE]"; color: root.textMuted; font { family: root.mono; pixelSize: 9 } }
+                                        Text { text: "Hostname:"; color: "#74c7ec"; font { family: root.mono; pixelSize: 11; bold: true } }
+                                        Text { text: "[NETWORK NAME]"; color: root.textMuted; font { family: root.mono; pixelSize: 9 } }
                                     }
                                     TextField {
                                         id: hostInput
@@ -615,12 +610,12 @@ Window {
                                 Row {
                                     spacing: 8
                                     Rectangle { width: 8; height: 8; radius: 4; color: "#fab387"; anchors.verticalCenter: parent.verticalCenter }
-                                    Text { text: "SDDM AUTH GATE TELEMETRY TELETYPE"; color: "#fab387"; font { family: root.mono; pixelSize: 10; bold: true } }
+                                    Text { text: "LOGIN SCREEN PREVIEW"; color: "#fab387"; font { family: root.mono; pixelSize: 10; bold: true } }
                                 }
                                 Text {
-                                    text: "<font color='#a6e3a1'>[&nbsp;&nbsp;OK&nbsp;&nbsp;]</font> Authenticated operator: <font color='" + root.accent + "'><b>" + opInput.text + "</b></font> (tty7 · hardware token verified)<br>" +
-                                          "<font color='#a6e3a1'>[&nbsp;&nbsp;OK&nbsp;&nbsp;]</font> Cyberdeck hostnode: <font color='#74c7ec'><b>" + hostInput.text + "</b></font> · Quad9 DoT active on :853<br>" +
-                                          "<font color='#a6e3a1'>[&nbsp;&nbsp;OK&nbsp;&nbsp;]</font> Autonomous AI engine: <font color='#fab387'><b>Synapse</b></font> (daemon standby on 127.0.0.1:11434)"
+                                    text: "<font color='#a6e3a1'>[&nbsp;&nbsp;OK&nbsp;&nbsp;]</font> Authenticated user: <font color='" + root.accent + "'><b>" + opInput.text + "</b></font> (tty7 · session ready)<br>" +
+                                          "<font color='#a6e3a1'>[&nbsp;&nbsp;OK&nbsp;&nbsp;]</font> Hostname: <font color='#74c7ec'><b>" + hostInput.text + "</b></font> · Quad9 DoT active on :853<br>" +
+                                          "<font color='#a6e3a1'>[&nbsp;&nbsp;OK&nbsp;&nbsp;]</font> AI engine: <font color='#fab387'><b>Synapse</b></font> (daemon standby on 127.0.0.1:11434)"
                                     textFormat: Text.StyledText
                                     color: root.textSub
                                     font { family: root.mono; pixelSize: 11 }
@@ -631,7 +626,7 @@ Window {
                 }
 
                 // ========================================================
-                // STEP 2: DEDICATED CLAUDE & MULTI-MODEL AI ENGINE
+                // STEP 2: AI ENGINE — Claude & Multi-Model
                 // ========================================================
                 Item {
                     anchors.fill: parent
@@ -644,14 +639,14 @@ Window {
                         Row {
                             spacing: 8
                             Text {
-                                text: "QUESTION 02 // DEDICATED CLAUDE & MULTI-MODEL AI ENGINE"
+                                text: "Step 2 · AI Engine Setup"
                                 color: root.accent
                                 font { family: root.mono; pixelSize: 13; bold: true; letterSpacing: 1.2 }
                             }
                             Rectangle { width: 72; height: 16; radius: 3; color: "#09090d"; border.color: root.accent; Text { anchors.centerIn: parent; text: "REASONING"; color: root.accent; font { family: root.mono; pixelSize: 8; bold: true } } }
                         }
                         Text {
-                            text: "Configure your primary agentic reasoning engine. Enter Anthropic credentials or connect offline sovereign models."
+                            text: "Choose your primary AI engine. Enter an Anthropic API key for cloud access, or run fully offline with local models."
                             color: root.textSub
                             font { family: root.mono; pixelSize: 11 }
                         }
@@ -718,7 +713,7 @@ Window {
                                 Row {
                                     spacing: 8
                                     Rectangle { width: 8; height: 8; radius: 4; color: root.accent; anchors.verticalCenter: parent.verticalCenter }
-                                    Text { text: "DEDICATED CLAUDE CONSOLE // INTERACTIVE TELEMETRY INTERFACE"; color: root.accent; font { family: root.mono; pixelSize: 11; bold: true } }
+                                    Text { text: "AI CONSOLE // LIVE TEST INTERFACE"; color: root.accent; font { family: root.mono; pixelSize: 11; bold: true } }
                                     Rectangle {
                                         width: 60; height: 16; radius: 3; color: "#08080e"; border.color: root.accent
                                         Text { anchors.centerIn: parent; text: "ACTIVE"; color: root.accent; font { family: root.mono; pixelSize: 8; bold: true } }
@@ -761,7 +756,7 @@ Window {
                                     Column {
                                         width: parent.width * 0.42
                                         spacing: 3
-                                        Text { text: "Claude Model Designation:"; color: root.textSub; font { family: root.mono; pixelSize: 10; bold: true } }
+                                        Text { text: "Model:"; color: root.textSub; font { family: root.mono; pixelSize: 10; bold: true } }
                                         TextField {
                                             id: claudeModelInput
                                             width: parent.width
@@ -775,8 +770,8 @@ Window {
                                     }
                                 }
 
-                                // Interactive Claude Test Input Prompt
-                                Text { text: "Test Prompt to Neural Co-Pilot:"; color: "#fab387"; font { family: root.mono; pixelSize: 10; bold: true } }
+                                // Interactive Test Prompt
+                                Text { text: "Test Prompt:"; color: "#fab387"; font { family: root.mono; pixelSize: 10; bold: true } }
                                 Row {
                                     width: parent.width
                                     height: 32
@@ -787,16 +782,14 @@ Window {
                                         width: parent.width - 190
                                         height: 32
                                         text: "Synthesize cyberdeck defense status and verify neural readiness."
-                                        placeholderText: "Type prompt for Claude or local AI..."
+                                        placeholderText: "Type a prompt to test your AI connection..."
                                         color: root.textMain
                                         font { family: root.mono; pixelSize: 11 }
                                         background: Rectangle { color: "#08080e"; radius: 6; border.color: testPromptInput.activeFocus ? root.accent : root.borderMuted }
                                     }
 
                                     Rectangle {
-                                        width: 182
-                                        height: 32
-                                        radius: 6
+                                        width: 178; height: 32; radius: 6
                                         color: root.accent
 
                                         Text {
@@ -810,7 +803,7 @@ Window {
                                             cursorShape: Qt.PointingHandCursor
                                             onClicked: {
                                                 if (typeof backend !== "undefined" && backend) {
-                                                    claudeResponseText.text = "Handshaking with neural copilot..."
+                                                    claudeResponseText.text = "Handshaking with AI engine..."
                                                     backend.testClaudeQuery(testPromptInput.text, claudeKeyInput.text, claudeModelInput.text)
                                                 }
                                             }
@@ -818,7 +811,7 @@ Window {
                                     }
                                 }
 
-                                // Claude Test Output Monitor (Phosphor CRT Viewport)
+                                // AI Test Output Monitor (Phosphor CRT Viewport)
                                 Rectangle {
                                     width: parent.width
                                     height: 68
@@ -843,253 +836,450 @@ Window {
                 }
 
                 // ========================================================
-                // STEP 3: WORKSTATION PROFILE ARCHETYPES
+                // STEP 3: SYSTEM CONTROLS (12 Toggles, 4 Categories)
                 // ========================================================
                 Item {
                     anchors.fill: parent
                     visible: root.currentStep === 2
 
-                    Column {
+                    ScrollView {
                         anchors.fill: parent
-                        spacing: 10
+                        contentWidth: parent.width
+                        ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
+                        ScrollBar.vertical.policy: ScrollBar.AsNeeded
+                        clip: true
 
-                        Row {
+                        Column {
+                            width: parent.width
                             spacing: 8
+
+                            Row {
+                                spacing: 8
+                                Text {
+                                    text: "Step 3 · System Controls"
+                                    color: root.accent
+                                    font { family: root.mono; pixelSize: 13; bold: true; letterSpacing: 1.2 }
+                                }
+                                Rectangle { width: 78; height: 16; radius: 3; color: "#09090d"; border.color: root.accent; Text { anchors.centerIn: parent; text: "12-MATRIX"; color: root.accent; font { family: root.mono; pixelSize: 8; bold: true } } }
+                            }
                             Text {
-                                text: "QUESTION 03 // WORKSTATION PROFILE ARCHETYPE"
-                                color: root.accent
-                                font { family: root.mono; pixelSize: 13; bold: true; letterSpacing: 1.2 }
-                            }
-                            Rectangle { width: 70; height: 16; radius: 3; color: "#09090d"; border.color: root.accent; Text { anchors.centerIn: parent; text: "TUNING"; color: root.accent; font { family: root.mono; pixelSize: 8; bold: true } } }
-                        }
-                        Text {
-                            text: "Select your primary operational directive to optimize CPU scheduling, memory caching, and toolchains."
-                            color: root.textSub
-                            font { family: root.mono; pixelSize: 11 }
-                        }
-
-                        readonly property var archetypes: [
-                            { id: "ai_deck", title: "AI & Neural Deck (Agentic Engine)", badge: "ACCELERATED", col: "#cba6f7", desc: "Pre-warms local Ollama daemon, keeps 8GB model weights resident in VRAM/RAM, auto-indexes vector brain memory, and unlocks Claude/Gemini CLI tools." },
-                            { id: "sec_ops", title: "Cyber Defense & Hardened SecOps", badge: "HARDENED", col: "#f38ba8", desc: "Strict inbound firewall packet drops, randomized MAC rotation on link handshake, ephemeral RAM workspaces, and terminal forensics toolchains." },
-                            { id: "perf_kernel", title: "Kernel Extreme Performance & Low Latency", badge: "UNTHROTTLED", col: "#fab387", desc: "Unlocks sustained 25W PL1 thermal boost, CachyOS BORE scheduler burst prioritization, and 64-sample PipeWire audio buffer for real-time DSP." },
-                            { id: "stealth_core", title: "Sovereign Stealth & Zero Telemetry", badge: "STEALTH", col: "#74c7ec", desc: "Purges all outbound analytics, strictly routes DNS-over-TLS through Quad9 (port 853), isolates browser storage, and flushes RAM on session lock." },
-                            { id: "daily_driver", title: "Minimalist Cyberdeck Daily Driver", badge: "BALANCED", col: "#a6e3a1", desc: "Clean obsidian aesthetics, silent fan curve, deep C-state battery conservation, and distraction-free keyboard-driven tiling navigation." }
-                        ]
-
-                        Repeater {
-                            model: parent.archetypes
-                            delegate: Rectangle {
-                                required property var modelData
+                                text: "Enable or disable individual features. Each toggle can be changed later in system settings."
+                                color: root.textSub
+                                font { family: root.mono; pixelSize: 11 }
                                 width: parent.width
-                                height: 56
-                                radius: 6
-                                color: (root.backendProfile === modelData.id) ? root.surfaceContainer : root.surfaceCard
-                                border.color: (root.backendProfile === modelData.id) ? modelData.col : root.borderMuted
-                                border.width: (root.backendProfile === modelData.id) ? 1.5 : 1
+                            }
 
-                                Row {
-                                    anchors.fill: parent
-                                    anchors.margins: 10
-                                    spacing: 12
+                            // ---- PRIVACY & STEALTH ----
+                            Item { width: parent.width; height: 6 }
+                            Row {
+                                spacing: 6
+                                Rectangle { width: 3; height: 14; radius: 1; color: "#cba6f7"; anchors.verticalCenter: parent.verticalCenter }
+                                Text { text: "PRIVACY & STEALTH"; color: "#cba6f7"; font { family: root.mono; pixelSize: 10; bold: true; letterSpacing: 1.2 } }
+                            }
+                            Grid {
+                                width: parent.width
+                                columns: 3
+                                spacing: 6
 
-                                    Rectangle {
-                                        width: 14; height: 14; radius: 7; anchors.verticalCenter: parent.verticalCenter
-                                        color: (root.backendProfile === modelData.id) ? modelData.col : "transparent"
-                                        border.color: modelData.col; border.width: 2
-                                    }
+                                readonly property var privacyCombos: [
+                                    { k: "stealth",  title: "MAC Randomization", desc: "Randomizes your network hardware address on each connection to prevent tracking.", col: "#cba6f7" },
+                                    { k: "dot",      title: "Encrypted DNS",     desc: "Routes all DNS lookups through Quad9 over TLS (port 853). Prevents DNS snooping.", col: "#74c7ec" },
+                                    { k: "firewall", title: "Inbound Firewall",  desc: "Drops all unsolicited incoming connections. Only traffic you initiate gets through.", col: "#f38ba8" },
+                                    { k: "mem_scrub",title: "Session Scrub",     desc: "Clears clipboard contents and temporary tokens when the screen locks.", col: "#bac2de" }
+                                ]
 
-                                    Column {
-                                        anchors.verticalCenter: parent.verticalCenter
-                                        spacing: 2
-                                        width: parent.width - 120
+                                Repeater {
+                                    model: parent.privacyCombos
+                                    delegate: Rectangle {
+                                        required property var modelData
+                                        width: (parent.width - 12) / 3
+                                        height: 72
+                                        radius: 6
+                                        readonly property bool isOn: !!root.backendCombos[modelData.k]
+                                        color: isOn ? root.surfaceContainer : "#0b0b12"
+                                        border.color: isOn ? modelData.col : root.borderMuted
+                                        border.width: isOn ? 1.5 : 1
 
-                                        Row {
-                                            spacing: 8
-                                            Text { text: modelData.title; color: "#ffffff"; font { family: root.mono; pixelSize: 11; bold: true } }
-                                            Rectangle {
-                                                width: 78; height: 16; radius: 3; color: "#08080e"; border.color: modelData.col
-                                                Text { anchors.centerIn: parent; text: modelData.badge; color: modelData.col; font { family: root.mono; pixelSize: 8; bold: true } }
+                                        Column {
+                                            anchors.fill: parent
+                                            anchors.margins: 8
+                                            spacing: 4
+
+                                            Row {
+                                                width: parent.width
+                                                Text { text: modelData.title; color: "#ffffff"; font.family: root.mono; font.pixelSize: 10; font.bold: true; elide: Text.ElideRight; width: parent.width - 60 }
+                                                Rectangle {
+                                                    width: 54; height: 15; radius: 3; color: "#060609"
+                                                    border.color: isOn ? modelData.col : root.borderMuted
+                                                    Text { anchors.centerIn: parent; text: isOn ? "ON" : "OFF"; color: isOn ? modelData.col : root.textMuted; font { family: root.mono; pixelSize: 8; bold: true } }
+                                                }
                                             }
+                                            Text { text: modelData.desc; color: root.textSub; font.family: root.mono; font.pixelSize: 9; wrapMode: Text.WordWrap; width: parent.width }
                                         }
-                                        Text { text: modelData.desc; color: root.textSub; font.family: root.mono; font.pixelSize: 10; elide: Text.ElideRight; width: parent.width }
-                                    }
-                                }
 
-                                MouseArea {
-                                    anchors.fill: parent
-                                    cursorShape: Qt.PointingHandCursor
-                                    onClicked: if (typeof backend !== "undefined" && backend) backend.selectedProfile = modelData.id
+                                        MouseArea {
+                                            anchors.fill: parent
+                                            cursorShape: Qt.PointingHandCursor
+                                            onClicked: if (typeof backend !== "undefined" && backend) backend.toggleCombo(modelData.k)
+                                        }
+                                    }
                                 }
                             }
+
+                            // ---- PERFORMANCE ----
+                            Item { width: parent.width; height: 4 }
+                            Row {
+                                spacing: 6
+                                Rectangle { width: 3; height: 14; radius: 1; color: "#fab387"; anchors.verticalCenter: parent.verticalCenter }
+                                Text { text: "PERFORMANCE"; color: "#fab387"; font { family: root.mono; pixelSize: 10; bold: true; letterSpacing: 1.2 } }
+                            }
+                            Grid {
+                                width: parent.width
+                                columns: 3
+                                spacing: 6
+
+                                readonly property var perfCombos: [
+                                    { k: "bore",     title: "BORE Scheduler",    desc: "Prioritizes interactive apps for snappier window response and reduced input latency.", col: "#fab387" },
+                                    { k: "zram",     title: "ZRAM Swap",         desc: "Uses compressed RAM as a fast swap device. Reduces disk I/O under memory pressure.", col: "#74c7ec" },
+                                    { k: "audio_rt", title: "Low-Latency Audio", desc: "Locks PipeWire to 64-sample buffers for real-time DSP and music production.", col: "#a6e3a1" }
+                                ]
+
+                                Repeater {
+                                    model: parent.perfCombos
+                                    delegate: Rectangle {
+                                        required property var modelData
+                                        width: (parent.width - 12) / 3
+                                        height: 72
+                                        radius: 6
+                                        readonly property bool isOn: !!root.backendCombos[modelData.k]
+                                        color: isOn ? root.surfaceContainer : "#0b0b12"
+                                        border.color: isOn ? modelData.col : root.borderMuted
+                                        border.width: isOn ? 1.5 : 1
+
+                                        Column {
+                                            anchors.fill: parent
+                                            anchors.margins: 8
+                                            spacing: 4
+
+                                            Row {
+                                                width: parent.width
+                                                Text { text: modelData.title; color: "#ffffff"; font.family: root.mono; font.pixelSize: 10; font.bold: true; elide: Text.ElideRight; width: parent.width - 60 }
+                                                Rectangle {
+                                                    width: 54; height: 15; radius: 3; color: "#060609"
+                                                    border.color: isOn ? modelData.col : root.borderMuted
+                                                    Text { anchors.centerIn: parent; text: isOn ? "ON" : "OFF"; color: isOn ? modelData.col : root.textMuted; font { family: root.mono; pixelSize: 8; bold: true } }
+                                                }
+                                            }
+                                            Text { text: modelData.desc; color: root.textSub; font.family: root.mono; font.pixelSize: 9; wrapMode: Text.WordWrap; width: parent.width }
+                                        }
+
+                                        MouseArea {
+                                            anchors.fill: parent
+                                            cursorShape: Qt.PointingHandCursor
+                                            onClicked: if (typeof backend !== "undefined" && backend) backend.toggleCombo(modelData.k)
+                                        }
+                                    }
+                                }
+                            }
+
+                            // ---- AI & NEURAL ----
+                            Item { width: parent.width; height: 4 }
+                            Row {
+                                spacing: 6
+                                Rectangle { width: 3; height: 14; radius: 1; color: "#a6e3a1"; anchors.verticalCenter: parent.verticalCenter }
+                                Text { text: "AI & NEURAL"; color: "#a6e3a1"; font { family: root.mono; pixelSize: 10; bold: true; letterSpacing: 1.2 } }
+                            }
+                            Grid {
+                                width: parent.width
+                                columns: 3
+                                spacing: 6
+
+                                readonly property var aiCombos: [
+                                    { k: "ollama",     title: "Local AI Daemon",  desc: "Starts Ollama on boot so local AI models are instantly ready on port 11434.", col: "#a6e3a1" },
+                                    { k: "vector_mem", title: "Vector Memory",    desc: "Keeps a local SQLite vector store so your AI assistant remembers past sessions.", col: "#cba6f7" },
+                                    { k: "gpu_tensor", title: "GPU Acceleration", desc: "Unlocks full GPU performance clocks for faster AI inference and compute workloads.", col: "#fab387" }
+                                ]
+
+                                Repeater {
+                                    model: parent.aiCombos
+                                    delegate: Rectangle {
+                                        required property var modelData
+                                        width: (parent.width - 12) / 3
+                                        height: 72
+                                        radius: 6
+                                        readonly property bool isOn: !!root.backendCombos[modelData.k]
+                                        color: isOn ? root.surfaceContainer : "#0b0b12"
+                                        border.color: isOn ? modelData.col : root.borderMuted
+                                        border.width: isOn ? 1.5 : 1
+
+                                        Column {
+                                            anchors.fill: parent
+                                            anchors.margins: 8
+                                            spacing: 4
+
+                                            Row {
+                                                width: parent.width
+                                                Text { text: modelData.title; color: "#ffffff"; font.family: root.mono; font.pixelSize: 10; font.bold: true; elide: Text.ElideRight; width: parent.width - 60 }
+                                                Rectangle {
+                                                    width: 54; height: 15; radius: 3; color: "#060609"
+                                                    border.color: isOn ? modelData.col : root.borderMuted
+                                                    Text { anchors.centerIn: parent; text: isOn ? "ON" : "OFF"; color: isOn ? modelData.col : root.textMuted; font { family: root.mono; pixelSize: 8; bold: true } }
+                                                }
+                                            }
+                                            Text { text: modelData.desc; color: root.textSub; font.family: root.mono; font.pixelSize: 9; wrapMode: Text.WordWrap; width: parent.width }
+                                        }
+
+                                        MouseArea {
+                                            anchors.fill: parent
+                                            cursorShape: Qt.PointingHandCursor
+                                            onClicked: if (typeof backend !== "undefined" && backend) backend.toggleCombo(modelData.k)
+                                        }
+                                    }
+                                }
+                            }
+
+                            // ---- SYSTEM ----
+                            Item { width: parent.width; height: 4 }
+                            Row {
+                                spacing: 6
+                                Rectangle { width: 3; height: 14; radius: 1; color: "#b4befe"; anchors.verticalCenter: parent.verticalCenter }
+                                Text { text: "SYSTEM"; color: "#b4befe"; font { family: root.mono; pixelSize: 10; bold: true; letterSpacing: 1.2 } }
+                            }
+                            Grid {
+                                width: parent.width
+                                columns: 3
+                                spacing: 6
+
+                                readonly property var sysCombos: [
+                                    { k: "wayland",    title: "Wayland Compositor", desc: "Run the desktop under Wayland (Sway) for GPU-accelerated compositing. Falls back to XFCE/X11.", col: "#b4befe" },
+                                    { k: "hotkey_hud", title: "Keybinding HUD",     desc: "Shows a keyboard shortcut overlay on login to help you learn the system controls.", col: "#cba6f7" }
+                                ]
+
+                                Repeater {
+                                    model: parent.sysCombos
+                                    delegate: Rectangle {
+                                        required property var modelData
+                                        width: (parent.width - 12) / 3
+                                        height: 72
+                                        radius: 6
+                                        readonly property bool isOn: !!root.backendCombos[modelData.k]
+                                        color: isOn ? root.surfaceContainer : "#0b0b12"
+                                        border.color: isOn ? modelData.col : root.borderMuted
+                                        border.width: isOn ? 1.5 : 1
+
+                                        Column {
+                                            anchors.fill: parent
+                                            anchors.margins: 8
+                                            spacing: 4
+
+                                            Row {
+                                                width: parent.width
+                                                Text { text: modelData.title; color: "#ffffff"; font.family: root.mono; font.pixelSize: 10; font.bold: true; elide: Text.ElideRight; width: parent.width - 60 }
+                                                Rectangle {
+                                                    width: 54; height: 15; radius: 3; color: "#060609"
+                                                    border.color: isOn ? modelData.col : root.borderMuted
+                                                    Text { anchors.centerIn: parent; text: isOn ? "ON" : "OFF"; color: isOn ? modelData.col : root.textMuted; font { family: root.mono; pixelSize: 8; bold: true } }
+                                                }
+                                            }
+                                            Text { text: modelData.desc; color: root.textSub; font.family: root.mono; font.pixelSize: 9; wrapMode: Text.WordWrap; width: parent.width }
+                                        }
+
+                                        MouseArea {
+                                            anchors.fill: parent
+                                            cursorShape: Qt.PointingHandCursor
+                                            onClicked: if (typeof backend !== "undefined" && backend) backend.toggleCombo(modelData.k)
+                                        }
+                                    }
+                                }
+                            }
+
+                            Item { width: parent.width; height: 8 }
                         }
                     }
                 }
 
                 // ========================================================
-                // STEP 4: MODULAR FEATURE COMBOS (12 Toggles)
+                // STEP 4: ICON SUITE
                 // ========================================================
                 Item {
                     anchors.fill: parent
                     visible: root.currentStep === 3
 
-                    Column {
+                    ScrollView {
                         anchors.fill: parent
-                        spacing: 8
+                        contentWidth: parent.width
+                        ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
+                        ScrollBar.vertical.policy: ScrollBar.AsNeeded
+                        clip: true
 
-                        Row {
-                            spacing: 8
-                            Text {
-                                text: "QUESTION 04 // MODULAR SYSTEM FEATURE COMBOS"
-                                color: root.accent
-                                font { family: root.mono; pixelSize: 13; bold: true; letterSpacing: 1.2 }
-                            }
-                            Rectangle { width: 78; height: 16; radius: 3; color: "#09090d"; border.color: root.accent; Text { anchors.centerIn: parent; text: "12-MATRIX"; color: root.accent; font { family: root.mono; pixelSize: 8; bold: true } } }
-                        }
-                        Text {
-                            text: "Toggle individual hardware acceleration, privacy shielding, and kernel mechanics. Combine according to workflow."
-                            color: root.textSub
-                            font { family: root.mono; pixelSize: 11 }
-                        }
-
-                        // 12-Card Grid (Avionics Relay Switches)
-                        Grid {
+                        Column {
                             width: parent.width
-                            columns: 3
-                            spacing: 8
+                            spacing: 12
 
-                            readonly property var allCombos: [
-                                { k: "stealth", title: "Prime Directive Stealth", desc: "Dynamic MAC randomization on scan & links", col: "#cba6f7" },
-                                { k: "dot", title: "Encrypted DNS (DoT)", desc: "Strict Quad9 DNS-over-TLS (port 853)", col: "#74c7ec" },
-                                { k: "firewall", title: "Inbound Firewall Drop", desc: "Drop all unsolicited incoming packets", col: "#f38ba8" },
-                                { k: "mem_scrub", title: "Volatile Session Scrub", desc: "Purge clipboard and temp tokens on lock", col: "#bac2de" },
-                                { k: "ollama", title: "Local Ollama Daemon", desc: "Warm model standby on :11434 on boot", col: "#a6e3a1" },
-                                { k: "vector_mem", title: "Vector Brain Memory", desc: "Local SQLite vector store for bash & notes", col: "#cba6f7" },
-                                { k: "gpu_tensor", title: "GPU Tensor Unthrottle", desc: "Max performance clocks for neural compute", col: "#fab387" },
-                                { k: "bore", title: "BORE Scheduler Boost", desc: "Burst CPU priority for interactive GUI", col: "#fab387" },
-                                { k: "zram", title: "ZRAM Temp Filesystem", desc: "Mount /tmp & swap on compressed ZRAM", col: "#74c7ec" },
-                                { k: "audio_rt", title: "Realtime Audio Buffer", desc: "Lock PipeWire to 64-sample low-latency DSP", col: "#a6e3a1" },
-                                { k: "wayland", title: "Sway Wayland Compositor", desc: "Hardware acceleration with XFCE fallback", col: "#b4befe" },
-                                { k: "hotkey_hud", title: "Mnemonic Keybinding HUD", desc: "Super+key muscle memory overlay on login", col: "#cba6f7" }
+                            Row {
+                                spacing: 8
+                                Text {
+                                    text: "Step 4 · Icon Suite"
+                                    color: root.accent
+                                    font { family: root.mono; pixelSize: 13; bold: true; letterSpacing: 1.2 }
+                                }
+                                Rectangle { width: 68; height: 16; radius: 3; color: "#09090d"; border.color: root.accent; Text { anchors.centerIn: parent; text: "FINISH"; color: root.accent; font { family: root.mono; pixelSize: 8; bold: true } } }
+                            }
+                            Text {
+                                text: "Choose an icon style designed for high-contrast dark workspaces. All themes use hardware-accelerated vector rendering."
+                                color: root.textSub
+                                font { family: root.mono; pixelSize: 11 }
+                                width: parent.width
+                            }
+
+                            readonly property var iconThemes: [
+                                { id: "Synapse-Liquid-Chrome",   name: "Liquid Mauve Chrome (Default)", col: "#cba6f7", desc: "High-gloss mirror chrome finish with 45° diamond chamfers and liquid mauve sheen." },
+                                { id: "Synapse-Smoked-Obsidian", name: "Smoked Obsidian & Neon",        col: "#b4befe", desc: "Mirror-finish jet-black ceramic dish with knurled metal rim and glowing purple conduit." },
+                                { id: "Synapse-Radial-Tungsten", name: "Radial Milled Tungsten",        col: "#fab387", desc: "Concentric lathe tool marks with anisotropic cross-reflection and singularity torus." },
+                                { id: "Synapse-Aerospace-Billet",name: "Aerospace Billet & Satin",      col: "#74c7ec", desc: "Brushed titanium chassis plate with bead-blasted satin mauve pocket and micro-bolts." }
                             ]
 
                             Repeater {
-                                model: parent.allCombos
+                                model: parent.iconThemes
                                 delegate: Rectangle {
                                     required property var modelData
-                                    width: (parent.width - 16) / 3
-                                    height: 74
+                                    width: parent.width
+                                    height: 62
                                     radius: 6
-                                    readonly property bool isOn: !!root.backendCombos[modelData.k]
+                                    color: (root.backendIconTheme === modelData.id) ? root.surfaceContainer : root.surfaceCard
+                                    border.color: (root.backendIconTheme === modelData.id) ? modelData.col : root.borderMuted
+                                    border.width: (root.backendIconTheme === modelData.id) ? 1.5 : 1
 
-                                    color: isOn ? root.surfaceContainer : "#0b0b12"
-                                    border.color: isOn ? modelData.col : root.borderMuted
-                                    border.width: isOn ? 1.5 : 1
-
-                                    Column {
+                                    Row {
                                         anchors.fill: parent
-                                        anchors.margins: 8
-                                        spacing: 4
+                                        anchors.margins: 12
+                                        spacing: 12
 
-                                        Row {
-                                            width: parent.width
-                                            Text { text: modelData.title; color: "#ffffff"; font.family: root.mono; font.pixelSize: 10; font.bold: true; elide: Text.ElideRight; width: parent.width - 64 }
-                                            Rectangle {
-                                                width: 58; height: 16; radius: 3; color: "#060609"
-                                                border.color: isOn ? modelData.col : root.borderMuted
-                                                Text { anchors.centerIn: parent; text: isOn ? "ONLINE" : "STANDBY"; color: isOn ? modelData.col : root.textMuted; font { family: root.mono; pixelSize: 8; bold: true } }
-                                            }
+                                        Rectangle {
+                                            width: 14; height: 14; radius: 7; anchors.verticalCenter: parent.verticalCenter
+                                            color: (root.backendIconTheme === modelData.id) ? modelData.col : "transparent"
+                                            border.color: modelData.col; border.width: 2
                                         }
-                                        Text { text: modelData.desc; color: root.textSub; font.family: root.mono; font.pixelSize: 9; elide: Text.ElideRight; width: parent.width }
+
+                                        Column {
+                                            anchors.verticalCenter: parent.verticalCenter
+                                            spacing: 2
+                                            width: parent.width - 50
+
+                                            Text { text: modelData.name; color: "#ffffff"; font { family: root.mono; pixelSize: 12; bold: true } }
+                                            Text { text: modelData.desc; color: root.textSub; font { family: root.mono; pixelSize: 10 } }
+                                        }
                                     }
 
                                     MouseArea {
                                         anchors.fill: parent
                                         cursorShape: Qt.PointingHandCursor
-                                        onClicked: if (typeof backend !== "undefined" && backend) backend.toggleCombo(modelData.k)
+                                        onClicked: if (typeof backend !== "undefined" && backend) backend.selectedIconTheme = modelData.id
                                     }
                                 }
                             }
+
+                            Item { width: parent.width; height: 8 }
                         }
                     }
                 }
 
                 // ========================================================
-                // STEP 5: METALLIC & REFLECTIVE ICON SUITE
+                // STEP 5: VISUAL THEME — Wallpaper & Accent Variant
                 // ========================================================
                 Item {
                     anchors.fill: parent
                     visible: root.currentStep === 4
 
-                    Column {
+                    ScrollView {
                         anchors.fill: parent
-                        spacing: 12
+                        contentWidth: parent.width
+                        ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
+                        ScrollBar.vertical.policy: ScrollBar.AsNeeded
+                        clip: true
 
-                        Row {
-                            spacing: 8
+                        Column {
+                            width: parent.width
+                            spacing: 10
+
+                            Row {
+                                spacing: 8
+                                Text {
+                                    text: "Step 5 · Visual Theme"
+                                    color: root.accent
+                                    font { family: root.mono; pixelSize: 13; bold: true; letterSpacing: 1.2 }
+                                }
+                                Rectangle { width: 68; height: 16; radius: 3; color: "#09090d"; border.color: root.accent; Text { anchors.centerIn: parent; text: "PALETTE"; color: root.accent; font { family: root.mono; pixelSize: 8; bold: true } } }
+                            }
                             Text {
-                                text: "QUESTION 05 // METALLIC & REFLECTIVE ICON SUITE"
-                                color: root.accent
-                                font { family: root.mono; pixelSize: 13; bold: true; letterSpacing: 1.2 }
-                            }
-                            Rectangle { width: 68; height: 16; radius: 3; color: "#09090d"; border.color: root.accent; Text { anchors.centerIn: parent; text: "FINISH"; color: root.accent; font { family: root.mono; pixelSize: 8; bold: true } } }
-                        }
-                        Text {
-                            text: "Select hardware-accelerated vector suites designed for high-contrast obsidian workspaces."
-                            color: root.textSub
-                            font { family: root.mono; pixelSize: 11 }
-                        }
-
-                        readonly property var iconThemes: [
-                            { id: "Synapse-Liquid-Chrome", name: "Liquid Mauve Chrome (Default Master)", col: "#cba6f7", desc: "High-gloss mirror chrome finish with 45° diamond chamfers and liquid mauve sheen." },
-                            { id: "Synapse-Smoked-Obsidian", name: "Smoked Obsidian & Neon", col: "#b4befe", desc: "Mirror-finish jet-black ceramic dish with knurled metal rim and glowing purple conduit." },
-                            { id: "Synapse-Radial-Tungsten", name: "Radial Milled Tungsten", col: "#fab387", desc: "Concentric lathe tool marks with anisotropic cross-reflection and singularity torus." },
-                            { id: "Synapse-Aerospace-Billet", name: "Aerospace Billet & Satin", col: "#74c7ec", desc: "Brushed titanium chassis plate with bead-blasted satin mauve pocket and micro-bolts." }
-                        ]
-
-                        Repeater {
-                            model: parent.iconThemes
-                            delegate: Rectangle {
-                                required property var modelData
+                                text: "Pick your accent color and wallpaper. Your choice syncs across the login screen, taskbar, and HUD border glow."
+                                color: root.textSub
+                                font { family: root.mono; pixelSize: 11 }
                                 width: parent.width
-                                height: 62
-                                radius: 6
-                                color: (root.backendIconTheme === modelData.id) ? root.surfaceContainer : root.surfaceCard
-                                border.color: (root.backendIconTheme === modelData.id) ? modelData.col : root.borderMuted
-                                border.width: (root.backendIconTheme === modelData.id) ? 1.5 : 1
+                            }
 
-                                Row {
-                                    anchors.fill: parent
-                                    anchors.margins: 12
-                                    spacing: 12
+                            readonly property var wallpapers: [
+                                { id: "monolith-mauve",    name: "Monolith · Mauve (Default)", col: "#cba6f7", desc: "Classic monolithic geometry in deep Mauve" },
+                                { id: "tower-mauve",       name: "Basalt Tower · Mauve",        col: "#cba6f7", desc: "Brutalist cyberdeck pillars under ultraviolet aurora" },
+                                { id: "carbon-mauve",      name: "Forged Carbon · Mauve",       col: "#cba6f7", desc: "High-density forged carbon weave with violet accents" },
+                                { id: "monolith-tungsten", name: "Monolith · Tungsten",         col: "#fab387", desc: "Industrial warm tungsten anodized finish" },
+                                { id: "carbon-crimson",    name: "Forged Carbon · Crimson",     col: "#f38ba8", desc: "High-contrast stealth crimson weave" },
+                                { id: "monolith-sapphire", name: "Monolith · Sapphire",         col: "#74c7ec", desc: "Cold aerospace sapphire chrome" },
+                                { id: "monolith-emerald",  name: "Monolith · Emerald",          col: "#a6e3a1", desc: "Matrix phosphor terminal green" }
+                            ]
 
-                                    Rectangle {
-                                        width: 14; height: 14; radius: 7; anchors.verticalCenter: parent.verticalCenter
-                                        color: (root.backendIconTheme === modelData.id) ? modelData.col : "transparent"
-                                        border.color: modelData.col; border.width: 2
+                            Grid {
+                                width: parent.width
+                                columns: 3
+                                spacing: 8
+
+                                Repeater {
+                                    model: parent.wallpapers
+                                    delegate: Rectangle {
+                                        required property var modelData
+                                        width: (parent.width - 16) / 3
+                                        height: 46
+                                        radius: 6
+                                        color: (root.variant === modelData.id) ? root.surfaceContainer : root.surfaceCard
+                                        border.color: (root.variant === modelData.id) ? modelData.col : root.borderMuted
+                                        border.width: (root.variant === modelData.id) ? 1.5 : 1
+
+                                        Row {
+                                            anchors.fill: parent
+                                            anchors.margins: 8
+                                            spacing: 8
+
+                                            Rectangle {
+                                                width: 12; height: 12; radius: 6; anchors.verticalCenter: parent.verticalCenter
+                                                color: modelData.col; border.color: "#ffffff"; border.width: 1
+                                            }
+
+                                            Column {
+                                                anchors.verticalCenter: parent.verticalCenter
+                                                spacing: 2
+                                                width: parent.width - 28
+
+                                                Text { text: modelData.name; color: "#ffffff"; font.family: root.mono; font.pixelSize: 10; font.bold: true; elide: Text.ElideRight; width: parent.width }
+                                                Text { text: modelData.desc; color: root.textSub; font.family: root.mono; font.pixelSize: 8; elide: Text.ElideRight; width: parent.width }
+                                            }
+                                        }
+
+                                        MouseArea {
+                                            anchors.fill: parent
+                                            cursorShape: Qt.PointingHandCursor
+                                            onClicked: if (typeof backend !== "undefined" && backend) backend.selectedWallpaper = modelData.id
+                                        }
                                     }
-
-                                    Column {
-                                        anchors.verticalCenter: parent.verticalCenter
-                                        spacing: 2
-                                        width: parent.width - 50
-
-                                        Text { text: modelData.name; color: "#ffffff"; font { family: root.mono; pixelSize: 12; bold: true } }
-                                        Text { text: modelData.desc; color: root.textSub; font { family: root.mono; pixelSize: 10 } }
-                                    }
-                                }
-
-                                MouseArea {
-                                    anchors.fill: parent
-                                    cursorShape: Qt.PointingHandCursor
-                                    onClicked: if (typeof backend !== "undefined" && backend) backend.selectedIconTheme = modelData.id
                                 }
                             }
+
+                            Item { width: parent.width; height: 8 }
                         }
                     }
                 }
 
                 // ========================================================
-                // STEP 6: CYBERDECK WALLPAPER & ACCENT VARIANT
+                // STEP 6: LAUNCH — System Verification & Cockpit Launch
                 // ========================================================
                 Item {
                     anchors.fill: parent
@@ -1102,194 +1292,14 @@ Window {
                         Row {
                             spacing: 8
                             Text {
-                                text: "QUESTION 06 // CYBERDECK THEME & ACCENT VARIANT"
-                                color: root.accent
-                                font { family: root.mono; pixelSize: 13; bold: true; letterSpacing: 1.2 }
-                            }
-                            Rectangle { width: 68; height: 16; radius: 3; color: "#09090d"; border.color: root.accent; Text { anchors.centerIn: parent; text: "PALETTE"; color: root.accent; font { family: root.mono; pixelSize: 8; bold: true } } }
-                        }
-                        Text {
-                            text: "Each variant dynamically synchronizes your SDDM greeter, Waybar telemetry leads, and HUD glowing borders."
-                            color: root.textSub
-                            font { family: root.mono; pixelSize: 11 }
-                        }
-
-                        readonly property var wallpapers: [
-                            { id: "monolith-mauve", name: "Monolith · Mauve (Default)", col: "#cba6f7", desc: "Classic monolithic geometry in deep Mauve" },
-                            { id: "tower-mauve", name: "Basalt Tower · Mauve", col: "#cba6f7", desc: "Brutalist cyberdeck pillars under ultraviolet aurora" },
-                            { id: "carbon-mauve", name: "Forged Carbon · Mauve", col: "#cba6f7", desc: "High-density forged carbon weave with violet accents" },
-                            { id: "monolith-tungsten", name: "Monolith · Tungsten", col: "#fab387", desc: "Industrial warm tungsten anodized finish" },
-                            { id: "carbon-crimson", name: "Forged Carbon · Crimson", col: "#f38ba8", desc: "High-contrast stealth crimson weave" },
-                            { id: "monolith-sapphire", name: "Monolith · Sapphire", col: "#74c7ec", desc: "Cold aerospace sapphire chrome" },
-                            { id: "monolith-emerald", name: "Monolith · Emerald", col: "#a6e3a1", desc: "Matrix phosphor terminal green" }
-                        ]
-
-                        Grid {
-                            width: parent.width
-                            columns: 2
-                            spacing: 8
-
-                            Repeater {
-                                model: parent.wallpapers
-                                delegate: Rectangle {
-                                    required property var modelData
-                                    width: (parent.width - 8) / 2
-                                    height: 52
-                                    radius: 6
-                                    color: (root.variant === modelData.id) ? root.surfaceContainer : root.surfaceCard
-                                    border.color: (root.variant === modelData.id) ? modelData.col : root.borderMuted
-                                    border.width: (root.variant === modelData.id) ? 1.5 : 1
-
-                                    Row {
-                                        anchors.fill: parent
-                                        anchors.margins: 10
-                                        spacing: 10
-
-                                        Rectangle {
-                                            width: 14; height: 14; radius: 7; anchors.verticalCenter: parent.verticalCenter
-                                            color: modelData.col; border.color: "#ffffff"; border.width: 1
-                                        }
-
-                                        Column {
-                                            anchors.verticalCenter: parent.verticalCenter
-                                            spacing: 2
-                                            width: parent.width - 40
-
-                                            Text { text: modelData.name; color: "#ffffff"; font { family: root.mono; pixelSize: 11; bold: true } }
-                                            Text { text: modelData.desc; color: root.textSub; font.family: root.mono; font.pixelSize: 9; elide: Text.ElideRight; width: parent.width }
-                                        }
-                                    }
-
-                                    MouseArea {
-                                        anchors.fill: parent
-                                        cursorShape: Qt.PointingHandCursor
-                                        onClicked: if (typeof backend !== "undefined" && backend) backend.selectedWallpaper = modelData.id
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-
-                // ========================================================
-                // STEP 7: TERMINAL IDLE SCREENSAVER
-                // ========================================================
-                Item {
-                    anchors.fill: parent
-                    visible: root.currentStep === 6
-
-                    Column {
-                        anchors.fill: parent
-                        spacing: 12
-
-                        Row {
-                            spacing: 8
-                            Text {
-                                text: "QUESTION 07 // TERMINAL IDLE SCREENSAVER"
-                                color: root.accent
-                                font { family: root.mono; pixelSize: 13; bold: true; letterSpacing: 1.2 }
-                            }
-                            Rectangle { width: 68; height: 16; radius: 3; color: "#09090d"; border.color: root.accent; Text { anchors.centerIn: parent; text: "MATRIX"; color: root.accent; font { family: root.mono; pixelSize: 8; bold: true } } }
-                        }
-                        Text {
-                            text: "Mathematical Braille ASCII wireframes rendered on OLED obsidian black. Any keystroke resumes session."
-                            color: root.textSub
-                            font { family: root.mono; pixelSize: 11 }
-                        }
-
-                        readonly property var screensavers: [
-                            { id: "torus", name: "The Purple Donut (Geodesic Neon Torus)", col: "#cba6f7", desc: "Rotating mathematical 3D geodesic torus wireframe rendered in Braille Unicode on OLED black." },
-                            { id: "brand", name: "Decrypted Cyber Matrix & Brand Reveal", col: "#fab387", desc: "Terminal matrix data stream resolving into the glowing SYNAPSE master cipher glyph." },
-                            { id: "cycle", name: "Continuous Singularity Cycle", col: "#74c7ec", desc: "Seamlessly alternates between orbital torus (40s) and cipher brand reveal (12s)." }
-                        ]
-
-                        Repeater {
-                            model: parent.screensavers
-                            delegate: Rectangle {
-                                required property var modelData
-                                width: parent.width
-                                height: 64
-                                radius: 6
-                                color: (root.backendScreensaver === modelData.id) ? root.surfaceContainer : root.surfaceCard
-                                border.color: (root.backendScreensaver === modelData.id) ? modelData.col : root.borderMuted
-                                border.width: (root.backendScreensaver === modelData.id) ? 1.5 : 1
-
-                                Row {
-                                    anchors.fill: parent
-                                    anchors.margins: 12
-                                    spacing: 12
-
-                                    Rectangle {
-                                        width: 14; height: 14; radius: 7; anchors.verticalCenter: parent.verticalCenter
-                                        color: (root.backendScreensaver === modelData.id) ? modelData.col : "transparent"
-                                        border.color: modelData.col; border.width: 2
-                                    }
-
-                                    Column {
-                                        anchors.verticalCenter: parent.verticalCenter
-                                        spacing: 2
-                                        width: parent.width - 50
-
-                                        Text { text: modelData.name; color: "#ffffff"; font { family: root.mono; pixelSize: 12; bold: true } }
-                                        Text { text: modelData.desc; color: root.textSub; font { family: root.mono; pixelSize: 10 } }
-                                    }
-                                }
-
-                                MouseArea {
-                                    anchors.fill: parent
-                                    cursorShape: Qt.PointingHandCursor
-                                    onClicked: if (typeof backend !== "undefined" && backend) backend.selectedScreensaver = modelData.id
-                                }
-                            }
-                        }
-
-                        // Test-Fire Button
-                        Rectangle {
-                            width: 310
-                            height: 38
-                            radius: 6
-                            color: "#12121e"
-                            border.color: root.accent
-                            border.width: 1
-
-                            Text {
-                                anchors.centerIn: parent
-                                text: "TEST-FIRE SCREENSAVER IN FULLSCREEN ▶"
-                                color: root.accent
-                                font { family: root.mono; pixelSize: 10; bold: true }
-                            }
-
-                            MouseArea {
-                                anchors.fill: parent
-                                cursorShape: Qt.PointingHandCursor
-                                onClicked: if (typeof backend !== "undefined" && backend) backend.previewScreensaver()
-                            }
-                        }
-                    }
-                }
-
-                // ========================================================
-                // STEP 8: SYSTEM VERIFICATION & COCKPIT LAUNCH
-                // ========================================================
-                Item {
-                    anchors.fill: parent
-                    visible: root.currentStep === 7
-
-                    Column {
-                        anchors.fill: parent
-                        spacing: 10
-
-                        Row {
-                            spacing: 8
-                            Text {
-                                text: "QUESTION 08 // SYSTEM VERIFICATION & LAUNCH COCKPIT"
+                                text: "Step 6 · Launch"
                                 color: root.accent
                                 font { family: root.mono; pixelSize: 13; bold: true; letterSpacing: 1.2 }
                             }
                             Rectangle { width: 84; height: 16; radius: 3; color: "#09090d"; border.color: "#a6e3a1"; Text { anchors.centerIn: parent; text: "VERIFIED [✓]"; color: "#a6e3a1"; font { family: root.mono; pixelSize: 8; bold: true } } }
                         }
                         Text {
-                            text: "All cyberdeck parameters configured and verified. Review your operational profile and launch the desktop."
+                            text: "All settings configured. Review your choices below and hit the button to launch your desktop."
                             color: root.textSub
                             font { family: root.mono; pixelSize: 11 }
                         }
@@ -1310,12 +1320,12 @@ Window {
 
                                 Text {
                                     textFormat: Text.StyledText
-                                    text: "<font color='#a6e3a1'>[&nbsp;&nbsp;OK&nbsp;&nbsp;]</font> <b>OPERATOR CALL-SIGN:</b> <font color='" + root.accent + "'>" + root.backendOperator + "</font><br>" +
-                                          "<font color='#a6e3a1'>[&nbsp;&nbsp;OK&nbsp;&nbsp;]</font> <b>CYBERDECK HOSTNODE:</b> <font color='#74c7ec'>" + root.backendHostname + "</font><br>" +
-                                          "<font color='#a6e3a1'>[&nbsp;&nbsp;OK&nbsp;&nbsp;]</font> <b>AI ENGINE:</b> <font color='#fab387'>" + root.backendAiEngine.toUpperCase() + "</font> · Sovereign Reasoning Mesh<br>" +
-                                          "<font color='#a6e3a1'>[&nbsp;&nbsp;OK&nbsp;&nbsp;]</font> <b>WORKSTATION ARCHETYPE:</b> <font color='" + root.accent + "'>" + root.backendProfile.toUpperCase() + "</font><br>" +
-                                          "<font color='#a6e3a1'>[&nbsp;&nbsp;OK&nbsp;&nbsp;]</font> <b>METALLIC ICON SUITE:</b> <font color='#ffffff'>" + root.backendIconTheme + "</font><br>" +
-                                          "<font color='#a6e3a1'>[&nbsp;&nbsp;OK&nbsp;&nbsp;]</font> <b>PRIME DIRECTIVE STEALTH:</b> <font color='#a6e3a1'>ACTIVE (Quad9 DoT · MAC Randomized · BORE Low Latency)</font>"
+                                    text: "<font color='#a6e3a1'>[&nbsp;&nbsp;OK&nbsp;&nbsp;]</font> <b>USERNAME:</b> <font color='" + root.accent + "'>" + root.backendOperator + "</font><br>" +
+                                          "<font color='#a6e3a1'>[&nbsp;&nbsp;OK&nbsp;&nbsp;]</font> <b>HOSTNAME:</b> <font color='#74c7ec'>" + root.backendHostname + "</font><br>" +
+                                          "<font color='#a6e3a1'>[&nbsp;&nbsp;OK&nbsp;&nbsp;]</font> <b>AI ENGINE:</b> <font color='#fab387'>" + root.backendAiEngine.toUpperCase() + "</font><br>" +
+                                          "<font color='#a6e3a1'>[&nbsp;&nbsp;OK&nbsp;&nbsp;]</font> <b>ICON SUITE:</b> <font color='#ffffff'>" + root.backendIconTheme + "</font><br>" +
+                                          "<font color='#a6e3a1'>[&nbsp;&nbsp;OK&nbsp;&nbsp;]</font> <b>THEME:</b> <font color='" + root.accent + "'>" + root.variant.toUpperCase() + "</font><br>" +
+                                          "<font color='#a6e3a1'>[&nbsp;&nbsp;OK&nbsp;&nbsp;]</font> <b>PRIVACY:</b> <font color='#a6e3a1'>Quad9 DoT · MAC Randomization · BORE Scheduler</font>"
                                     color: root.textSub
                                     font { family: root.mono; pixelSize: 11 }
                                 }
@@ -1335,7 +1345,7 @@ Window {
                                 anchors.margins: 10
                                 spacing: 6
 
-                                Text { text: "MNEMONIC MUSCLE MEMORY [ SUPER + KEY ]:"; color: "#fab387"; font { family: root.mono; pixelSize: 10; bold: true } }
+                                Text { text: "KEYBOARD SHORTCUTS [ SUPER + KEY ]:"; color: "#fab387"; font { family: root.mono; pixelSize: 10; bold: true } }
 
                                 Grid {
                                     width: parent.width
@@ -1436,7 +1446,7 @@ Window {
                     spacing: 6
                     Rectangle { width: 6; height: 6; radius: 3; color: root.accent; anchors.verticalCenter: parent.verticalCenter }
                     Text {
-                        text: "ORBITAL STAGE 0" + (root.currentStep + 1) + " // 0" + root.totalSteps
+                        text: "ORBITAL STAGE 0" + (root.currentStep + 1) + " // 06"
                         color: root.textSub
                         font { family: root.mono; pixelSize: 11; bold: true; letterSpacing: 1.0 }
                     }

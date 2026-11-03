@@ -3,7 +3,7 @@
 ## Phase 1: Native Packaging & Core Daemons (Completed)
 - [x] Establish clean, featherlight Git repository structure.
 - [x] Author comprehensive architecture specifications & comparative inspiration breakdown.
-- [x] Configure Antigravity IDE with Gemini 4 Argon high-reasoning workspace rules.
+- [x] Configure Antigravity IDE workspace rules for high-reasoning systems engineering.
 - [x] Implement `packages/core/synapse-core/PKGBUILD` for compiling and packaging the Synapse daemon (`127.0.0.1:8000` gateway + 30m Brain sync timer).
 - [x] Implement `packages/desktop/llm-quickfire-panel/PKGBUILD` with curated color palettes (Catppuccin Mocha Mauve, Tokyo Night, Nord, Cyberpunk).
 - [x] Establish systemd service presets (`synapse.service`, `ollama.service`, `ananicy-cpp.service`, `firewalld.service`, `sddm.service`).

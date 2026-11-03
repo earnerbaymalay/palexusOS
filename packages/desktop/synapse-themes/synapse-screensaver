@@ -1,12 +1,17 @@
 #!/usr/bin/env python3
 """synapse-screensaver — SynapseOS terminal screensaver.
 
-Alternates a rotating geodesic torus (braille wireframe on OLED black) with a
-SYNAPSE brand reveal. Uses `tte` (terminaltexteffects) for the brand reveal when
-installed, otherwise a built-in decrypt effect. Any key exits. Stdlib only.
+Default mode is "unified": a seamless looping sequence —
+  geodesic torus (braille wireframe) → static noise burst →
+  matrix rain + SYNAPSE brand reveal → logo encrypt (reverse) →
+  rain fades → crossfade back to torus … and repeats indefinitely.
 
-  synapse-screensaver            run in the current terminal
+Legacy modes (torus, brand, cycle) are preserved for backward compat.
+Any key exits immediately. Stdlib only.
+
+  synapse-screensaver            run unified mode
   synapse-screensaver --launch   open fullscreen in kitty (or foot)
+  synapse-screensaver --mode torus
 """
 
 import argparse
@@ -36,7 +41,7 @@ ACCENTS = {
 }
 FPS = 30
 TORUS_SECONDS = 40
-BRAND_SECONDS = 12
+BRAND_SECONDS = 14
 
 # Braille dot bits indexed [y][x] within a 2x4 cell
 DOTS = ((0x01, 0x08), (0x02, 0x10), (0x04, 0x20), (0x40, 0x80))
@@ -51,6 +56,12 @@ GLYPHS = {
 }
 NOISE = "!@#$%&*+=?<>/\\|01░▒▓"
 
+# Matrix rain character pool: digits + ASCII symbols + block elements + katakana
+_KATAKANA = "アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン"
+RAIN_CHARS = "0123456789!@#$%&*+=?<>/\\|░▒▓" + _KATAKANA
+
+
+# ─── colour helpers ───────────────────────────────────────────────────────────
 
 def hex_rgb(value):
     value = value.lstrip("#")
@@ -62,17 +73,22 @@ def fg(rgb):
 
 
 def scale_rgb(rgb, k):
-    return tuple(int(c * k) for c in rgb)
+    return tuple(min(255, int(c * k)) for c in rgb)
+
+
+def lerp_rgb(a, b, t):
+    return tuple(int(a[i] + (b[i] - a[i]) * t) for i in range(3))
 
 
 def accent_rgb():
     try:
         with open(THEME_FILE) as fh:
-            # theme ids are <design>-<accent>, e.g. monolith-mauve
             return hex_rgb(ACCENTS.get(fh.read().strip().rsplit("-", 1)[-1], ACCENTS["mauve"]))
     except OSError:
         return hex_rgb(ACCENTS["mauve"])
 
+
+# ─── terminal ─────────────────────────────────────────────────────────────────
 
 class Terminal:
     """Raw-ish terminal: alt screen, hidden cursor, non-blocking key detection."""
@@ -103,32 +119,57 @@ class Terminal:
         return size.columns, size.lines
 
 
-def torus_mesh(major=2.0, minor=0.85, rings=9, segments=22):
-    """Wireframe points: `rings` circles around the hole, `segments` circles around the tube."""
+# ─── torus ────────────────────────────────────────────────────────────────────
+
+def torus_mesh(major=2.0, minor=0.85, rings=12, segments=28):
+    """Wireframe points: `rings` meridians + `segments` parallels — denser than before."""
     points = []
     for i in range(rings):
         v = 2 * math.pi * i / rings
-        for k in range(220):
-            u = 2 * math.pi * k / 220
+        for k in range(260):
+            u = 2 * math.pi * k / 260
             points.append((u, v))
     for j in range(segments):
         u = 2 * math.pi * j / segments
-        for k in range(80):
-            v = 2 * math.pi * k / 80
+        for k in range(100):
+            v = 2 * math.pi * k / 100
             points.append((u, v))
     return [
-        ((major + minor * math.cos(v)) * math.cos(u), minor * math.sin(v), (major + minor * math.cos(v)) * math.sin(u))
+        (
+            (major + minor * math.cos(v)) * math.cos(u),
+            minor * math.sin(v),
+            (major + minor * math.cos(v)) * math.sin(u),
+        )
         for u, v in points
     ]
 
 
-def render_torus(mesh, angle_a, angle_b, cols, rows, accent):
+def _starfield(cols, rows, seed, accent):
+    """Return a list of (row, col, char, color_str) for a sparse Unicode dot starfield."""
+    rng = random.Random(seed)
+    # Unicode "dot" characters for a subtle field
+    star_chars = "·∙•⋅⠂⠁"
+    stars = []
+    count = max(30, (cols * rows) // 60)
+    for _ in range(count):
+        r = rng.randint(0, rows - 1)
+        c = rng.randint(0, cols - 1)
+        ch = rng.choice(star_chars)
+        brightness = rng.uniform(0.08, 0.22)
+        color = fg(scale_rgb(accent, brightness))
+        stars.append((r, c, ch, color))
+    return stars
+
+
+def render_torus(mesh, angle_a, angle_b, cols, rows, accent, stars, glow_phase):
+    """Render torus with starfield backdrop and pulsing glow color-cycle."""
     pw, ph = cols * 2, rows * 4
     cx, cy = pw / 2, ph / 2
     scale = 0.95 * min(pw, ph)
     camera = 7.0
     extent = 2.85
-    ca, sa, cb, sb = math.cos(angle_a), math.sin(angle_a), math.cos(angle_b), math.sin(angle_b)
+    ca, sa = math.cos(angle_a), math.sin(angle_a)
+    cb, sb = math.cos(angle_b), math.sin(angle_b)
 
     cells = {}
     for x, y, z in mesh:
@@ -144,24 +185,122 @@ def render_torus(mesh, angle_a, angle_b, cols, rows, accent):
             mask, depth = cells.get(key, (0, 99.0))
             cells[key] = (mask | DOTS[py & 3][px & 1], min(depth, z2))
 
-    # Nearer strands glow brighter: 6 shade levels from 30% to 100% of the accent
-    shades = [fg(scale_rgb(accent, 0.3 + 0.14 * level)) for level in range(6)]
-    out = []
+    # Pulsing glow: cycle hue slightly around the accent colour
+    pulse = 0.80 + 0.20 * math.sin(glow_phase)
+    white_mix = 0.12 * (0.5 + 0.5 * math.sin(glow_phase * 1.3))
+    def glow_accent(level):
+        base = scale_rgb(accent, (0.28 + 0.14 * level) * pulse)
+        r = int(base[0] + (255 - base[0]) * white_mix * level / 5)
+        g = int(base[1] + (255 - base[1]) * white_mix * level / 5)
+        b = int(base[2] + (255 - base[2]) * white_mix * level / 5)
+        return fg((min(255,r), min(255,g), min(255,b)))
+
+    shades = [glow_accent(level) for level in range(6)]
+
+    # Build frame: start with black background
+    out = ["\x1b[H\x1b[48;2;0;0;0m"]
+
+    # Paint starfield first (we'll overwrite with torus cells)
+    star_map = {}
+    for sr, sc, sch, scol in stars:
+        star_map[(sr, sc)] = (sch, scol)
+
     for row in range(rows):
-        line, current = [], None
+        line, current_col = [], None
         for col in range(cols):
             cell = cells.get((row, col))
             if cell is None:
-                line.append(" ")
+                # Maybe a star here
+                if (row, col) in star_map:
+                    sch, scol = star_map[(row, col)]
+                    if current_col != scol:
+                        line.append(scol)
+                        current_col = scol
+                    line.append(sch)
+                else:
+                    if current_col is not None:
+                        line.append("\x1b[0m\x1b[48;2;0;0;0m")
+                        current_col = None
+                    line.append(" ")
                 continue
             level = min(5, max(0, int((extent - cell[1]) / (2 * extent) * 6)))
-            if level != current:
-                line.append(shades[level])
-                current = level
+            shade = shades[level]
+            if shade != current_col:
+                line.append(shade)
+                current_col = shade
             line.append(chr(0x2800 + cell[0]))
         out.append("".join(line))
-    return "\x1b[H" + "\n".join(out)
+    return "\n".join(out)
 
+
+# ─── matrix rain ──────────────────────────────────────────────────────────────
+
+class MatrixRain:
+    """Manages falling columns of random characters for the matrix rain effect."""
+
+    GREEN_HEAD = (180, 255, 180)
+    GREEN_MID  = (0, 200, 70)
+    GREEN_DIM  = (0, 100, 30)
+    GREEN_FADE = (0, 50, 15)
+
+    def __init__(self, cols, rows):
+        self.cols = cols
+        self.rows = rows
+        # Each column: (head_row, speed, trail_len, active)
+        self.columns = []
+        for c in range(cols):
+            self._init_col(c)
+
+    def _init_col(self, c):
+        """Initialise or reset a column with randomised parameters."""
+        speed = random.uniform(0.3, 1.2)          # rows per frame tick
+        trail = random.randint(4, min(18, self.rows - 2))
+        start = random.uniform(-self.rows, 0)      # head may start above screen
+        if len(self.columns) <= c:
+            self.columns.append([start, speed, trail, True])
+        else:
+            self.columns[c] = [start, speed, trail, True]
+
+    def tick(self, dt):
+        for c in range(min(self.cols, len(self.columns))):
+            col = self.columns[c]
+            col[0] += col[1] * dt * FPS
+            # Once the full trail has scrolled off screen, restart
+            if col[0] - col[2] > self.rows:
+                col[0] = random.uniform(-self.rows * 0.5, 0)
+                col[1] = random.uniform(0.3, 1.2)
+                col[2] = random.randint(4, min(18, self.rows - 2))
+
+    def render(self, alpha=1.0):
+        """
+        Return list of (row, col, char, esc_color) cells to paint.
+        alpha: 0.0 = invisible, 1.0 = full brightness (for fade in/out).
+        """
+        cells = []
+        for c, (head, speed, trail, active) in enumerate(self.columns):
+            head_row = int(head)
+            for offset in range(trail + 1):
+                r = head_row - offset
+                if r < 0 or r >= self.rows:
+                    continue
+                ch = random.choice(RAIN_CHARS)
+                if offset == 0:
+                    # Bright white/green head
+                    base = self.GREEN_HEAD
+                elif offset < 3:
+                    base = self.GREEN_MID
+                elif offset < trail // 2:
+                    base = self.GREEN_DIM
+                else:
+                    base = self.GREEN_FADE
+                r_c = int(base[0] * alpha)
+                g_c = int(base[1] * alpha)
+                b_c = int(base[2] * alpha)
+                cells.append((r, c, ch, "\x1b[38;2;%d;%d;%dm" % (r_c, g_c, b_c)))
+        return cells
+
+
+# ─── logo helpers ─────────────────────────────────────────────────────────────
 
 def logo_lines(cols):
     wide = cols >= 92
@@ -175,58 +314,286 @@ def logo_lines(cols):
     return lines
 
 
-def brand_tte(cols, rows):
-    """Brand reveal through terminaltexteffects; returns False if unavailable/failed."""
-    if not shutil.which("tte"):
-        return False
-    lines = logo_lines(cols) + ["", "S Y N A P S E   O S".center(len(logo_lines(cols)[0]))]
-    pad_left = max(0, (cols - len(lines[0])) // 2)
-    text = "\n" * max(0, (rows - len(lines)) // 2) + "\n".join(" " * pad_left + l for l in lines)
-    sys.stdout.write("\x1b[2J\x1b[H")
-    sys.stdout.flush()
-    effect = random.choice(["decrypt", "beams", "matrix", "synthgrid"])
-    try:
-        return subprocess.run(["tte", effect], input=text, text=True, timeout=BRAND_SECONDS + 20).returncode == 0
-    except (OSError, subprocess.SubprocessError):
-        return False
-
-
-def brand_builtin(term, accent, seconds):
-    cols, rows = term.size()
+def logo_targets(cols, rows):
+    """Return list of (row, col, char, resolve_at) for logo cells."""
     lines = logo_lines(cols)
-    subtitle = "S Y N A P S E   O S"
-    top = max(0, (rows - len(lines) - 2) // 2)
+    top  = max(0, (rows - len(lines) - 2) // 2)
     left = max(0, (cols - len(lines[0])) // 2)
-    targets = [
+    return [
         (top + r, left + c, ch, random.uniform(0.3, 2.6))
         for r, line in enumerate(lines)
         for c, ch in enumerate(line)
         if ch != " " and left + c < cols
-    ]
-    bright, dim, glint = fg(accent), fg(scale_rgb(accent, 0.35)), fg((255, 255, 255))
+    ], top, left, lines
+
+
+# ─── brand (built-in) ─────────────────────────────────────────────────────────
+
+def brand_builtin(term, accent, seconds, rain=None, reverse=False):
+    """
+    Decrypt (or re-encrypt when reverse=True) the SYNAPSE logo over `seconds`.
+    If `rain` is a MatrixRain instance, renders it in the background each frame.
+    Returns True on normal completion, False if a key was pressed.
+    """
+    cols, rows = term.size()
+    targets, top, left, lines = logo_targets(cols, rows)
+    subtitle = "S Y N A P S E   O S"
+    bright = fg(accent)
+    dim    = fg(scale_rgb(accent, 0.35))
+    glint  = fg((255, 255, 255))
+
+    # Sort targets by resolve_at so reverse animation mirrors forward
+    targets_sorted = sorted(targets, key=lambda t: t[3])
+
     start = time.monotonic()
-    while time.monotonic() - start < seconds:
-        t = time.monotonic() - start
-        sweep = (t - 3.0) * 40  # diagonal glint after the reveal settles
-        buf = ["\x1b[2J"]
+    dt = 1.0 / FPS
+
+    while True:
+        elapsed = time.monotonic() - start
+        if elapsed >= seconds:
+            break
+        t = elapsed if not reverse else seconds - elapsed
+
+        sweep = (t - 3.0) * 40
+
+        buf = ["\x1b[2J\x1b[H\x1b[48;2;0;0;0m"]
+
+        # ── matrix rain behind logo ──
+        if rain is not None:
+            rain.tick(dt)
+            for rr, rc, rch, rcol in rain.render(alpha=1.0):
+                buf.append("\x1b[%d;%dH%s%s" % (rr + 1, rc + 1, rcol, rch))
+
+        # ── logo cells ──
         for row, col, ch, resolve_at in targets:
             if t < resolve_at:
                 buf.append("\x1b[%d;%dH%s%s" % (row + 1, col + 1, dim, random.choice(NOISE)))
             else:
                 color = glint if 0 <= sweep - (col - left) - (row - top) * 2 < 3 else bright
                 buf.append("\x1b[%d;%dH%s%s" % (row + 1, col + 1, color, ch))
-        if t > 2.6:
-            buf.append(
-                "\x1b[%d;%dH%s%s" % (top + len(lines) + 2, max(1, (cols - len(subtitle)) // 2 + 1), dim, subtitle)
-            )
+
+        # ── subtitle (forward only, once logo mostly settled) ──
+        if not reverse and t > 2.6:
+            sub_col = max(1, (cols - len(subtitle)) // 2 + 1)
+            buf.append("\x1b[%d;%dH%s%s" % (top + len(lines) + 2, sub_col, dim, subtitle))
+
         sys.stdout.write("".join(buf))
         sys.stdout.flush()
-        if term.key_pressed(1.0 / FPS):
+
+        if term.key_pressed(dt):
+            return False
+
+    return True
+
+
+# ─── transition helpers ────────────────────────────────────────────────────────
+
+def noise_burst(term, accent, frames=10):
+    """
+    Briefly flood the screen with coloured noise chars to bridge phases.
+    Returns False if a key was pressed during the burst.
+    """
+    noise_chars = "░▒▓█▄▀■□▪▫" + NOISE
+    dt = 1.0 / FPS
+    for f in range(frames):
+        cols, rows = term.size()
+        # Fade the noise in then out over the burst
+        alpha = math.sin(math.pi * f / frames)
+        base = scale_rgb(accent, 0.4 + 0.6 * alpha)
+        color = fg(base)
+        buf = ["\x1b[H\x1b[48;2;0;0;0m", color]
+        for r in range(rows):
+            for c in range(cols):
+                buf.append(random.choice(noise_chars) if random.random() < alpha else " ")
+            if r < rows - 1:
+                buf.append("\n")
+        sys.stdout.write("".join(buf))
+        sys.stdout.flush()
+        if term.key_pressed(dt):
             return False
     return True
 
 
+def crossfade_torus(term, mesh, angle_a, angle_b, accent, stars, frames=20):
+    """
+    Fade from black into the torus over `frames` frames.
+    Returns (angle_a, angle_b) after fade, or None if key pressed.
+    """
+    dt = 1.0 / FPS
+    for f in range(frames):
+        alpha = f / frames
+        # We approximate the fade by dimming the accent toward black
+        faded_accent = scale_rgb(accent, alpha)
+        cols, rows = term.size()
+        sys.stdout.write(render_torus(mesh, angle_a, angle_b, cols, rows, faded_accent, stars, 0.0))
+        sys.stdout.flush()
+        angle_a += 0.021
+        angle_b += 0.013
+        if term.key_pressed(dt):
+            return None
+    return angle_a, angle_b
+
+
+# ─── unified mode ─────────────────────────────────────────────────────────────
+
+def run_unified(term, accent, mesh):
+    """
+    The seamless unified loop:
+      torus phase → noise burst → matrix rain + logo decrypt →
+      logo encrypt (reverse) → rain fades → crossfade back to torus → repeat
+    """
+    stars_seed = random.randint(0, 2**31)
+    angle_a, angle_b = 0.0, 0.0
+    glow_phase = 0.0
+    dt = 1.0 / FPS
+
+    while True:
+        cols, rows = term.size()
+        stars = _starfield(cols, rows, stars_seed, accent)
+
+        # ── PHASE 1: torus ────────────────────────────────────────────────────
+        torus_start = time.monotonic()
+        while time.monotonic() - torus_start < TORUS_SECONDS:
+            frame_start = time.monotonic()
+            cols, rows = term.size()
+            frame = render_torus(mesh, angle_a, angle_b, cols, rows, accent, stars, glow_phase)
+            sys.stdout.write(frame)
+            sys.stdout.flush()
+            angle_a  += 0.021
+            angle_b  += 0.013
+            glow_phase += 0.045
+            elapsed = time.monotonic() - frame_start
+            if term.key_pressed(max(0.0, dt - elapsed)):
+                return 0
+
+        # ── PHASE 2: noise burst ──────────────────────────────────────────────
+        if not noise_burst(term, accent, frames=10):
+            return 0
+
+        # ── PHASE 3: matrix rain + logo decrypt ───────────────────────────────
+        cols, rows = term.size()
+        rain = MatrixRain(cols, rows)
+
+        # Let rain fall for a moment before the logo starts
+        rain_pre = 1.8   # seconds of pure rain before decrypt
+        rain_start = time.monotonic()
+        while time.monotonic() - rain_start < rain_pre:
+            frame_start = time.monotonic()
+            buf = ["\x1b[2J\x1b[H\x1b[48;2;0;0;0m"]
+            rain.tick(dt)
+            for rr, rc, rch, rcol in rain.render(alpha=1.0):
+                buf.append("\x1b[%d;%dH%s%s" % (rr + 1, rc + 1, rcol, rch))
+            sys.stdout.write("".join(buf))
+            sys.stdout.flush()
+            elapsed = time.monotonic() - frame_start
+            if term.key_pressed(max(0.0, dt - elapsed)):
+                return 0
+
+        # Decrypt logo with rain still going
+        if not brand_builtin(term, accent, BRAND_SECONDS, rain=rain, reverse=False):
+            return 0
+
+        # Hold the fully revealed logo + rain for a beat
+        hold_dur = 2.5
+        hold_start = time.monotonic()
+        while time.monotonic() - hold_start < hold_dur:
+            frame_start = time.monotonic()
+            cols, rows = term.size()
+            targets, top, left, lines = logo_targets(cols, rows)
+            subtitle = "S Y N A P S E   O S"
+            buf = ["\x1b[2J\x1b[H\x1b[48;2;0;0;0m"]
+            rain.tick(dt)
+            for rr, rc, rch, rcol in rain.render(alpha=1.0):
+                buf.append("\x1b[%d;%dH%s%s" % (rr + 1, rc + 1, rcol, rch))
+            bright = fg(accent)
+            for row, col, ch, _ in targets:
+                buf.append("\x1b[%d;%dH%s%s" % (row + 1, col + 1, bright, ch))
+            sub_col = max(1, (cols - len(subtitle)) // 2 + 1)
+            buf.append("\x1b[%d;%dH%s%s" % (top + len(lines) + 2, sub_col, fg(scale_rgb(accent, 0.35)), subtitle))
+            sys.stdout.write("".join(buf))
+            sys.stdout.flush()
+            elapsed = time.monotonic() - frame_start
+            if term.key_pressed(max(0.0, dt - elapsed)):
+                return 0
+
+        # ── PHASE 4: logo re-encrypt (reverse) ────────────────────────────────
+        if not brand_builtin(term, accent, BRAND_SECONDS * 0.7, rain=rain, reverse=True):
+            return 0
+
+        # ── PHASE 5: rain fades out ───────────────────────────────────────────
+        fade_dur = 2.0
+        fade_start = time.monotonic()
+        while time.monotonic() - fade_start < fade_dur:
+            frame_start = time.monotonic()
+            alpha = 1.0 - (time.monotonic() - fade_start) / fade_dur
+            buf = ["\x1b[2J\x1b[H\x1b[48;2;0;0;0m"]
+            rain.tick(dt)
+            for rr, rc, rch, rcol in rain.render(alpha=alpha):
+                buf.append("\x1b[%d;%dH%s%s" % (rr + 1, rc + 1, rcol, rch))
+            sys.stdout.write("".join(buf))
+            sys.stdout.flush()
+            elapsed = time.monotonic() - frame_start
+            if term.key_pressed(max(0.0, dt - elapsed)):
+                return 0
+
+        # ── PHASE 6: noise burst back + crossfade into torus ─────────────────
+        if not noise_burst(term, accent, frames=8):
+            return 0
+
+        result = crossfade_torus(term, mesh, angle_a, angle_b, accent, stars, frames=25)
+        if result is None:
+            return 0
+        angle_a, angle_b = result
+
+        # Refresh stars each loop
+        stars_seed = random.randint(0, 2**31)
+
+
+# ─── legacy modes ─────────────────────────────────────────────────────────────
+
+def run_legacy(mode, term, accent, mesh):
+    """Legacy torus / brand / cycle modes (backward compat)."""
+    angle_a, angle_b = 0.0, 0.0
+    glow_phase = 0.0
+    dt = 1.0 / FPS
+    show_torus = mode != "brand"
+    stars_seed = random.randint(0, 2**31)
+
+    while True:
+        cols, rows = term.size()
+        stars = _starfield(cols, rows, stars_seed, accent)
+
+        if show_torus:
+            start = time.monotonic()
+            while mode == "torus" or time.monotonic() - start < TORUS_SECONDS:
+                frame_start = time.monotonic()
+                cols, rows = term.size()
+                sys.stdout.write(
+                    render_torus(mesh, angle_a, angle_b, cols, rows, accent, stars, glow_phase)
+                )
+                sys.stdout.flush()
+                angle_a  += 0.021
+                angle_b  += 0.013
+                glow_phase += 0.045
+                elapsed = time.monotonic() - frame_start
+                if term.key_pressed(max(0.0, dt - elapsed)):
+                    return 0
+            sys.stdout.write("\x1b[2J")
+        else:
+            if not brand_builtin(term, accent, BRAND_SECONDS):
+                return 0
+
+        if term.key_pressed(0):
+            return 0
+        if mode == "cycle":
+            show_torus = not show_torus
+            stars_seed = random.randint(0, 2**31)
+
+
+# ─── entry points ─────────────────────────────────────────────────────────────
+
 def run(mode):
+    # Single-instance guard
     lock = open(LOCK_PATH, "w")
     try:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
@@ -235,37 +602,15 @@ def run(mode):
 
     signal.signal(signal.SIGTERM, lambda *_: sys.exit(0))
     signal.signal(signal.SIGHUP, lambda *_: sys.exit(0))
+
     accent = accent_rgb()
-    mesh = torus_mesh()
-    angle_a, angle_b = 0.0, 0.0
-    show_torus = mode != "brand"
+    mesh   = torus_mesh()
 
     with Terminal() as term:
-        while True:
-            if show_torus:
-                start = time.monotonic()
-                while mode == "torus" or time.monotonic() - start < TORUS_SECONDS:
-                    frame_start = time.monotonic()
-                    cols, rows = term.size()
-                    sys.stdout.write(render_torus(mesh, angle_a, angle_b, cols, rows, accent))
-                    sys.stdout.flush()
-                    angle_a += 0.021
-                    angle_b += 0.013
-                    wait = max(0.0, 1.0 / FPS - (time.monotonic() - frame_start))
-                    if term.key_pressed(wait):
-                        return 0
-                sys.stdout.write("\x1b[2J")
-            else:
-                cols, rows = term.size()
-                if not brand_tte(cols, rows):
-                    if not brand_builtin(term, accent, BRAND_SECONDS):
-                        return 0
-                elif term.key_pressed(2.0):
-                    return 0
-            if term.key_pressed(0):
-                return 0
-            if mode == "cycle":
-                show_torus = not show_torus
+        if mode == "unified":
+            return run_unified(term, accent, mesh)
+        else:
+            return run_legacy(mode, term, accent, mesh)
 
 
 def launch(mode=None):
@@ -289,7 +634,10 @@ def launch(mode=None):
             "-o", "confirm_os_window_close=0", me,
         ] + mode_args
     elif shutil.which("foot"):
-        cmd = ["foot", "--fullscreen", "--app-id", "synapse-screensaver", "-o", "colors.background=000000", me] + mode_args
+        cmd = [
+            "foot", "--fullscreen", "--app-id", "synapse-screensaver",
+            "-o", "colors.background=000000", me,
+        ] + mode_args
     else:
         print("synapse-screensaver: kitty or foot is required for --launch", file=sys.stderr)
         return 1
@@ -297,26 +645,35 @@ def launch(mode=None):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="SynapseOS geodesic torus + brand screensaver")
+    parser = argparse.ArgumentParser(
+        description="SynapseOS unified screensaver — geodesic torus + matrix rain + brand reveal"
+    )
     parser.add_argument("--launch", action="store_true", help="open fullscreen in kitty/foot")
-    parser.add_argument("--mode", choices=["cycle", "torus", "brand"], default=None)
+    parser.add_argument(
+        "--mode",
+        choices=["unified", "cycle", "torus", "brand"],
+        default=None,
+        help="screensaver mode (default: unified)",
+    )
     args = parser.parse_args()
 
     mode = args.mode
     if not mode:
         pref_file = os.path.join(
-            os.environ.get("XDG_CONFIG_HOME", os.path.expanduser("~/.config")), "synapse", "screensaver_mode"
+            os.environ.get("XDG_CONFIG_HOME", os.path.expanduser("~/.config")),
+            "synapse",
+            "screensaver_mode",
         )
         if os.path.isfile(pref_file):
             try:
                 with open(pref_file, "r") as f:
                     saved = f.read().strip()
-                    if saved in ("cycle", "torus", "brand"):
+                    if saved in ("unified", "cycle", "torus", "brand"):
                         mode = saved
             except OSError:
                 pass
     if not mode:
-        mode = "torus"
+        mode = "unified"
 
     if args.launch:
         return launch(mode)

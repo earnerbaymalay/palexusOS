@@ -8,8 +8,8 @@
   - RFC 4941 IPv6 privacy extensions preferred.
   - Drop-all unsolicited incoming traffic via nftables/firewalld.
 
-## System Model & Engine: Gemini 4 Argon
-- **Primary AI Engine**: Gemini 4 Argon with high reasoning budget.
+## AI Governance & Project Mission
+- **Maintainer**: earnerbaymalay
 - **Mission**: Architect, construct, package, and test SynapseOS — an AI-native rolling Linux operating system merging:
   - **CachyOS Performance**: Kernel schedulers (BORE/EEVDF), x86-64-v3/v4 optimized repos, ZRAM zstd swappiness=180, BBR TCP.
   - **EndeavourOS Foundation**: Clean upstream Arch Linux base, transparent pacman packaging, Calamares installer, zero bloat.

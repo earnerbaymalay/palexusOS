@@ -150,76 +150,39 @@ class TestSynapseHudQml:
 # ============================================================================
 
 class TestSynapseWelcome:
-    """Test synapse-welcome onboarding wizard, page navigation, and GTK config sync."""
+    """Test synapse-welcome onboarding backend, QML loading, and GTK config sync."""
 
     @pytest.fixture
     def welcome_mod(self):
         return load_script_module("synapse_welcome_mod", HUD_DIR / "synapse-welcome")
 
-    def test_onboarding_wizard_initialization(self, qapp, welcome_mod):
-        """Verify OnboardingWizard initializes with 4 steps and correct default values."""
-        wizard = welcome_mod.OnboardingWizard()
-        assert wizard.windowTitle() == "SynapseOS · Onboarding Experience"
-        assert wizard.width() == 880
-        assert wizard.height() == 680
-        assert wizard.stack.count() == 4
-        assert wizard.stack.currentIndex() == 0
+    def test_welcome_backend_initialization(self, qapp, welcome_mod):
+        """Verify WelcomeBackend initializes with correct default values and properties."""
+        backend = welcome_mod.WelcomeBackend(qapp)
+        assert backend.selectedIconTheme == "Synapse-Liquid-Chrome"
+        assert backend.selectedWallpaper == "monolith-mauve"
+        assert backend.selectedAiEngine == "claude"
+        assert isinstance(backend.combos, dict)
+        assert backend.combos.get("stealth") is True
+        assert backend.combos.get("dot") is True
+        assert backend.combos.get("firewall") is True
 
-        assert wizard.selected_icon_theme == "Synapse-Liquid-Chrome"
-        assert wizard.selected_wallpaper == "monolith-mauve"
-        assert wizard.selected_screensaver == "torus"
+    def test_welcome_backend_toggle_and_qml_loading(self, qapp, welcome_mod):
+        """Verify combo toggling and QtQuick Welcome.qml load integrity."""
+        from PyQt6.QtQml import QQmlApplicationEngine
+        from PyQt6.QtCore import QUrl
 
-        assert not wizard.back_btn.isEnabled()
-        assert "Step 1 of 4" in wizard.page_indicator.text()
-        assert "Wallpapers" in wizard.next_btn.text()
-        wizard.close()
+        backend = welcome_mod.WelcomeBackend(qapp)
+        initial_stealth = backend.combos["stealth"]
+        backend.toggleCombo("stealth")
+        assert backend.combos["stealth"] != initial_stealth
 
-    def test_onboarding_navigation_flow(self, qapp, welcome_mod):
-        """Verify forward and backward navigation across all 4 onboarding pages."""
-        wizard = welcome_mod.OnboardingWizard()
-
-        # Step 1: Icons
-        assert wizard.stack.currentIndex() == 0
-        assert not wizard.back_btn.isEnabled()
-        assert "Step 1 of 4: Metallic Icons" == wizard.page_indicator.text()
-
-        # Step 1 -> Step 2: Wallpapers
-        wizard.next_page()
-        assert wizard.stack.currentIndex() == 1
-        assert wizard.back_btn.isEnabled()
-        assert "Step 2 of 4: Wallpapers & Accents" == wizard.page_indicator.text()
-        assert "Screensaver" in wizard.next_btn.text()
-
-        # Step 2 -> Step 3: Screensaver
-        wizard.next_page()
-        assert wizard.stack.currentIndex() == 2
-        assert wizard.back_btn.isEnabled()
-        assert "Step 3 of 4: Idle Screensaver" == wizard.page_indicator.text()
-        assert "Verify & Finish" in wizard.next_btn.text()
-
-        # Step 3 -> Step 4: Security / Verification
-        wizard.next_page()
-        assert wizard.stack.currentIndex() == 3
-        assert wizard.back_btn.isEnabled()
-        assert "Step 4 of 4: Cyberdeck Verification" == wizard.page_indicator.text()
-        assert "✨ Apply & Launch Cyberdeck" in wizard.next_btn.text()
-
-        # Step 4 -> Step 3 (Back)
-        wizard.prev_page()
-        assert wizard.stack.currentIndex() == 2
-        assert "Step 3 of 4" in wizard.page_indicator.text()
-
-        # Step 3 -> Step 2 (Back)
-        wizard.prev_page()
-        assert wizard.stack.currentIndex() == 1
-        assert "Step 2 of 4" in wizard.page_indicator.text()
-
-        # Step 2 -> Step 1 (Back)
-        wizard.prev_page()
-        assert wizard.stack.currentIndex() == 0
-        assert not wizard.back_btn.isEnabled()
-        assert "Step 1 of 4" in wizard.page_indicator.text()
-        wizard.close()
+        engine = QQmlApplicationEngine()
+        engine.rootContext().setContextProperty("backend", backend)
+        qml_path = HUD_DIR / "Welcome.qml"
+        assert qml_path.exists()
+        engine.load(QUrl.fromLocalFile(str(qml_path)))
+        assert len(engine.rootObjects()) > 0
 
     def test_update_gtk_settings_function(self, welcome_mod, tmp_path):
         """Verify update_gtk_settings writes and updates gtk-icon-theme-name under [Settings]."""
