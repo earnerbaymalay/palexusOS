@@ -75,6 +75,7 @@ def find_chrome_spin():
         script_dir / "synapse_chrome_plate_spin_360.webp",
         Path("/usr/share/synapse-hud/synapse_chrome_spin_360.gif"),
         Path("/usr/share/synapse-hud/synapse_chrome_spin_360.webp"),
+        Path("/usr/share/synapse-hud/synapse_chrome_plate_spin_360.webp"),
     ]
     for c in candidates:
         p = Path(c).resolve()

@@ -60,7 +60,7 @@ jobs:
             archlinux:latest \
             bash -euo pipefail -c "
               echo 'nobody ALL=(ALL:ALL) NOPASSWD: ALL' >> /etc/sudoers
-              pacman -Syu --noconfirm archiso base-devel git sudo namcap shellcheck rust cargo python python-pillow
+              pacman -Syu --noconfirm archiso base-devel git sudo namcap shellcheck rust cargo python python-pillow python-numpy
               mkdir -p /workspace/out/repo
               chown -R nobody:nobody /workspace/out /workspace/packages
               ./build/verify-gates.sh
@@ -84,8 +84,11 @@ jobs:
 
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main'
         with:
+          tag_name: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || 'latest' }}
+          name: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || 'SynapseOS Rolling Preview' }}
+          prerelease: ${{ !startsWith(github.ref, 'refs/tags/v') }}
           generate_release_notes: true
           files: |
             out/*.iso
