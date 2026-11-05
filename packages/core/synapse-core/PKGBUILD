@@ -29,13 +29,13 @@ sha256sums=(
 
 prepare() {
   cd "$srcdir/synapse"
-  export RUSTUP_TOOLCHAIN=stable
+  export CARGO_HOME="$srcdir/cargo"
 }
 
 build() {
   cd "$srcdir/synapse"
   unset CFLAGS CXXFLAGS LDFLAGS
-  export RUSTUP_TOOLCHAIN=stable
+  export CARGO_HOME="$srcdir/cargo"
   export CARGO_TARGET_DIR=target
   export RUSTFLAGS="-C target-cpu=x86-64-v3 -C opt-level=3 -C codegen-units=1"
   cargo build --release --locked -p synapse --bin synapse
@@ -44,7 +44,7 @@ build() {
 check() {
   cd "$srcdir/synapse"
   unset CFLAGS CXXFLAGS LDFLAGS
-  export RUSTUP_TOOLCHAIN=stable
+  export CARGO_HOME="$srcdir/cargo"
   export CARGO_TARGET_DIR=target
   cargo test --release --locked -p synapse -p synapse-core
 }

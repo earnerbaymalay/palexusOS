@@ -59,10 +59,12 @@ jobs:
             -w /workspace \
             archlinux:latest \
             bash -euo pipefail -c "
+              useradd -m -G wheel -s /bin/bash builder 2>/dev/null || true
+              echo 'builder ALL=(ALL:ALL) NOPASSWD: ALL' >> /etc/sudoers
               echo 'nobody ALL=(ALL:ALL) NOPASSWD: ALL' >> /etc/sudoers
               pacman -Syu --noconfirm archiso base-devel git sudo namcap shellcheck rust cargo python python-pillow python-numpy
-              mkdir -p /workspace/out/repo
-              chown -R nobody:nobody /workspace/out /workspace/packages
+              mkdir -p /workspace/out/repo /home/builder/.cargo
+              chown -R builder:builder /workspace/out /workspace/packages /home/builder 2>/dev/null || true
               ./build/verify-gates.sh
               ./build/build-iso.sh --build-pkgs
             "

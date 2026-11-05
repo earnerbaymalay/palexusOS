@@ -169,8 +169,15 @@ build_local_packages() {
                     makepkg_flags=("-f" "--noconfirm" "--nodeps")
                 fi
                 if [[ "${EUID}" -eq 0 ]]; then
-                    chown -R nobody:nobody "${pkg_dir}"
-                    sudo -u nobody makepkg "${makepkg_flags[@]}"
+                    local build_user="builder"
+                    if ! id "${build_user}" >/dev/null 2>&1; then
+                        useradd -m -s /bin/bash "${build_user}" 2>/dev/null || build_user="nobody"
+                    fi
+                    local user_home
+                    user_home=$(eval echo ~"${build_user}")
+                    mkdir -p "${user_home}/.cargo"
+                    chown -R "${build_user}:${build_user}" "${pkg_dir}" "${LOCAL_REPO_DIR}" "${user_home}"
+                    sudo -H -u "${build_user}" env HOME="${user_home}" CARGO_HOME="${user_home}/.cargo" makepkg "${makepkg_flags[@]}"
                 else
                     makepkg "${makepkg_flags[@]}"
                 fi
