@@ -60,30 +60,69 @@ Modern commercial operating systems increasingly treat your hardware as a client
 
 Want to test SynapseOS right now without touching your hard drive or flashing a USB stick? You can run it inside a virtual machine in under a minute:
 
-### Option A: Linux & macOS (1-Command QEMU Walkthrough)
+### Option A: Linux & macOS (Quick Virtual Machine / QEMU Walkthrough)
 
-If you have `qemu` installed, copy and paste this command into your terminal:
+Most systems do not come with `qemu` pre-installed. You can install it in seconds with a single command for your package manager, or use a zero-terminal GUI like **GNOME Boxes** (Linux) or **UTM** (macOS).
+
+#### Step 1: Install QEMU (If you don't already have it)
+
+Run the command for your operating system:
+
+* **Ubuntu / Debian / Linux Mint**:
+  ```bash
+  sudo apt update && sudo apt install -y qemu-system-x86 qemu-utils
+  ```
+* **Arch Linux / CachyOS / Manjaro**:
+  ```bash
+  sudo pacman -S --needed qemu-desktop
+  ```
+* **Fedora / RHEL**:
+  ```bash
+  sudo dnf install -y qemu-kvm
+  ```
+* **macOS (via Homebrew)**:
+  ```bash
+  brew install qemu
+  ```
+* **Windows (via PowerShell & winget)**:
+  ```powershell
+  winget install SoftwareFreedomConservancy.QEMU
+  ```
+  *(Or jump to [Option B](#option-b-windows-virtualbox--hyper-v-step-by-step-walkthrough) below for standard VirtualBox / Hyper-V graphical setup)*
+
+> [!TIP]
+> **Prefer a graphical app without terminal commands?**
+> * **Linux**: Install **GNOME Boxes** (`sudo apt install gnome-boxes` or `sudo pacman -S gnome-boxes`), click **+** (New VM), click *Select a file*, and choose `synapseos-x86_64.iso`.
+> * **macOS**: Download free **[UTM](https://mac.getutm.app)**, select *Create a New Virtual Machine > Virtualize > Linux*, and select `synapseos-x86_64.iso`.
+
+#### Step 2: Download & Launch SynapseOS in One Command
+
+Once QEMU is installed, copy and paste this into your terminal:
 
 ```bash
 # 1. Download the latest verified ISO:
 curl -LO https://github.com/earnerbaymalay/synapseOS/releases/latest/download/synapseos-x86_64.iso
 
 # 2. Launch the accelerated virtual machine:
+# On Linux (Hardware KVM acceleration):
 qemu-system-x86_64 \
   -enable-kvm -m 8G -smp 4 -cpu host \
   -vga virtio -display gtk,gl=on \
   -audiodev pa,id=snd0 -device intel-hda -device hda-duplex,audiodev=snd0 \
   -cdrom synapseos-x86_64.iso -boot d
+
+# On macOS (Hardware HVF acceleration):
+# qemu-system-x86_64 -accel hvf -m 8G -smp 4 -cpu host -vga virtio -display default -cdrom synapseos-x86_64.iso -boot d
 ```
 
 #### What happens next:
-1. **Boot**: The QEMU window opens immediately and plays the authentic 3D liquid chrome boot loading sequence.
+1. **Boot**: The virtual machine window opens immediately and plays the authentic 3D liquid chrome boot loading sequence.
 2. **Desktop**: Within 10 seconds, you are on the SynapseOS desktop in Live Mode.
 3. **Controls**:
-   - Tap **`Ctrl + Alt`** at any time to release your mouse cursor back to your host system.
+   - Tap **`Ctrl + Alt`** (or **`Ctrl + Alt + G`**) at any time to release your mouse cursor back to your host system.
    - Tap **`Ctrl + Alt + F`** to toggle fullscreen.
 4. **Try Local AI**: Press **`Super + Space`** (the `Windows` key + `Space`) to summon the Synapse Command HUD and prompt the local model.
-5. **Exit**: Simply close the QEMU window when you're done. No traces are left on your computer.
+5. **Exit**: Simply close the VM window when you're done. No traces or persistent files are left on your computer.
 
 ---
 
