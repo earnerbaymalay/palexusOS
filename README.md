@@ -62,13 +62,16 @@ Want to test SynapseOS right now without touching your hard drive or flashing a 
 
 ### Option A: Linux & macOS (Quick Virtual Machine / QEMU Walkthrough)
 
-Most systems do not come with `qemu` pre-installed. You can install it in seconds with a single command for your package manager, or use a zero-terminal GUI like **GNOME Boxes** (Linux) or **UTM** (macOS).
+Most operating systems do not come with `qemu` pre-installed. You can install it in seconds using your system's package manager, or use a zero-terminal GUI like **GNOME Boxes** (Linux) or **UTM** (macOS).
 
-#### Step 1: Install QEMU (If you don't already have it)
+> [!NOTE]
+> **On Windows?** Jump directly to **[Option B: Windows (VirtualBox, Hyper-V, or winget QEMU)](#option-b-windows-virtualbox-hyper-v--winget-qemu-walkthrough)**. Linux commands like `sudo apt` will fail in Windows PowerShell. If using WSL2, enter `wsl` first before running apt commands.
 
-Run the command for your operating system:
+#### Step 1: Install QEMU on Linux / macOS (If not already installed)
 
-* **Ubuntu / Debian / Linux Mint**:
+Run the command for your operating system terminal:
+
+* **Ubuntu / Debian / Linux Mint (Bash / Zsh)**:
   ```bash
   sudo apt update && sudo apt install -y qemu-system-x86 qemu-utils
   ```
@@ -84,11 +87,6 @@ Run the command for your operating system:
   ```bash
   brew install qemu
   ```
-* **Windows (via PowerShell & winget)**:
-  ```powershell
-  winget install SoftwareFreedomConservancy.QEMU
-  ```
-  *(Or jump to [Option B](#option-b-windows-virtualbox--hyper-v-step-by-step-walkthrough) below for standard VirtualBox / Hyper-V graphical setup)*
 
 > [!TIP]
 > **Prefer a graphical app without terminal commands?**
@@ -126,11 +124,24 @@ qemu-system-x86_64 \
 
 ---
 
-### Option B: Windows (VirtualBox / Hyper-V Step-by-Step Walkthrough)
+### Option B: Windows (VirtualBox, Hyper-V & winget QEMU Walkthrough)
 
-You can run SynapseOS inside Windows using free virtualization tools:
+You can test SynapseOS on Windows using any of these free methods:
 
-#### Using VirtualBox:
+#### Method 1: Install QEMU on Windows via winget (PowerShell)
+If you prefer a lightweight terminal-launched VM directly in Windows:
+
+1. Open **PowerShell** (no administrator rights needed) and install QEMU:
+   ```powershell
+   winget install SoftwareFreedomConservancy.QEMU
+   ```
+2. Download `synapseos-x86_64.iso` from [GitHub Releases](https://github.com/earnerbaymalay/synapseOS/releases).
+3. Launch QEMU with Windows Hypervisor acceleration (WHPX):
+   ```powershell
+   & "C:\Program Files\qemu\qemu-system-x86_64.exe" -accel whpx -m 8G -smp 4 -cdrom synapseos-x86_64.iso -boot d
+   ```
+
+#### Method 2: Using VirtualBox (Recommended for Graphical Controls)
 1. **Download**: Grab `synapseos-x86_64.iso` from our [Releases](https://github.com/earnerbaymalay/synapseOS/releases).
 2. **Create VM**:
    - Open VirtualBox and click **New**.
@@ -145,7 +156,7 @@ You can run SynapseOS inside Windows using free virtualization tools:
    - Click **Start**! Within seconds, you are in the live Cyberdeck environment.
    - Tap the **Right `Ctrl`** key to release the mouse back to Windows.
 
-#### Using Hyper-V (Windows 11/10 Pro & Enterprise):
+#### Method 3: Using Hyper-V (Windows 11/10 Pro & Enterprise)
 1. Open **Hyper-V Manager** and click **Quick Create**.
 2. Select **Local Installation Source**, click **Change Installation Source**, and select `synapseos-x86_64.iso`.
 3. Uncheck *"This machine will run Windows"*.
