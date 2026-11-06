@@ -59,10 +59,13 @@ jobs:
             -w /workspace \
             archlinux:latest \
             bash -euo pipefail -c "
-              useradd -m -G wheel -s /bin/bash builder 2>/dev/null || true
-              echo 'builder ALL=(ALL:ALL) NOPASSWD: ALL' >> /etc/sudoers
-              echo 'nobody ALL=(ALL:ALL) NOPASSWD: ALL' >> /etc/sudoers
+              pacman -Sy --noconfirm archlinux-keyring
               pacman -Syu --noconfirm archiso base-devel git sudo namcap shellcheck rust cargo python python-pillow python-numpy
+              useradd -m -G wheel -s /bin/bash builder 2>/dev/null || true
+              install -d -m 0750 /etc/sudoers.d
+              echo 'builder ALL=(ALL:ALL) NOPASSWD: ALL' > /etc/sudoers.d/builder
+              echo 'nobody ALL=(ALL:ALL) NOPASSWD: ALL' > /etc/sudoers.d/nobody
+              chmod 0440 /etc/sudoers.d/builder /etc/sudoers.d/nobody
               mkdir -p /workspace/out/repo /home/builder/.cargo
               chown -R builder:builder /workspace/out /workspace/packages /home/builder 2>/dev/null || true
               ./build/verify-gates.sh
