@@ -265,13 +265,13 @@ Window {
                         height: 66
                         anchors.verticalCenter: parent.verticalCenter
 
-                        // Breathing Ambient Tesseract Glow
+                        // Breathing Ambient Mauve Glow (Matching Plymouth Boot Sequence Hold)
                         Rectangle {
                             id: plateGlow
                             anchors.centerIn: parent
                             width: 62; height: 62
                             radius: 12
-                            color: root.withAlpha(root.accent, 0.18)
+                            color: root.withAlpha(root.accent, 0.22)
                             scale: 1.0
                             SequentialAnimation on scale {
                                 loops: Animation.Infinite
@@ -280,29 +280,18 @@ Window {
                             }
                         }
 
-                        // 360° Right-to-Left Rotating 4D Chamfered Plate Object
-                        AnimatedImage {
-                            id: plateAnim
-                            anchors.fill: parent
-                            source: root.chromeSpinPath ? ("file://" + root.chromeSpinPath) : (root.chromePlatePath ? ("file://" + root.chromePlatePath) : "")
-                            fillMode: Image.PreserveAspectFit
-                            smooth: true
-                            mipmap: true
-                            playing: true
-                            paused: false
-                        }
-
-                        // Fallback static hero still if animated webp is unavailable
+                        // Authentic 3D Liquid Chrome Emblem (Extracted from Plymouth Boot Video Ending Frame)
                         Image {
+                            id: bootEmblem
                             anchors.fill: parent
-                            visible: plateAnim.status !== Image.Ready && plateAnim.status !== Image.Loading
-                            source: root.chromePlatePath ? ("file://" + root.chromePlatePath) : (root.chromeLogoPath ? ("file://" + root.chromeLogoPath) : "")
+                            anchors.margins: 4
+                            source: root.chromeLogoPath ? ("file://" + root.chromeLogoPath) : (root.chromePlatePath ? ("file://" + root.chromePlatePath) : (root.chromePath ? ("file://" + root.chromePath) : ""))
                             fillMode: Image.PreserveAspectFit
                             smooth: true
                             mipmap: true
                         }
 
-                        // Tactical Corner Brackets around Plate
+                        // Tactical Corner Brackets around Emblem
                         Rectangle { width: 5; height: 1; x: 0; y: 0; color: root.accent }
                         Rectangle { width: 1; height: 5; x: 0; y: 0; color: root.accent }
                         Rectangle { width: 5; height: 1; x: parent.width - 5; y: 0; color: root.accent }
@@ -318,7 +307,7 @@ Window {
                             hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
                             ToolTip.visible: containsMouse
-                            ToolTip.text: "Authentic 4D Chamfered Obsidian Plate // 360° Spatial Rotation"
+                            ToolTip.text: "SynapseOS Authentic 3D Liquid Chrome Emblem // Plymouth Boot Master Frame"
                             ToolTip.delay: 200
                         }
                     }

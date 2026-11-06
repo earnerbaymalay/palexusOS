@@ -51,13 +51,17 @@ def find_chrome_emblem():
 
 
 def find_chrome_logo():
-    """Find the isolated 3D poured liquid chrome emblem."""
+    """Find the authentic 3D liquid chrome master logo emblem from the boot sequence."""
     script_dir = Path(__file__).resolve().parent
     candidates = [
         script_dir / "synapse_chrome_logo.png",
+        script_dir / "../synapse-plymouth/synapse_chrome_logo.png",
+        script_dir / "../../desktop/synapse-plymouth/synapse_chrome_logo.png",
         script_dir / "chrome_poured_logo.png",
         Path("/usr/share/synapse-hud/synapse_chrome_logo.png"),
         Path("/usr/share/synapseos/branding/synapse_chrome_logo.png"),
+        Path("/usr/share/plymouth/themes/synapseos-mauve/synapse_chrome_logo.png"),
+        Path("/usr/share/plymouth/themes/synapseos/synapse_chrome_logo.png"),
     ]
     for c in candidates:
         p = Path(c).resolve()
