@@ -25,6 +25,21 @@ class HudBackend(QObject):
             self.app.quit()
             return
 
+        # Prepare comprehensive environment ensuring all scripts and tools are discovered
+        env = os.environ.copy()
+        script_dir = Path(__file__).resolve().parent
+        theme_dir = script_dir.parent / "synapse-themes"
+        core_dir = script_dir.parent.parent / "core" / "synapse-core"
+        local_bin = Path.home() / ".local/bin"
+
+        path_elements = [str(local_bin), str(script_dir), str(theme_dir), str(core_dir), "/usr/local/bin", "/usr/bin", "/bin"]
+        env["PATH"] = ":".join(path_elements) + ":" + env.get("PATH", "")
+        if "DISPLAY" not in env:
+            env["DISPLAY"] = ":0"
+        if "WAYLAND_DISPLAY" not in env:
+            env["WAYLAND_DISPLAY"] = "wayland-0"
+        env["QT_QUICK_BACKEND"] = "software"
+
         if action.startswith("AI_PROMPT:"):
             prompt = action[len("AI_PROMPT:"):].strip()
             if prompt.startswith("?"):
@@ -36,11 +51,12 @@ class HudBackend(QObject):
                 subprocess.Popen([
                     "kitty", "--title", f"AI Prompt: {prompt}",
                     "bash", "-c",
-                    f'source ~/.bashrc 2>/dev/null; echo -e "\033[1;35m=== Synapse Local AI Query ===\033[0m"; ollama run qwen2.5-coder "{prompt}"; echo; read -p "Press enter to close..."'
-                ])
+                    f'source ~/.bashrc 2>/dev/null; ask-qwen "{prompt}"; echo; read -p "Press enter to close..."'
+                ], env=env, start_new_session=True)
         else:
-            # Execute command detached
-            subprocess.Popen(["bash", "-c", action], start_new_session=True)
+            # Execute command detached with prepared environment
+            wrapped_action = f'source ~/.bashrc 2>/dev/null; {action}'
+            subprocess.Popen(["bash", "-c", wrapped_action], env=env, start_new_session=True)
 
         self.app.quit()
 

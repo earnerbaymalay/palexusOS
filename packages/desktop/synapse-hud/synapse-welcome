@@ -353,17 +353,30 @@ class WelcomeBackend(QObject):
 
     @pyqtSlot(str)
     def launchCmd(self, cmd_str):
+        env = os.environ.copy()
+        script_dir = Path(__file__).resolve().parent
+        theme_dir = script_dir.parent / "synapse-themes"
+        core_dir = script_dir.parent.parent / "core" / "synapse-core"
+        local_bin = Path.home() / ".local/bin"
+        path_elements = [str(local_bin), str(script_dir), str(theme_dir), str(core_dir), "/usr/local/bin", "/usr/bin", "/bin"]
+        env["PATH"] = ":".join(path_elements) + ":" + env.get("PATH", "")
+        if "DISPLAY" not in env:
+            env["DISPLAY"] = ":0"
+        if "WAYLAND_DISPLAY" not in env:
+            env["WAYLAND_DISPLAY"] = "wayland-0"
+        env["QT_QUICK_BACKEND"] = "software"
+
         try:
             parts = cmd_str.split()
             if parts:
                 exe = resolve_command_path(parts[0])
                 full_cmd = [exe] + parts[1:]
-                subprocess.Popen(full_cmd, start_new_session=True)
+                subprocess.Popen(full_cmd, env=env, start_new_session=True)
             else:
-                subprocess.Popen(["bash", "-c", cmd_str], start_new_session=True)
+                subprocess.Popen(["bash", "-c", cmd_str], env=env, start_new_session=True)
         except Exception:
             try:
-                subprocess.Popen(["bash", "-c", cmd_str], start_new_session=True)
+                subprocess.Popen(["bash", "-c", cmd_str], env=env, start_new_session=True)
             except Exception:
                 pass
 
