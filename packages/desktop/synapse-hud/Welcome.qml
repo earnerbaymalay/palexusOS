@@ -204,11 +204,11 @@ Window {
 
                     // Navigation Menu
                     readonly property var navItems: [
-                        { idx: 0, title: "Overview",   desc: "Deck Identity & Status", icon: "󰋜" },
-                        { idx: 1, title: "AI Copilot", desc: "Neural Engine Selection", icon: "󰚩" },
-                        { idx: 2, title: "Theme",      desc: "Wallpaper & Accents",    icon: "󰏘" },
-                        { idx: 3, title: "Defense",    desc: "Security & Latency",     icon: "󰒃" },
-                        { idx: 4, title: "Shortcuts",  desc: "Mnemonic Cheat Sheet",   icon: "󰌌" }
+                        { idx: 0, title: "Overview",   desc: "Deck Identity & Status", tag: "01" },
+                        { idx: 1, title: "AI Copilot", desc: "Neural Engine Selection", tag: "02" },
+                        { idx: 2, title: "Theme",      desc: "Wallpaper & Accents",    tag: "03" },
+                        { idx: 3, title: "Defense",    desc: "Security & Latency",     tag: "04" },
+                        { idx: 4, title: "Shortcuts",  desc: "Mnemonic Cheat Sheet",   tag: "05" }
                     ]
 
                     Repeater {
@@ -229,11 +229,18 @@ Window {
                                 anchors.margins: 10
                                 spacing: 10
 
-                                Text {
-                                    text: modelData.icon
-                                    color: isCurrent ? root.accent : root.textMuted
-                                    font.family: root.mono; font.pixelSize: 14
+                                Rectangle {
+                                    width: 24; height: 20; radius: 4
+                                    color: isCurrent ? root.accent : "#141422"
+                                    border.color: isCurrent ? root.accent : root.borderMuted
+                                    border.width: 1
                                     anchors.verticalCenter: parent.verticalCenter
+                                    Text {
+                                        anchors.centerIn: parent
+                                        text: modelData.tag
+                                        color: isCurrent ? "#08080e" : root.accent
+                                        font.family: root.mono; font.pixelSize: 9; font.bold: true
+                                    }
                                 }
 
                                 Column {
@@ -501,7 +508,7 @@ Window {
                                     Row {
                                         anchors.centerIn: parent
                                         spacing: 8
-                                        Text { text: "󰚩"; color: root.accent; font.family: root.mono; font.pixelSize: 14 }
+                                        Text { text: "▶"; color: root.accent; font.family: root.mono; font.pixelSize: 11 }
                                         Text { text: "OPEN COMMAND HUD"; color: "#ffffff"; font.family: root.mono; font.pixelSize: 10; font.bold: true }
                                     }
                                     MouseArea {
@@ -520,7 +527,7 @@ Window {
                                     Row {
                                         anchors.centerIn: parent
                                         spacing: 8
-                                        Text { text: "󰉉"; color: "#a6e3a1"; font.family: root.mono; font.pixelSize: 14 }
+                                        Text { text: "⤓"; color: "#a6e3a1"; font.family: root.mono; font.pixelSize: 13 }
                                         Text { text: "INSTALL DISK (CALAMARES)"; color: "#ffffff"; font.family: root.mono; font.pixelSize: 10; font.bold: true }
                                     }
                                     MouseArea {
