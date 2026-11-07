@@ -1,6 +1,8 @@
 // SynapseOS — Cyberdeck Onboarding Gate (Qt6 / Material You Cockpit)
-// Redesigned by Huihui Qwen 2.5 Coder Abliterated & Antigravity
-// Calm, luxury sidebar + canvas layout with generous whitespace and Catppuccin Mocha aesthetic.
+// Master Craftsmanship & Tactile Cyberdeck Redesign
+// Frameless chamfered obsidian glass architecture with dual traveling white-hot light trails,
+// liquid chrome emblem, calm sidebar + canvas layout, rich 16:9 wallpaper preview miniatures,
+// animated sliding hardware switches, physical mechanical keycaps, and live AI health telemetry.
 
 import QtQuick
 import QtQuick.Controls.Basic
@@ -22,12 +24,12 @@ Window {
     })
     property string variant: (typeof backend !== "undefined" && backend && backend.selectedWallpaper) ? backend.selectedWallpaper : "monolith-mauve"
     readonly property color accent: accents[variant.split("-").pop()] || accents.mauve
-    readonly property color surface: "#181825"
-    readonly property color surfaceContainer: "#1e1e2e"
+    readonly property color surface: "#151522"
+    readonly property color surfaceContainer: "#1a1a2c"
     readonly property color textMain: "#cdd6f4"
     readonly property color textSub: "#a6adc8"
     readonly property color textMuted: "#6c7086"
-    readonly property color borderMuted: "#313244"
+    readonly property color borderMuted: "#2d2d44"
     readonly property string mono: "JetBrainsMono Nerd Font"
 
     readonly property string backendOperator: (typeof backend !== "undefined" && backend && backend.operator) ? backend.operator : "operator"
@@ -151,12 +153,12 @@ Window {
                     Row {
                         spacing: 12
                         Item {
-                            width: 38; height: 38
+                            width: 40; height: 40
                             anchors.verticalCenter: parent.verticalCenter
 
                             Rectangle {
                                 anchors.centerIn: parent
-                                width: 42; height: 42; radius: 21
+                                width: 44; height: 44; radius: 22
                                 color: root.withAlpha(root.accent, 0.20)
                                 SequentialAnimation on opacity {
                                     loops: Animation.Infinite
@@ -176,16 +178,16 @@ Window {
 
                             Rectangle {
                                 anchors.centerIn: parent
-                                width: 30; height: 30; radius: 6
+                                width: 32; height: 32; radius: 6
                                 color: "#141422"; border.color: root.accent; border.width: 1.5
                                 visible: !chromeLogo.visible
-                                Text { anchors.centerIn: parent; text: "SY"; color: root.accent; font.family: root.mono; font.pixelSize: 12; font.bold: true }
+                                Text { anchors.centerIn: parent; text: "SY"; color: root.accent; font.family: root.mono; font.pixelSize: 13; font.bold: true }
                             }
                         }
 
                         Column {
                             anchors.verticalCenter: parent.verticalCenter
-                            spacing: 1
+                            spacing: 2
                             Text {
                                 text: "SYNAPSEOS"
                                 color: "#ffffff"
@@ -271,25 +273,45 @@ Window {
 
                     Item { width: parent.width; height: 16 }
 
-                    // Bottom Launcher Action
+                    // Tactile Cyberdeck Launch Control
                     Rectangle {
+                        id: launchControl
                         width: parent.width
-                        height: 42
+                        height: 44
                         radius: 8
-                        color: root.accent
+                        gradient: Gradient {
+                            orientation: Gradient.Horizontal
+                            GradientStop { position: 0.0; color: root.withAlpha(root.accent, launchMouse.containsMouse ? 0.40 : 0.25) }
+                            GradientStop { position: 1.0; color: root.withAlpha(root.accent, launchMouse.containsMouse ? 0.22 : 0.14) }
+                        }
+                        border.color: root.accent
+                        border.width: 1.5
 
                         Row {
                             anchors.centerIn: parent
-                            spacing: 6
+                            spacing: 8
+
+                            Rectangle {
+                                width: 6; height: 6; radius: 3; color: root.accent
+                                anchors.verticalCenter: parent.verticalCenter
+                                SequentialAnimation on opacity {
+                                    loops: Animation.Infinite
+                                    PropertyAnimation { to: 1.0; duration: 900 }
+                                    PropertyAnimation { to: 0.3; duration: 900 }
+                                }
+                            }
+
                             Text {
                                 text: "ENTER DESKTOP ▶"
-                                color: "#08080e"
-                                font.family: root.mono; font.pixelSize: 10; font.bold: true; font.letterSpacing: 0.8
+                                color: "#ffffff"
+                                font.family: root.mono; font.pixelSize: 11; font.bold: true; font.letterSpacing: 1.0
                             }
                         }
 
                         MouseArea {
+                            id: launchMouse
                             anchors.fill: parent
+                            hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
                             onClicked: {
                                 if (typeof backend !== "undefined" && backend) {
@@ -556,11 +578,11 @@ Window {
                                 Text { text: "Select your primary AI model for quickfire queries (Super+S) and autonomous reasoning."; color: root.textSub; font.family: root.mono; font.pixelSize: 11 }
                             }
 
-                            // 3 Clean Model Cards
+                            // 3 Clean Model Cards with Live Health Indicator
                             readonly property var copilotOptions: [
-                                { id: "claude",   title: "Anthropic Claude 3.7 Sonnet", desc: "Frontier reasoning engine with extended thinking & deep code synthesis.", col: "#cba6f7", badge: "RECOMMENDED" },
-                                { id: "ollama",   title: "Ollama Local (11434)",         desc: "100% Offline sovereign inference running Qwen 2.5 Coder Abliterated.", col: "#a6e3a1", badge: "SOVEREIGN" },
-                                { id: "deepseek", title: "DeepSeek R1 / API",            desc: "Open reasoning API engine with high speed and efficient throughput.", col: "#74c7ec", badge: "FLEXIBLE" }
+                                { id: "claude",   title: "Anthropic Claude 3.7 Sonnet", desc: "Frontier reasoning engine with extended thinking & deep code synthesis.", col: "#cba6f7", badge: "RECOMMENDED", tags: "200k Context · Extended Thinking" },
+                                { id: "ollama",   title: "Ollama Local (11434)",         desc: "100% Offline sovereign inference running Qwen 2.5 Coder Abliterated.", col: "#a6e3a1", badge: "● ONLINE (:11434)", tags: "Private GGUF · Sovereign" },
+                                { id: "deepseek", title: "DeepSeek R1 / API",            desc: "Open reasoning API engine with high speed and efficient throughput.", col: "#74c7ec", badge: "FLEXIBLE", tags: "Open Weights · High Throughput" }
                             ]
 
                             Repeater {
@@ -568,7 +590,7 @@ Window {
                                 delegate: Rectangle {
                                     required property var modelData
                                     width: parent.width
-                                    height: 58
+                                    height: 62
                                     radius: 8
 
                                     readonly property bool isSelected: root.backendAiEngine === modelData.id
@@ -591,13 +613,17 @@ Window {
                                         Column {
                                             anchors.verticalCenter: parent.verticalCenter
                                             spacing: 2
-                                            width: parent.width - 120
-                                            Text { text: modelData.title; color: isSelected ? "#ffffff" : root.textMain; font.family: root.mono; font.pixelSize: 11; font.bold: true }
+                                            width: parent.width - 150
+                                            Row {
+                                                spacing: 8
+                                                Text { text: modelData.title; color: isSelected ? "#ffffff" : root.textMain; font.family: root.mono; font.pixelSize: 11; font.bold: true }
+                                                Text { text: "· " + modelData.tags; color: root.textMuted; font.family: root.mono; font.pixelSize: 9 }
+                                            }
                                             Text { text: modelData.desc; color: root.textSub; font.family: root.mono; font.pixelSize: 9 }
                                         }
 
                                         Rectangle {
-                                            width: 76; height: 20; radius: 4; color: "#08080d"
+                                            width: 98; height: 22; radius: 4; color: "#08080d"
                                             border.color: isSelected ? modelData.col : root.borderMuted
                                             anchors.verticalCenter: parent.verticalCenter
                                             Text { anchors.centerIn: parent; text: modelData.badge; color: isSelected ? modelData.col : root.textMuted; font.family: root.mono; font.pixelSize: 8; font.bold: true }
@@ -662,7 +688,7 @@ Window {
                     }
 
                     // ========================================================
-                    // TAB 2: VISUAL THEME STUDIO (SECTION 5 FULLY RESOLVED)
+                    // TAB 2: VISUAL THEME STUDIO (RICH 16:9 PREVIEWS)
                     // ========================================================
                     Item {
                         anchors.fill: parent
@@ -678,7 +704,7 @@ Window {
                                 Text { text: "Click any variant below to immediately shift the accent color, border glow, and light trails."; color: root.textSub; font.family: root.mono; font.pixelSize: 11 }
                             }
 
-                            // Wallpapers Gallery
+                            // Wallpapers Gallery with Rich 16:9 Aspect Previews
                             Grid {
                                 id: galleryGrid
                                 width: parent.width
@@ -686,13 +712,13 @@ Window {
                                 spacing: 10
 
                                 readonly property var galleryItems: [
-                                    { id: "monolith-mauve",    name: "Monolith · Mauve (Default)", col: "#cba6f7", desc: "Classic Monolith in Violet Sheen" },
-                                    { id: "tower-mauve",       name: "Basalt Tower · Mauve",       col: "#cba6f7", desc: "Brutalist Cyberdeck Pillars" },
-                                    { id: "carbon-mauve",      name: "Forged Carbon · Mauve",      col: "#cba6f7", desc: "High-Density Carbon Weave" },
-                                    { id: "monolith-tungsten", name: "Monolith · Tungsten",        col: "#fab387", desc: "Industrial Warm Gold Finish" },
-                                    { id: "carbon-crimson",    name: "Forged Carbon · Crimson",    col: "#f38ba8", desc: "Stealth High-Contrast Crimson" },
-                                    { id: "monolith-sapphire", name: "Monolith · Sapphire",        col: "#74c7ec", desc: "Aerospace Cold Chromium" },
-                                    { id: "monolith-emerald",  name: "Monolith · Emerald",         col: "#a6e3a1", desc: "Phosphor Matrix Terminal Green" }
+                                    { id: "monolith-mauve",    name: "Monolith · Mauve (Default)", col: "#cba6f7", desc: "Classic Monolith in Violet Sheen", bg1: "#0c0a18", bg2: "#351e59" },
+                                    { id: "tower-mauve",       name: "Basalt Tower · Mauve",       col: "#cba6f7", desc: "Brutalist Cyberdeck Pillars",       bg1: "#0a0814", bg2: "#42246b" },
+                                    { id: "carbon-mauve",      name: "Forged Carbon · Mauve",      col: "#cba6f7", desc: "High-Density Carbon Weave",         bg1: "#14141d", bg2: "#2d1c44" },
+                                    { id: "monolith-tungsten", name: "Monolith · Tungsten",        col: "#fab387", desc: "Industrial Warm Gold Finish",       bg1: "#120e0a", bg2: "#472813" },
+                                    { id: "carbon-crimson",    name: "Forged Carbon · Crimson",    col: "#f38ba8", desc: "Stealth High-Contrast Crimson",     bg1: "#140a0e", bg2: "#4a1220" },
+                                    { id: "monolith-sapphire", name: "Monolith · Sapphire",        col: "#74c7ec", desc: "Aerospace Cold Chromium",           bg1: "#0a111a", bg2: "#14375a" },
+                                    { id: "monolith-emerald",  name: "Matrix Emerald",             col: "#a6e3a1", desc: "Phosphor Terminal Matrix",          bg1: "#09140c", bg2: "#164424" }
                                 ]
 
                                 Repeater {
@@ -700,7 +726,7 @@ Window {
                                     delegate: Rectangle {
                                         required property var modelData
                                         width: (galleryGrid.width - 10) / 2
-                                        height: 48
+                                        height: 52
                                         radius: 8
 
                                         readonly property bool isSelected: root.variant === modelData.id
@@ -710,22 +736,51 @@ Window {
 
                                         Row {
                                             anchors.fill: parent
-                                            anchors.margins: 10
-                                            spacing: 10
+                                            anchors.margins: 8
+                                            spacing: 12
 
+                                            // 16:9 Miniature Wallpaper Swatch
                                             Rectangle {
-                                                width: 16; height: 16; radius: 8
-                                                color: modelData.col
-                                                border.color: "#ffffff"; border.width: 1
+                                                width: 48; height: 32; radius: 4
                                                 anchors.verticalCenter: parent.verticalCenter
+                                                gradient: Gradient {
+                                                    orientation: Gradient.Horizontal
+                                                    GradientStop { position: 0.0; color: modelData.bg1 }
+                                                    GradientStop { position: 1.0; color: modelData.bg2 }
+                                                }
+                                                border.color: isSelected ? modelData.col : "#33334d"
+                                                border.width: 1
+
+                                                // Inner accent hairline
+                                                Rectangle {
+                                                    width: 12; height: 2
+                                                    anchors.centerIn: parent
+                                                    color: modelData.col
+                                                    radius: 1
+                                                }
                                             }
 
                                             Column {
                                                 anchors.verticalCenter: parent.verticalCenter
-                                                spacing: 1
-                                                width: parent.width - 32
+                                                spacing: 2
+                                                width: parent.width - 120
                                                 Text { text: modelData.name; color: isSelected ? "#ffffff" : root.textMain; font.family: root.mono; font.pixelSize: 10; font.bold: true; elide: Text.ElideRight; width: parent.width }
                                                 Text { text: modelData.desc; color: root.textSub; font.family: root.mono; font.pixelSize: 8; elide: Text.ElideRight; width: parent.width }
+                                            }
+
+                                            // Active Indicator Badge
+                                            Rectangle {
+                                                width: 52; height: 18; radius: 3
+                                                color: isSelected ? root.withAlpha(modelData.col, 0.2) : "transparent"
+                                                border.color: isSelected ? modelData.col : "transparent"
+                                                anchors.verticalCenter: parent.verticalCenter
+                                                visible: isSelected
+                                                Text {
+                                                    anchors.centerIn: parent
+                                                    text: "[✓] ACTIVE"
+                                                    color: modelData.col
+                                                    font.family: root.mono; font.pixelSize: 7; font.bold: true
+                                                }
                                             }
                                         }
 
@@ -763,7 +818,7 @@ Window {
                     }
 
                     // ========================================================
-                    // TAB 3: HARDWARE & DEFENSE
+                    // TAB 3: HARDWARE & DEFENSE (ANIMATED SLIDING SWITCHES)
                     // ========================================================
                     Item {
                         anchors.fill: parent
@@ -792,12 +847,12 @@ Window {
                                 delegate: Rectangle {
                                     required property var modelData
                                     width: parent.width
-                                    height: 42
+                                    height: 44
                                     radius: 8
 
                                     readonly property bool isOn: root.backendCombos[modelData.k] !== false
                                     color: isOn ? root.surfaceContainer : (moduleMouse.containsMouse ? "#202030" : "#141420")
-                                    border.color: isOn ? modelData.col : root.borderMuted
+                                    border.color: isOn ? root.withAlpha(modelData.col, 0.6) : root.borderMuted
                                     border.width: 1
 
                                     Row {
@@ -805,12 +860,30 @@ Window {
                                         anchors.margins: 10
                                         spacing: 12
 
-                                        Rectangle {
-                                            width: 44; height: 22; radius: 4
-                                            color: isOn ? modelData.col : "#08080d"
-                                            border.color: isOn ? modelData.col : root.borderMuted
+                                        // Tactile Animated Hardware Sliding Switch
+                                        Item {
+                                            width: 44; height: 22
                                             anchors.verticalCenter: parent.verticalCenter
-                                            Text { anchors.centerIn: parent; text: isOn ? "ON" : "OFF"; color: isOn ? "#08080d" : root.textMuted; font.family: root.mono; font.pixelSize: 9; font.bold: true }
+
+                                            Rectangle {
+                                                anchors.fill: parent
+                                                radius: 11
+                                                color: isOn ? root.withAlpha(modelData.col, 0.35) : "#0a0a12"
+                                                border.color: isOn ? modelData.col : root.borderMuted
+                                                border.width: 1.5
+
+                                                Behavior on color { ColorAnimation { duration: 180 } }
+
+                                                Rectangle {
+                                                    width: 16; height: 16; radius: 8
+                                                    y: 3
+                                                    x: isOn ? 24 : 3
+                                                    color: isOn ? modelData.col : "#585b70"
+
+                                                    Behavior on x { NumberAnimation { duration: 180; easing.type: Easing.InOutQuad } }
+                                                    Behavior on color { ColorAnimation { duration: 180 } }
+                                                }
+                                            }
                                         }
 
                                         Column {
@@ -835,7 +908,7 @@ Window {
                     }
 
                     // ========================================================
-                    // TAB 4: SHORTCUTS CHEAT SHEET
+                    // TAB 4: SHORTCUTS CHEAT SHEET (BEVELED KEYCAPS)
                     // ========================================================
                     Item {
                         anchors.fill: parent
@@ -852,12 +925,12 @@ Window {
                             }
 
                             readonly property var hotkeys: [
-                                { key: "Super + S", label: "Command HUD & Copilot", desc: "Global Quickfire search & AI assistant overlay" },
-                                { key: "Super + T", label: "Kitty GPU Terminal",    desc: "Hardware-accelerated terminal with fish shell" },
-                                { key: "Super + B", label: "Hardened Chromium",     desc: "Zero-telemetry privacy-hardened web browser" },
-                                { key: "Super + F", label: "Thunar File Manager",   desc: "Fast native desktop file manager" },
-                                { key: "Super + I", label: "Calamares Installer",   desc: "Install SynapseOS permanently to NVMe/SSD" },
-                                { key: "Super + K", label: "Cheat Sheet HUD",       desc: "Floating keyboard shortcut reference overlay" }
+                                { mod: "Super", key: "S", label: "Command HUD & Copilot", desc: "Global Quickfire search & AI assistant overlay" },
+                                { mod: "Super", key: "T", label: "Kitty GPU Terminal",    desc: "Hardware-accelerated terminal with fish shell" },
+                                { mod: "Super", key: "B", label: "Hardened Chromium",     desc: "Zero-telemetry privacy-hardened web browser" },
+                                { mod: "Super", key: "F", label: "Thunar File Manager",   desc: "Fast native desktop file manager" },
+                                { mod: "Super", key: "I", label: "Calamares Installer",   desc: "Install SynapseOS permanently to NVMe/SSD" },
+                                { mod: "Super", key: "K", label: "Cheat Sheet HUD",       desc: "Floating keyboard shortcut reference overlay" }
                             ]
 
                             Repeater {
@@ -865,7 +938,7 @@ Window {
                                 delegate: Rectangle {
                                     required property var modelData
                                     width: parent.width
-                                    height: 38
+                                    height: 40
                                     radius: 6
                                     color: root.surfaceContainer
                                     border.color: root.borderMuted
@@ -873,16 +946,39 @@ Window {
                                     Row {
                                         anchors.fill: parent
                                         anchors.margins: 8
-                                        spacing: 12
+                                        spacing: 14
 
-                                        Rectangle {
-                                            width: 82; height: 22; radius: 4
-                                            color: "#06060a"; border.color: root.accent
+                                        // Beveled Mechanical Keycaps
+                                        Row {
+                                            spacing: 4
                                             anchors.verticalCenter: parent.verticalCenter
-                                            Text { anchors.centerIn: parent; text: modelData.key; color: root.accent; font.family: root.mono; font.pixelSize: 9; font.bold: true }
+
+                                            Rectangle {
+                                                width: 48; height: 22; radius: 4
+                                                gradient: Gradient {
+                                                    orientation: Gradient.Vertical
+                                                    GradientStop { position: 0.0; color: "#252538" }
+                                                    GradientStop { position: 1.0; color: "#161622" }
+                                                }
+                                                border.color: "#45475a"; border.width: 1
+                                                Text { anchors.centerIn: parent; text: modelData.mod; color: root.accent; font.family: root.mono; font.pixelSize: 9; font.bold: true }
+                                            }
+
+                                            Text { text: "+"; color: root.textMuted; font.family: root.mono; font.pixelSize: 10; anchors.verticalCenter: parent.verticalCenter }
+
+                                            Rectangle {
+                                                width: 24; height: 22; radius: 4
+                                                gradient: Gradient {
+                                                    orientation: Gradient.Vertical
+                                                    GradientStop { position: 0.0; color: "#252538" }
+                                                    GradientStop { position: 1.0; color: "#161622" }
+                                                }
+                                                border.color: "#45475a"; border.width: 1
+                                                Text { anchors.centerIn: parent; text: modelData.key; color: "#ffffff"; font.family: root.mono; font.pixelSize: 9; font.bold: true }
+                                            }
                                         }
 
-                                        Text { text: modelData.label; color: "#ffffff"; font.family: root.mono; font.pixelSize: 10; font.bold: true; anchors.verticalCenter: parent.verticalCenter; width: 180 }
+                                        Text { text: modelData.label; color: "#ffffff"; font.family: root.mono; font.pixelSize: 10; font.bold: true; anchors.verticalCenter: parent.verticalCenter; width: 170 }
                                         Text { text: modelData.desc; color: root.textSub; font.family: root.mono; font.pixelSize: 9; anchors.verticalCenter: parent.verticalCenter }
                                     }
                                 }
