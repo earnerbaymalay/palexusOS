@@ -1,9 +1,8 @@
-// SynapseOS — Cyberdeck Onboarding Gate (QtQuick / QML)
-// Redesigned by Huihui Qwen 2.5 Coder Abliterated & Antigravity
-// Chamfered obsidian glass architecture with dual traveling white-hot light trails,
-// liquid chrome master emblem with ambient Mauve breathing glow,
-// streamlined 4-stage cyberdeck provisioning flow,
-// fully unified with SDDM greeter (synapse-greeter) and Command HUD (synapse-hud).
+// SynapseOS — Cyberdeck Onboarding Gate (Qt6 / Material You Cockpit)
+// Designed to identically match Command HUD (synapse-hud/Main.qml) and SDDM (synapse-greeter)
+// Frameless chamfered obsidian glass cockpit, dual traveling white-hot light trails,
+// authentic 3D liquid chrome master logo with ambient breathing Mauve glow,
+// and unified 4-quadrant interactive cyberdeck dashboard.
 
 import QtQuick
 import QtQuick.Controls.Basic
@@ -12,13 +11,12 @@ import QtQuick.Effects
 
 Window {
     id: root
-    width: 980
-    height: 660
-    minimumWidth: 920
-    minimumHeight: 620
+    width: 960
+    height: 640
     visible: true
     title: "SynapseOS // Cyberdeck Onboarding Gate"
-    color: "#060609"
+    flags: Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.Dialog
+    color: "transparent"
 
     readonly property var accents: ({
         mauve: "#cba6f7", tungsten: "#fab387", crimson: "#f38ba8",
@@ -26,14 +24,12 @@ Window {
     })
     property string variant: (typeof backend !== "undefined" && backend && backend.selectedWallpaper) ? backend.selectedWallpaper : "monolith-mauve"
     readonly property color accent: accents[variant.split("-").pop()] || accents.mauve
-    readonly property color surface: "#0e0e17"
-    readonly property color surfaceContainer: "#141422"
-    readonly property color surfaceCard: "#11111c"
+    readonly property color surface: "#181825"
+    readonly property color surfaceContainer: "#1e1e2e"
     readonly property color textMain: "#cdd6f4"
     readonly property color textSub: "#a6adc8"
     readonly property color textMuted: "#6c7086"
-    readonly property color borderMuted: "#26263a"
-    readonly property color borderGlow: withAlpha(accent, 0.45)
+    readonly property color borderMuted: "#313244"
     readonly property string mono: "JetBrainsMono Nerd Font"
 
     readonly property string backendOperator: (typeof backend !== "undefined" && backend && backend.operator) ? backend.operator : "operator"
@@ -44,97 +40,27 @@ Window {
     readonly property string chromeLogoPath: (typeof backend !== "undefined" && backend && backend.chromeLogoPath) ? backend.chromeLogoPath : ""
     readonly property string claudeKey: (typeof backend !== "undefined" && backend && backend.claudeApiKey) ? backend.claudeApiKey : ""
 
-    property int currentStep: 0
-    readonly property int totalSteps: 4
     property bool showClaudeKey: false
 
     function withAlpha(c, a) { return Qt.rgba(c.r, c.g, c.b, a) }
 
-    // --- Deep Obsidian Void & Radial Lighting ---
-    Rectangle {
-        anchors.fill: parent
-        gradient: Gradient {
-            orientation: Gradient.Vertical
-            GradientStop { position: 0.0; color: "#0c0c16" }
-            GradientStop { position: 0.5; color: "#060609" }
-            GradientStop { position: 1.0; color: "#040406" }
-        }
-    }
-
-    // --- Circuit leads either side of the panel (matching synapse-greeter) ---
-    Item {
-        id: circuitLeads
-        anchors.fill: parent
-        z: 0
-
-        // Left lead
-        Item {
-            x: panel.x - 64
-            y: panel.y + 110
-            width: 64
-            height: 2
-            Rectangle { anchors.fill: parent; color: root.withAlpha(root.accent, 0.25) }
-            Rectangle {
-                width: 32; height: 2
-                gradient: Gradient {
-                    orientation: Gradient.Horizontal
-                    GradientStop { position: 0.0; color: "transparent" }
-                    GradientStop { position: 0.45; color: root.accent }
-                    GradientStop { position: 0.5; color: "#ffffff" }
-                    GradientStop { position: 0.55; color: root.accent }
-                    GradientStop { position: 1.0; color: "transparent" }
-                }
-                NumberAnimation on x {
-                    loops: Animation.Infinite
-                    duration: 2500
-                    from: 64; to: -32
-                }
-            }
-            Rectangle {
-                width: 6; height: 6; x: -3; y: -2
-                color: "#060609"
-                border { color: root.accent; width: 1.5 }
-            }
-        }
-
-        // Right lead
-        Item {
-            x: panel.x + panel.width
-            y: panel.y + 110
-            width: 64
-            height: 2
-            Rectangle { anchors.fill: parent; color: root.withAlpha(root.accent, 0.25) }
-            Rectangle {
-                width: 32; height: 2
-                gradient: Gradient {
-                    orientation: Gradient.Horizontal
-                    GradientStop { position: 0.0; color: "transparent" }
-                    GradientStop { position: 0.45; color: root.accent }
-                    GradientStop { position: 0.5; color: "#ffffff" }
-                    GradientStop { position: 0.55; color: root.accent }
-                    GradientStop { position: 1.0; color: "transparent" }
-                }
-                NumberAnimation on x {
-                    loops: Animation.Infinite
-                    duration: 2500
-                    from: -32; to: 64
-                }
-            }
-            Rectangle {
-                width: 6; height: 6; x: 61; y: -2
-                color: "#060609"
-                border { color: root.accent; width: 1.5 }
-            }
-        }
-    }
-
-    // --- Main Monolithic Obsidian Glass Panel ---
-    Item {
+    FocusScope {
         id: panel
-        readonly property real c: 20
         anchors.fill: parent
-        anchors.margins: 20
-        z: 1
+        anchors.margins: 12
+        focus: true
+        readonly property real c: 18
+
+        Keys.onPressed: function(event) {
+            if (event.key === Qt.Key_Escape) {
+                if (typeof backend !== "undefined" && backend) {
+                    backend.applyAndFinish()
+                } else {
+                    root.close()
+                }
+                event.accepted = true
+            }
+        }
 
         // Drop shadow / glow border
         Rectangle {
@@ -147,7 +73,7 @@ Window {
             radius: panel.c + 2
         }
 
-        // Base Chamfered Obsidian Glass Slab
+        // Chamfered Obsidian Glass Slab (Identical to synapse-hud)
         Shape {
             anchors.fill: parent
             preferredRendererType: Shape.CurveRenderer
@@ -167,7 +93,7 @@ Window {
             }
         }
 
-        // Dual Travelling White-Hot Light Trails along Chamfered Border
+        // Animated Travelling Border Trails
         Shape {
             id: trails
             anchors.fill: parent
@@ -183,7 +109,7 @@ Window {
                 strokeWidth: 2
                 fillColor: "transparent"
                 strokeStyle: ShapePath.DashLine
-                dashPattern: [14, 120]
+                dashPattern: [12, 120]
                 dashOffset: trails.offset
                 startX: panel.c; startY: 0
                 PathLine { x: panel.width - panel.c; y: 0 }
@@ -197,686 +123,342 @@ Window {
             }
         }
 
-        // Interior Panel Content Column
+        // Interior Content Column
         Column {
             anchors.fill: parent
-            anchors.margins: 22
-            spacing: 14
+            anchors.margins: 18
+            spacing: 12
 
             // ================================================================
-            // 1. HEADER: BRANDING & PROGRESS RAIL
+            // 1. HEADER ROW: LOGO, TITLE, METADATA & CLOSE BUTTON
             // ================================================================
-            Row {
+            Item {
                 width: parent.width
-                height: 52
-                spacing: 14
+                height: 44
 
-                // Authentic 3D Liquid Chrome Master Logo
-                Item {
-                    id: logoBox
-                    width: 52
-                    height: 52
+                Row {
+                    anchors.left: parent.left
                     anchors.verticalCenter: parent.verticalCenter
+                    spacing: 12
 
-                    Rectangle {
-                        id: glowBack
-                        anchors.centerIn: parent
-                        width: 56; height: 56
-                        radius: 28
-                        color: root.withAlpha(root.accent, 0.16)
-                        SequentialAnimation on opacity {
-                            loops: Animation.Infinite
-                            PropertyAnimation { to: 0.75; duration: 2200; easing.type: Easing.InOutSine }
-                            PropertyAnimation { to: 0.15; duration: 2200; easing.type: Easing.InOutSine }
+                    // Authentic 3D Liquid Chrome Master Logo
+                    Item {
+                        width: 40; height: 40
+                        anchors.verticalCenter: parent.verticalCenter
+
+                        Rectangle {
+                            anchors.centerIn: parent
+                            width: 44; height: 44; radius: 22
+                            color: root.withAlpha(root.accent, 0.18)
+                            SequentialAnimation on opacity {
+                                loops: Animation.Infinite
+                                PropertyAnimation { to: 0.8; duration: 2200; easing.type: Easing.InOutSine }
+                                PropertyAnimation { to: 0.2; duration: 2200; easing.type: Easing.InOutSine }
+                            }
+                        }
+
+                        Image {
+                            id: chromeLogo
+                            anchors.fill: parent
+                            source: root.chromeLogoPath ? "file://" + root.chromeLogoPath : ""
+                            fillMode: Image.PreserveAspectFit
+                            smooth: true; mipmap: true
+                            visible: status === Image.Ready
+                        }
+
+                        Rectangle {
+                            anchors.centerIn: parent
+                            width: 32; height: 32; radius: 6
+                            color: "#141422"; border.color: root.accent; border.width: 1.5
+                            visible: !chromeLogo.visible
+                            Text { anchors.centerIn: parent; text: "SY"; color: root.accent; font.family: root.mono; font.pixelSize: 13; font.bold: true }
                         }
                     }
 
-                    Image {
-                        id: chromeLogo
-                        anchors.fill: parent
-                        source: root.chromeLogoPath ? "file://" + root.chromeLogoPath : ""
-                        fillMode: Image.PreserveAspectFit
-                        smooth: true
-                        mipmap: true
-                        visible: status === Image.Ready
+                    // Title Readout
+                    Column {
+                        anchors.verticalCenter: parent.verticalCenter
+                        spacing: 2
+                        Row {
+                            spacing: 8
+                            Text {
+                                text: "󰚩 SYNAPSE // CYBERDECK ONBOARDING GATE"
+                                color: root.accent
+                                font.family: root.mono; font.pixelSize: 13; font.bold: true; font.letterSpacing: 1.2
+                            }
+                            Rectangle {
+                                height: 16; width: 62; radius: 3; color: "#08080d"; border.color: root.accent
+                                Text { anchors.centerIn: parent; text: "v1.0.0-PROT"; color: root.accent; font.family: root.mono; font.pixelSize: 8; font.bold: true }
+                            }
+                        }
+                        Text {
+                            text: "OPERATOR: " + root.backendOperator + "  ·  NODE: " + root.backendHostname + "  ·  KERNEL: ARCH 6.13+ BORE ZEN"
+                            color: root.textSub
+                            font.family: root.mono; font.pixelSize: 10
+                        }
+                    }
+                }
+
+                // Header Right: Controls
+                Row {
+                    anchors.right: parent.right
+                    anchors.verticalCenter: parent.verticalCenter
+                    spacing: 10
+
+                    Text {
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: "[Esc] Enter Desktop"
+                        color: "#6c7086"
+                        font.family: root.mono; font.pixelSize: 10
                     }
 
-                    // Geometric fallback emblem
                     Rectangle {
-                        anchors.centerIn: parent
-                        width: 38; height: 38
-                        radius: 6
-                        color: "#141422"
-                        border.color: root.accent
-                        border.width: 1.5
-                        visible: !chromeLogo.visible
+                        width: 26; height: 26; radius: 6
+                        color: closeMouse.containsMouse ? "#f38ba8" : "#313244"
+                        anchors.verticalCenter: parent.verticalCenter
+
                         Text {
                             anchors.centerIn: parent
-                            text: "SY"
-                            color: root.accent
-                            font { family: root.mono; pixelSize: 15; bold: true }
+                            text: "✕"
+                            color: closeMouse.containsMouse ? "#11111b" : "#cdd6f4"
+                            font.family: root.mono; font.pixelSize: 11; font.bold: true
                         }
-                    }
-                }
 
-                // Title & Subtitle Readout
-                Column {
-                    anchors.verticalCenter: parent.verticalCenter
-                    spacing: 2
-                    width: parent.width - 70 - stepRail.width - 20
-
-                    Row {
-                        spacing: 8
-                        Text {
-                            text: "SYNAPSE // ONBOARDING GATE"
-                            color: "#ffffff"
-                            font { family: root.mono; pixelSize: 15; bold: true; letterSpacing: 1.4 }
-                        }
-                        Rectangle {
-                            height: 16; width: 68
-                            radius: 3
-                            color: "#08080d"
-                            border.color: root.accent
-                            Text {
-                                anchors.centerIn: parent
-                                text: "v1.0.0-PROT"
-                                color: root.accent
-                                font { family: root.mono; pixelSize: 8; bold: true }
-                            }
-                        }
-                    }
-                    Text {
-                        text: "Autonomous Cyberdeck Provisioning & Cockpit Initialization"
-                        color: root.textSub
-                        font { family: root.mono; pixelSize: 11 }
-                    }
-                }
-
-                // Streamlined 4-Step Orbital Progress Rail
-                Row {
-                    id: stepRail
-                    anchors.verticalCenter: parent.verticalCenter
-                    spacing: 8
-
-                    readonly property var stepsMeta: [
-                        { idx: "01", name: "IDENTITY" },
-                        { idx: "02", name: "NEURAL" },
-                        { idx: "03", name: "DEFENSE" },
-                        { idx: "04", name: "STUDIO" }
-                    ]
-
-                    Repeater {
-                        model: stepRail.stepsMeta
-                        delegate: Rectangle {
-                            required property var modelData
-                            required property int index
-                            width: 86
-                            height: 28
-                            radius: 4
-
-                            readonly property bool isActive: index === root.currentStep
-                            readonly property bool isDone: index < root.currentStep
-
-                            color: isActive ? root.withAlpha(root.accent, 0.20) : (isDone ? "#131320" : "#0a0a12")
-                            border.color: isActive ? root.accent : (isDone ? root.withAlpha(root.accent, 0.5) : root.borderMuted)
-                            border.width: isActive ? 1.5 : 1
-
-                            Row {
-                                anchors.centerIn: parent
-                                spacing: 5
-                                Text {
-                                    text: modelData.idx
-                                    color: isActive ? "#ffffff" : (isDone ? root.accent : root.textMuted)
-                                    font { family: root.mono; pixelSize: 10; bold: true }
+                        MouseArea {
+                            id: closeMouse
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: {
+                                if (typeof backend !== "undefined" && backend) {
+                                    backend.applyAndFinish()
+                                } else {
+                                    root.close()
                                 }
-                                Text {
-                                    text: modelData.name
-                                    color: isActive ? root.accent : (isDone ? root.textMain : root.textMuted)
-                                    font { family: root.mono; pixelSize: 9; bold: true; letterSpacing: 0.8 }
-                                }
-                            }
-
-                            MouseArea {
-                                anchors.fill: parent
-                                cursorShape: Qt.PointingHandCursor
-                                onClicked: root.currentStep = index
                             }
                         }
                     }
                 }
             }
 
-            // Divider Line with Accent Sheen
+            // Divider Line
             Rectangle {
-                width: parent.width
-                height: 1
+                width: parent.width; height: 1
                 color: root.withAlpha(root.accent, 0.35)
             }
 
             // ================================================================
-            // 2. MAIN STAGE CONTENT (STREAMLINED 4-STAGE FLOW)
+            // 2. UNIFIED CYBERDECK COCKPIT DASHBOARD (2x2 CATEGORY GRID)
             // ================================================================
-            Item {
-                id: stageContainer
+            Grid {
                 width: parent.width
-                height: parent.height - 138
+                columns: 2
+                spacing: 12
 
-                // ============================================================
-                // STAGE 01: IDENTITY & SYSTEM READOUT
-                // ============================================================
-                Item {
-                    anchors.fill: parent
-                    visible: root.currentStep === 0
+                // ------------------------------------------------------------
+                // QUADRANT 1: 🧠 AI NEURAL COPILOT
+                // ------------------------------------------------------------
+                Rectangle {
+                    width: (parent.width - 12) / 2
+                    height: 236
+                    radius: 12
+                    color: root.surface
+                    border.color: root.borderMuted
+                    border.width: 1
 
                     Column {
                         anchors.fill: parent
-                        spacing: 16
+                        anchors.margins: 12
+                        spacing: 8
 
                         Row {
-                            spacing: 8
-                            Text {
-                                text: "Stage 01 // Deck Identity & Node Status"
-                                color: root.accent
-                                font { family: root.mono; pixelSize: 14; bold: true; letterSpacing: 1.2 }
-                            }
-                            Rectangle {
-                                width: 72; height: 18; radius: 3; color: "#09090d"; border.color: root.accent
-                                Text { anchors.centerIn: parent; text: "ACTIVE NODE"; color: root.accent; font { family: root.mono; pixelSize: 8; bold: true } }
-                            }
+                            spacing: 6
+                            Text { text: "🧠 AI NEURAL COPILOT"; color: root.accent; font.family: root.mono; font.pixelSize: 11; font.bold: true; font.letterSpacing: 0.8 }
                         }
+                        Rectangle { width: parent.width; height: 1; color: root.withAlpha(root.accent, 0.3) }
 
-                        Text {
-                            text: "Welcome to SynapseOS. Your cyberdeck workspace is provisioned with hardened memory protection, BORE process scheduling, and native neural copilot integration."
-                            color: root.textSub
-                            font { family: root.mono; pixelSize: 12 }
-                            width: parent.width
-                        }
+                        // 3 AI Engine Option Rows
+                        readonly property var aiEngines: [
+                            { id: "claude",   title: "Anthropic Claude 3.7", desc: "Frontier Extended Reasoning Copilot", col: "#cba6f7", badge: "RECOMMENDED" },
+                            { id: "ollama",   title: "Ollama Local (11434)", desc: "100% Offline Qwen 2.5 Coder Abliterated", col: "#a6e3a1", badge: "SOVEREIGN" },
+                            { id: "deepseek", title: "DeepSeek R1 / API",    desc: "Open Reasoning API Endpoint", col: "#74c7ec", badge: "FLEXIBLE" }
+                        ]
 
-                        // Identity Cards Grid
-                        Row {
-                            width: parent.width
-                            height: 140
-                            spacing: 14
-
-                            // Operator Profile Card
-                            Rectangle {
-                                width: (parent.width - 14) / 2
-                                height: parent.height
+                        Repeater {
+                            model: parent.aiEngines
+                            delegate: Rectangle {
+                                required property var modelData
+                                width: parent.width
+                                height: 38
                                 radius: 8
-                                color: root.surfaceCard
-                                border.color: root.borderMuted
-                                border.width: 1
 
-                                Column {
+                                readonly property bool isSelected: root.backendAiEngine === modelData.id
+                                color: isSelected ? root.surfaceContainer : (rowMouse.containsMouse ? "#202030" : "#11111b")
+                                border.color: isSelected ? modelData.col : root.borderMuted
+                                border.width: isSelected ? 1.5 : 1
+
+                                Row {
                                     anchors.fill: parent
-                                    anchors.margins: 14
+                                    anchors.margins: 8
                                     spacing: 8
 
-                                    Row {
-                                        spacing: 6
-                                        Rectangle { width: 8; height: 8; radius: 4; color: root.accent; anchors.verticalCenter: parent.verticalCenter }
-                                        Text { text: "OPERATOR PROFILE"; color: root.accent; font { family: root.mono; pixelSize: 11; bold: true; letterSpacing: 1.0 } }
+                                    Rectangle {
+                                        width: 12; height: 12; radius: 6
+                                        color: isSelected ? modelData.col : "transparent"
+                                        border.color: modelData.col; border.width: 1.5
+                                        anchors.verticalCenter: parent.verticalCenter
                                     }
 
-                                    Row {
-                                        width: parent.width
-                                        spacing: 10
-                                        Text { text: "OPERATOR:"; color: root.textMuted; width: 90; font.family: root.mono; font.pixelSize: 11 }
-                                        Text { text: root.backendOperator; color: "#ffffff"; font.family: root.mono; font.pixelSize: 12; font.bold: true }
+                                    Column {
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        spacing: 1
+                                        width: parent.width - 90
+                                        Text { text: modelData.title; color: isSelected ? "#ffffff" : root.textMain; font.family: root.mono; font.pixelSize: 10; font.bold: true }
+                                        Text { text: modelData.desc; color: root.textSub; font.family: root.mono; font.pixelSize: 8; elide: Text.ElideRight; width: parent.width }
                                     }
 
-                                    Row {
-                                        width: parent.width
-                                        spacing: 10
-                                        Text { text: "NODE NAME:"; color: root.textMuted; width: 90; font.family: root.mono; font.pixelSize: 11 }
-                                        Text { text: root.backendHostname; color: "#ffffff"; font.family: root.mono; font.pixelSize: 12; font.bold: true }
-                                    }
-
-                                    Row {
-                                        width: parent.width
-                                        spacing: 10
-                                        Text { text: "PRIVILEGES:"; color: root.textMuted; width: 90; font.family: root.mono; font.pixelSize: 11 }
-                                        Text { text: "WHEEL / ROOTLESS EXEC"; color: "#a6e3a1"; font.family: root.mono; font.pixelSize: 11; font.bold: true }
+                                    Rectangle {
+                                        width: 62; height: 16; radius: 3; color: "#06060a"
+                                        border.color: isSelected ? modelData.col : root.borderMuted
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        Text { anchors.centerIn: parent; text: modelData.badge; color: isSelected ? modelData.col : root.textMuted; font.family: root.mono; font.pixelSize: 7; font.bold: true }
                                     }
                                 }
-                            }
 
-                            // Kernel & Hardware Telemetry Card
-                            Rectangle {
-                                width: (parent.width - 14) / 2
-                                height: parent.height
-                                radius: 8
-                                color: root.surfaceCard
-                                border.color: root.borderMuted
-                                border.width: 1
-
-                                Column {
+                                MouseArea {
+                                    id: rowMouse
                                     anchors.fill: parent
-                                    anchors.margins: 14
-                                    spacing: 8
-
-                                    Row {
-                                        spacing: 6
-                                        Rectangle { width: 8; height: 8; radius: 4; color: "#74c7ec"; anchors.verticalCenter: parent.verticalCenter }
-                                        Text { text: "PLATFORM ARCHITECTURE"; color: "#74c7ec"; font.family: root.mono; font.pixelSize: 11; font.bold: true; font.letterSpacing: 1.0 }
-                                    }
-
-                                    Row {
-                                        width: parent.width
-                                        spacing: 10
-                                        Text { text: "KERNEL:"; color: root.textMuted; width: 90; font.family: root.mono; font.pixelSize: 11 }
-                                        Text { text: "Arch Linux 6.13+ · BORE Scheduler"; color: "#ffffff"; font.family: root.mono; font.pixelSize: 11; font.bold: true }
-                                    }
-
-                                    Row {
-                                        width: parent.width
-                                        spacing: 10
-                                        Text { text: "COMPOSITOR:"; color: root.textMuted; width: 90; font.family: root.mono; font.pixelSize: 11 }
-                                        Text { text: "Wayland (Sway) / XFCE Dual-Stack"; color: "#ffffff"; font.family: root.mono; font.pixelSize: 11; font.bold: true }
-                                    }
-
-                                    Row {
-                                        width: parent.width
-                                        spacing: 10
-                                        Text { text: "MEMORY:"; color: root.textMuted; width: 90; font.family: root.mono; font.pixelSize: 11 }
-                                        Text { text: "ZRAM zstd Compression Active"; color: "#fab387"; font.family: root.mono; font.pixelSize: 11; font.bold: true }
-                                    }
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: if (typeof backend !== "undefined" && backend) backend.selectedAiEngine = modelData.id
                                 }
                             }
                         }
 
-                        // Cyberdeck Philosophy Banner
+                        // API Token Input Box
                         Rectangle {
                             width: parent.width
-                            height: 72
-                            radius: 8
-                            color: "#0a0a12"
-                            border.color: root.withAlpha(root.accent, 0.3)
+                            height: 34
+                            radius: 6
+                            color: "#11111b"
+                            border.color: root.borderMuted
 
                             Row {
                                 anchors.fill: parent
-                                anchors.margins: 14
-                                spacing: 14
+                                anchors.margins: 6
+                                spacing: 6
+
+                                Text { text: "TOKEN:"; color: root.textMuted; font.family: root.mono; font.pixelSize: 9; anchors.verticalCenter: parent.verticalCenter }
+
+                                TextInput {
+                                    id: tokenInput
+                                    width: parent.width - 110
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    text: root.claudeKey
+                                    color: "#ffffff"
+                                    echoMode: root.showClaudeKey ? TextInput.Normal : TextInput.Password
+                                    font.family: root.mono; font.pixelSize: 10
+                                    selectByMouse: true
+                                    selectionColor: root.accent
+                                    onTextChanged: if (typeof backend !== "undefined" && backend) backend.claudeApiKey = text
+
+                                    Text {
+                                        text: "Optional sk-ant / API Key..."
+                                        color: "#585b70"
+                                        font: tokenInput.font
+                                        visible: !tokenInput.text
+                                        anchors.verticalCenter: parent.verticalCenter
+                                    }
+                                }
 
                                 Rectangle {
-                                    width: 44; height: 44; radius: 22
-                                    color: root.withAlpha(root.accent, 0.15)
-                                    border.color: root.accent
+                                    width: 48; height: 22; radius: 4; color: "#1e1e2e"; border.color: root.borderMuted
                                     anchors.verticalCenter: parent.verticalCenter
-                                    Text { anchors.centerIn: parent; text: "⚡"; font.pixelSize: 18 }
-                                }
-
-                                Column {
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    spacing: 3
-                                    Text { text: "ZERO TELEMETRY · SOVEREIGN COMPUTING"; color: "#ffffff"; font { family: root.mono; pixelSize: 11; bold: true; letterSpacing: 1.0 } }
-                                    Text { text: "SynapseOS contains zero background trackers, analytics, or third-party phone-home beacons. You own your deck."; color: root.textSub; font { family: root.mono; pixelSize: 10 } }
+                                    Text { anchors.centerIn: parent; text: root.showClaudeKey ? "HIDE" : "SHOW"; color: root.textSub; font.family: root.mono; font.pixelSize: 8; font.bold: true }
+                                    MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: root.showClaudeKey = !root.showClaudeKey }
                                 }
                             }
                         }
                     }
                 }
 
-                // ============================================================
-                // STAGE 02: NEURAL AI COPILOT
-                // ============================================================
-                Item {
-                    anchors.fill: parent
-                    visible: root.currentStep === 1
+                // ------------------------------------------------------------
+                // QUADRANT 2: 🎨 VISUAL THEME & WALLPAPER (SECTION 5 RESOLVED)
+                // ------------------------------------------------------------
+                Rectangle {
+                    width: (parent.width - 12) / 2
+                    height: 236
+                    radius: 12
+                    color: root.surface
+                    border.color: root.borderMuted
+                    border.width: 1
 
                     Column {
                         anchors.fill: parent
-                        spacing: 14
+                        anchors.margins: 12
+                        spacing: 8
 
                         Row {
-                            spacing: 8
-                            Text {
-                                text: "Stage 02 // Neural AI Engine Selection"
-                                color: root.accent
-                                font { family: root.mono; pixelSize: 14; bold: true; letterSpacing: 1.2 }
-                            }
-                            Rectangle {
-                                width: 72; height: 18; radius: 3; color: "#09090d"; border.color: root.accent
-                                Text { anchors.centerIn: parent; text: "COPILOT"; color: root.accent; font { family: root.mono; pixelSize: 8; bold: true } }
-                            }
+                            spacing: 6
+                            Text { text: "🎨 VISUAL THEME & ACCENT PALETTE"; color: "#fab387"; font.family: root.mono; font.pixelSize: 11; font.bold: true; font.letterSpacing: 0.8 }
                         }
+                        Rectangle { width: parent.width; height: 1; color: Qt.rgba(250/255, 179/255, 135/255, 0.3) }
 
-                        Text {
-                            text: "Select your primary AI copilot for system-wide quickfire queries (Super+S), intelligent command synthesis, and code intelligence."
-                            color: root.textSub
-                            font { family: root.mono; pixelSize: 12 }
-                            width: parent.width
-                        }
-
-                        // Neural Engine Providers
-                        Row {
-                            id: neuralRow
-                            width: parent.width
-                            height: 124
-                            spacing: 12
-
-                            readonly property var engines: [
-                                { id: "claude",   title: "Anthropic Claude 3.7", desc: "Frontier reasoning model with extended thinking. System-wide code generation & deep synthesis.", col: "#cba6f7", badge: "RECOMMENDED" },
-                                { id: "ollama",   title: "Ollama Local (11434)", desc: "100% offline private local LLM running Qwen 2.5 Coder Abliterated on your local GPU.", col: "#a6e3a1", badge: "SOVEREIGN" },
-                                { id: "deepseek", title: "DeepSeek R1 / API",    desc: "Open reasoning API engine with high token throughput and cost-efficient intelligence.", col: "#74c7ec", badge: "FLEXIBLE" }
-                            ]
-
-                            Repeater {
-                                model: neuralRow.engines
-                                delegate: Rectangle {
-                                    required property var modelData
-                                    width: (neuralRow.width - 24) / 3
-                                    height: neuralRow.height
-                                    radius: 8
-
-                                    readonly property bool isSelected: root.backendAiEngine === modelData.id
-                                    color: isSelected ? root.surfaceContainer : root.surfaceCard
-                                    border.color: isSelected ? modelData.col : root.borderMuted
-                                    border.width: isSelected ? 2 : 1
-
-                                    Column {
-                                        anchors.fill: parent
-                                        anchors.margins: 12
-                                        spacing: 6
-
-                                        Row {
-                                            width: parent.width
-                                            Text {
-                                                text: modelData.title
-                                                color: "#ffffff"
-                                                font { family: root.mono; pixelSize: 11; bold: true }
-                                                width: parent.width - 70
-                                                elide: Text.ElideRight
-                                            }
-                                            Rectangle {
-                                                width: 62; height: 16; radius: 3; color: "#08080d"
-                                                border.color: modelData.col
-                                                Text { anchors.centerIn: parent; text: modelData.badge; color: modelData.col; font { family: root.mono; pixelSize: 8; bold: true } }
-                                            }
-                                        }
-
-                                        Text {
-                                            text: modelData.desc
-                                            color: root.textSub
-                                            font { family: root.mono; pixelSize: 10 }
-                                            wrapMode: Text.WordWrap
-                                            width: parent.width
-                                        }
-
-                                        Item { width: parent.width; height: 4 }
-
-                                        Row {
-                                            spacing: 6
-                                            Rectangle {
-                                                width: 10; height: 10; radius: 5
-                                                color: isSelected ? modelData.col : "transparent"
-                                                border.color: modelData.col; border.width: 1.5
-                                                anchors.verticalCenter: parent.verticalCenter
-                                            }
-                                            Text {
-                                                text: isSelected ? "ACTIVE COPILOT" : "CLICK TO ACTIVATE"
-                                                color: isSelected ? modelData.col : root.textMuted
-                                                font { family: root.mono; pixelSize: 9; bold: true }
-                                            }
-                                        }
-                                    }
-
-                                    MouseArea {
-                                        anchors.fill: parent
-                                        cursorShape: Qt.PointingHandCursor
-                                        onClicked: if (typeof backend !== "undefined" && backend) backend.selectedAiEngine = modelData.id
-                                    }
-                                }
-                            }
-                        }
-
-                        // API Key Configuration Field (Optional)
-                        Rectangle {
-                            width: parent.width
-                            height: 68
-                            radius: 8
-                            color: root.surfaceCard
-                            border.color: root.borderMuted
-
-                            Column {
-                                anchors.fill: parent
-                                anchors.margins: 10
-                                spacing: 4
-
-                                Row {
-                                    spacing: 8
-                                    Text { text: "API AUTHENTICATION TOKEN (OPTIONAL):"; color: root.accent; font { family: root.mono; pixelSize: 10; bold: true } }
-                                    Text { text: "(Stored locally in ~/.config/synapse/anthropic_key)"; color: root.textMuted; font { family: root.mono; pixelSize: 9 } }
-                                }
-
-                                Row {
-                                    width: parent.width
-                                    height: 30
-                                    spacing: 8
-
-                                    Rectangle {
-                                        width: parent.width - 100
-                                        height: parent.height
-                                        radius: 4
-                                        color: "#08080d"
-                                        border.color: root.borderMuted
-
-                                        TextInput {
-                                            id: keyInput
-                                            anchors.fill: parent
-                                            anchors.margins: 6
-                                            text: root.claudeKey
-                                            color: "#ffffff"
-                                            echoMode: root.showClaudeKey ? TextInput.Normal : TextInput.Password
-                                            font { family: root.mono; pixelSize: 11 }
-                                            onTextChanged: if (typeof backend !== "undefined" && backend) backend.claudeApiKey = text
-                                        }
-                                    }
-
-                                    Rectangle {
-                                        width: 92; height: parent.height; radius: 4
-                                        color: "#141422"; border.color: root.borderMuted
-                                        Text { anchors.centerIn: parent; text: root.showClaudeKey ? "HIDE [×]" : "SHOW [⊙]"; color: root.textMain; font { family: root.mono; pixelSize: 9; bold: true } }
-                                        MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: root.showClaudeKey = !root.showClaudeKey }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-
-                // ============================================================
-                // STAGE 03: CYBERDECK HARDWARE & DEFENSE COMBOS
-                // ============================================================
-                Item {
-                    anchors.fill: parent
-                    visible: root.currentStep === 2
-
-                    Column {
-                        anchors.fill: parent
-                        spacing: 12
-
-                        Row {
-                            spacing: 8
-                            Text {
-                                text: "Stage 03 // Cyberdeck Hardware & Defense Combos"
-                                color: root.accent
-                                font { family: root.mono; pixelSize: 14; bold: true; letterSpacing: 1.2 }
-                            }
-                            Rectangle {
-                                width: 72; height: 18; radius: 3; color: "#09090d"; border.color: root.accent
-                                Text { anchors.centerIn: parent; text: "HARDENED"; color: root.accent; font { family: root.mono; pixelSize: 8; bold: true } }
-                            }
-                        }
-
-                        Text {
-                            text: "Toggle advanced security, memory scrubbing, and latency optimization modules. All options are tuned for zero friction."
-                            color: root.textSub
-                            font { family: root.mono; pixelSize: 12 }
-                            width: parent.width
-                        }
-
-                        // 6 Essential Cyberdeck Combos Grid
+                        // 7 Wallpapers Grid - Instant Live Accent Color Shift
                         Grid {
-                            id: comboGrid
+                            id: themeGrid
                             width: parent.width
-                            columns: 3
-                            spacing: 10
-
-                            readonly property var comboItems: [
-                                { k: "stealth",    title: "Stealth Tor Routing", desc: "Routes all egress DNS and TCP network traffic through Tor onion circuits.", col: "#f38ba8" },
-                                { k: "mem_scrub",  title: "Memory Buffer Scrub", desc: "Zeroes kernel memory allocations on process exit to defeat cold-boot extraction.", col: "#fab387" },
-                                { k: "bore",       title: "BORE CPU Scheduler",  desc: "Burst-Oriented Response Enhancer guarantees desktop input smoothness under load.", col: "#a6e3a1" },
-                                { k: "zram",       title: "ZRAM zstd Swap",      desc: "In-memory compressed swap device eliminates physical disk wear and thrashing.", col: "#74c7ec" },
-                                { k: "wayland",    title: "Wayland Compositor",  desc: "Hardware-accelerated tearing-free GPU compositing with Wayland/Sway stack.", col: "#b4befe" },
-                                { k: "hotkey_hud", title: "Mnemonic Cheat Sheet",desc: "Super+K floating shortcut HUD to master keyboard navigation instantly.", col: "#cba6f7" }
-                            ]
-
-                            Repeater {
-                                model: comboGrid.comboItems
-                                delegate: Rectangle {
-                                    required property var modelData
-                                    width: (comboGrid.width - 20) / 3
-                                    height: 94
-                                    radius: 6
-
-                                    readonly property bool isOn: root.backendCombos[modelData.k] !== false
-                                    color: isOn ? root.surfaceContainer : "#090910"
-                                    border.color: isOn ? modelData.col : root.borderMuted
-                                    border.width: isOn ? 1.5 : 1
-
-                                    Column {
-                                        anchors.fill: parent
-                                        anchors.margins: 10
-                                        spacing: 4
-
-                                        Row {
-                                            width: parent.width
-                                            Text {
-                                                text: modelData.title
-                                                color: "#ffffff"
-                                                font { family: root.mono; pixelSize: 11; bold: true }
-                                                width: parent.width - 50
-                                                elide: Text.ElideRight
-                                            }
-                                            Rectangle {
-                                                width: 44; height: 18; radius: 3
-                                                color: "#06060a"
-                                                border.color: isOn ? modelData.col : root.borderMuted
-                                                Text {
-                                                    anchors.centerIn: parent
-                                                    text: isOn ? "ON" : "OFF"
-                                                    color: isOn ? modelData.col : root.textMuted
-                                                    font { family: root.mono; pixelSize: 9; bold: true }
-                                                }
-                                            }
-                                        }
-
-                                        Text {
-                                            text: modelData.desc
-                                            color: root.textSub
-                                            font { family: root.mono; pixelSize: 9 }
-                                            wrapMode: Text.WordWrap
-                                            width: parent.width
-                                        }
-                                    }
-
-                                    MouseArea {
-                                        anchors.fill: parent
-                                        cursorShape: Qt.PointingHandCursor
-                                        onClicked: if (typeof backend !== "undefined" && backend) backend.toggleCombo(modelData.k)
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-
-                // ============================================================
-                // STAGE 04: THEME STUDIO & COCKPIT LAUNCH (FIXES SECTION 5)
-                // ============================================================
-                Item {
-                    anchors.fill: parent
-                    visible: root.currentStep === 3
-
-                    Column {
-                        anchors.fill: parent
-                        spacing: 10
-
-                        Row {
-                            spacing: 8
-                            Text {
-                                text: "Stage 04 // Visual Theme Studio & Cockpit Launch"
-                                color: root.accent
-                                font { family: root.mono; pixelSize: 14; bold: true; letterSpacing: 1.2 }
-                            }
-                            Rectangle {
-                                width: 72; height: 18; radius: 3; color: "#09090d"; border.color: root.accent
-                                Text { anchors.centerIn: parent; text: "PALETTE"; color: root.accent; font { family: root.mono; pixelSize: 8; bold: true } }
-                            }
-                        }
-
-                        Text {
-                            text: "Select your visual theme. Choosing an accent synchronizes the SDDM greeter, border light trails, and Command HUD."
-                            color: root.textSub
-                            font { family: root.mono; pixelSize: 11 }
-                            width: parent.width
-                        }
-
-                        // Wallpapers Grid with Explicit Scoping (Fixed parent scoping bug)
-                        Grid {
-                            id: wallGrid
-                            width: parent.width
-                            columns: 4
-                            spacing: 8
+                            columns: 2
+                            spacing: 6
 
                             readonly property var wallpapers: [
-                                { id: "monolith-mauve",    name: "Monolith · Mauve",    col: "#cba6f7", desc: "Classic Monolith" },
-                                { id: "tower-mauve",       name: "Basalt Tower",        col: "#cba6f7", desc: "Cyberdeck Pillars" },
-                                { id: "carbon-mauve",      name: "Forged Carbon",       col: "#cba6f7", desc: "Carbon Weave" },
-                                { id: "monolith-tungsten", name: "Warm Tungsten",       col: "#fab387", desc: "Industrial Gold" },
-                                { id: "carbon-crimson",    name: "Stealth Crimson",     col: "#f38ba8", desc: "High Contrast" },
-                                { id: "monolith-sapphire", name: "Aerospace Sapphire",  col: "#74c7ec", desc: "Cold Chromium" },
-                                { id: "monolith-emerald",  name: "Matrix Emerald",      col: "#a6e3a1", desc: "Phosphor Terminal" }
+                                { id: "monolith-mauve",    name: "Monolith · Mauve",   col: "#cba6f7", desc: "Default Violet" },
+                                { id: "tower-mauve",       name: "Basalt Tower",       col: "#cba6f7", desc: "Cyberdeck Pillars" },
+                                { id: "carbon-mauve",      name: "Forged Carbon",      col: "#cba6f7", desc: "Stealth Weave" },
+                                { id: "monolith-tungsten", name: "Warm Tungsten",      col: "#fab387", desc: "Industrial Gold" },
+                                { id: "carbon-crimson",    name: "Stealth Crimson",    col: "#f38ba8", desc: "High Contrast" },
+                                { id: "monolith-sapphire", name: "Cold Sapphire",      col: "#74c7ec", desc: "Aerospace Blue" },
+                                { id: "monolith-emerald",  name: "Matrix Emerald",     col: "#a6e3a1", desc: "Terminal Phosphor" }
                             ]
 
                             Repeater {
-                                model: wallGrid.wallpapers
+                                model: themeGrid.wallpapers
                                 delegate: Rectangle {
                                     required property var modelData
-                                    width: (wallGrid.width - 24) / 4
-                                    height: 48
+                                    width: (themeGrid.width - 6) / 2
+                                    height: 34
                                     radius: 6
 
                                     readonly property bool isSelected: root.variant === modelData.id
-                                    color: isSelected ? root.surfaceContainer : root.surfaceCard
+                                    color: isSelected ? root.surfaceContainer : (wallMouse.containsMouse ? "#202030" : "#11111b")
                                     border.color: isSelected ? modelData.col : root.borderMuted
                                     border.width: isSelected ? 2 : 1
 
                                     Row {
                                         anchors.fill: parent
-                                        anchors.margins: 8
+                                        anchors.margins: 6
                                         spacing: 8
 
                                         Rectangle {
-                                            width: 14; height: 14; radius: 7
-                                            anchors.verticalCenter: parent.verticalCenter
+                                            width: 12; height: 12; radius: 6
                                             color: modelData.col
                                             border.color: "#ffffff"; border.width: 1
+                                            anchors.verticalCenter: parent.verticalCenter
                                         }
 
                                         Column {
                                             anchors.verticalCenter: parent.verticalCenter
-                                            spacing: 2
-                                            width: parent.width - 26
-
-                                            Text { text: modelData.name; color: "#ffffff"; font.family: root.mono; font.pixelSize: 10; font.bold: true; elide: Text.ElideRight; width: parent.width }
-                                            Text { text: modelData.desc; color: root.textSub; font.family: root.mono; font.pixelSize: 8; elide: Text.ElideRight; width: parent.width }
+                                            spacing: 1
+                                            width: parent.width - 24
+                                            Text { text: modelData.name; color: isSelected ? "#ffffff" : root.textMain; font.family: root.mono; font.pixelSize: 9; font.bold: true; elide: Text.ElideRight; width: parent.width }
+                                            Text { text: modelData.desc; color: root.textSub; font.family: root.mono; font.pixelSize: 7; elide: Text.ElideRight; width: parent.width }
                                         }
                                     }
 
                                     MouseArea {
+                                        id: wallMouse
                                         anchors.fill: parent
+                                        hoverEnabled: true
                                         cursorShape: Qt.PointingHandCursor
                                         onClicked: {
                                             root.variant = modelData.id
@@ -887,74 +469,221 @@ Window {
                             }
                         }
 
-                        // Mnemonic Keybinding Cheat Sheet Tiles
+                        // Metallic Icon Theme Badge
                         Rectangle {
                             width: parent.width
-                            height: 64
+                            height: 28
                             radius: 6
-                            color: root.surfaceCard
+                            color: "#11111b"
                             border.color: root.borderMuted
 
                             Row {
                                 anchors.fill: parent
-                                anchors.margins: 10
-                                spacing: 10
+                                anchors.margins: 6
+                                spacing: 8
+                                Rectangle { width: 10; height: 10; radius: 5; color: root.accent; anchors.verticalCenter: parent.verticalCenter }
+                                Text { text: "ICON SUITE: " + root.backendIconTheme; color: root.accent; font.family: root.mono; font.pixelSize: 9; font.bold: true; anchors.verticalCenter: parent.verticalCenter }
+                            }
+                        }
+                    }
+                }
 
-                                Column {
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    width: 120
-                                    Text { text: "MNEMONICS:"; color: "#fab387"; font.family: root.mono; font.pixelSize: 10; font.bold: true }
-                                    Text { text: "Super + Key"; color: root.textMuted; font.family: root.mono; font.pixelSize: 9 }
-                                }
+                // ------------------------------------------------------------
+                // QUADRANT 3: 🛡️ HARDWARE & DEFENSE TOGGLES
+                // ------------------------------------------------------------
+                Rectangle {
+                    width: (parent.width - 12) / 2
+                    height: 240
+                    radius: 12
+                    color: root.surface
+                    border.color: root.borderMuted
+                    border.width: 1
+
+                    Column {
+                        anchors.fill: parent
+                        anchors.margins: 12
+                        spacing: 8
+
+                        Row {
+                            spacing: 6
+                            Text { text: "🛡️ HARDWARE & DEFENSE MODULES"; color: "#a6e3a1"; font.family: root.mono; font.pixelSize: 11; font.bold: true; font.letterSpacing: 0.8 }
+                        }
+                        Rectangle { width: parent.width; height: 1; color: Qt.rgba(166/255, 227/255, 161/255, 0.3) }
+
+                        readonly property var toggles: [
+                            { k: "stealth",    title: "Stealth Tor Routing", desc: "Route DNS & egress through onion circuits", col: "#f38ba8" },
+                            { k: "bore",       title: "BORE CPU Scheduler",  desc: "Ultra-low latency interactive response", col: "#a6e3a1" },
+                            { k: "zram",       title: "ZRAM zstd Swap",      desc: "In-memory compression eliminates disk swap", col: "#74c7ec" },
+                            { k: "mem_scrub",  title: "Memory Buffer Scrub", desc: "Wipe memory buffers on process termination", col: "#fab387" },
+                            { k: "wayland",    title: "Wayland Compositor",  desc: "GPU hardware-accelerated Sway stack", col: "#b4befe" }
+                        ]
+
+                        Repeater {
+                            model: parent.toggles
+                            delegate: Rectangle {
+                                required property var modelData
+                                width: parent.width
+                                height: 32
+                                radius: 6
+
+                                readonly property bool isOn: root.backendCombos[modelData.k] !== false
+                                color: isOn ? root.surfaceContainer : (togMouse.containsMouse ? "#202030" : "#11111b")
+                                border.color: isOn ? modelData.col : root.borderMuted
+                                border.width: 1
 
                                 Row {
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    spacing: 12
+                                    anchors.fill: parent
+                                    anchors.margins: 6
+                                    spacing: 8
 
-                                    Row {
-                                        spacing: 6
-                                        Rectangle { width: 68; height: 18; radius: 3; color: "#06060a"; border.color: "#45475a"; Text { anchors.centerIn: parent; text: "Super + S"; color: "#fff"; font.family: root.mono; font.pixelSize: 9; font.bold: true } }
-                                        Text { text: "Command HUD"; color: root.textSub; font.family: root.mono; font.pixelSize: 10; anchors.verticalCenter: parent.verticalCenter }
+                                    Rectangle {
+                                        width: 38; height: 18; radius: 4
+                                        color: isOn ? modelData.col : "#08080d"
+                                        border.color: isOn ? modelData.col : root.borderMuted
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        Text { anchors.centerIn: parent; text: isOn ? "ON" : "OFF"; color: isOn ? "#08080d" : root.textMuted; font.family: root.mono; font.pixelSize: 8; font.bold: true }
                                     }
-                                    Row {
-                                        spacing: 6
-                                        Rectangle { width: 68; height: 18; radius: 3; color: "#06060a"; border.color: "#45475a"; Text { anchors.centerIn: parent; text: "Super + T"; color: "#fff"; font.family: root.mono; font.pixelSize: 9; font.bold: true } }
-                                        Text { text: "Kitty Terminal"; color: root.textSub; font.family: root.mono; font.pixelSize: 10; anchors.verticalCenter: parent.verticalCenter }
+
+                                    Column {
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        spacing: 1
+                                        width: parent.width - 50
+                                        Text { text: modelData.title; color: isOn ? "#ffffff" : root.textMain; font.family: root.mono; font.pixelSize: 9; font.bold: true }
+                                        Text { text: modelData.desc; color: root.textSub; font.family: root.mono; font.pixelSize: 7; elide: Text.ElideRight; width: parent.width }
                                     }
-                                    Row {
-                                        spacing: 6
-                                        Rectangle { width: 68; height: 18; radius: 3; color: "#06060a"; border.color: "#45475a"; Text { anchors.centerIn: parent; text: "Super + B"; color: "#fff"; font.family: root.mono; font.pixelSize: 9; font.bold: true } }
-                                        Text { text: "Chromium"; color: root.textSub; font.family: root.mono; font.pixelSize: 10; anchors.verticalCenter: parent.verticalCenter }
-                                    }
-                                    Row {
-                                        spacing: 6
-                                        Rectangle { width: 68; height: 18; radius: 3; color: "#06060a"; border.color: "#45475a"; Text { anchors.centerIn: parent; text: "Super + I"; color: "#fff"; font.family: root.mono; font.pixelSize: 9; font.bold: true } }
-                                        Text { text: "Installer"; color: root.textSub; font.family: root.mono; font.pixelSize: 10; anchors.verticalCenter: parent.verticalCenter }
-                                    }
+                                }
+
+                                MouseArea {
+                                    id: togMouse
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: if (typeof backend !== "undefined" && backend) backend.toggleCombo(modelData.k)
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // ------------------------------------------------------------
+                // QUADRANT 4: 🚀 SYSTEM CONTROLS & COCKPIT LAUNCH
+                // ------------------------------------------------------------
+                Rectangle {
+                    width: (parent.width - 12) / 2
+                    height: 240
+                    radius: 12
+                    color: root.surface
+                    border.color: root.borderMuted
+                    border.width: 1
+
+                    Column {
+                        anchors.fill: parent
+                        anchors.margins: 12
+                        spacing: 8
+
+                        Row {
+                            spacing: 6
+                            Text { text: "🚀 SYSTEM CONTROLS & LAUNCH"; color: "#74c7ec"; font.family: root.mono; font.pixelSize: 11; font.bold: true; font.letterSpacing: 0.8 }
+                        }
+                        Rectangle { width: parent.width; height: 1; color: Qt.rgba(116/255, 199/255, 236/255, 0.3) }
+
+                        // Keyboard Shortcuts Matrix
+                        Rectangle {
+                            width: parent.width
+                            height: 72
+                            radius: 6
+                            color: "#11111b"
+                            border.color: root.borderMuted
+
+                            Grid {
+                                anchors.fill: parent
+                                anchors.margins: 6
+                                columns: 2
+                                spacing: 6
+
+                                Row {
+                                    spacing: 6
+                                    Rectangle { width: 62; height: 16; radius: 3; color: "#06060a"; border.color: "#45475a"; Text { anchors.centerIn: parent; text: "Super + S"; color: "#fff"; font.family: root.mono; font.pixelSize: 8; font.bold: true } }
+                                    Text { text: "Command HUD"; color: root.textSub; font.family: root.mono; font.pixelSize: 9; anchors.verticalCenter: parent.verticalCenter }
+                                }
+                                Row {
+                                    spacing: 6
+                                    Rectangle { width: 62; height: 16; radius: 3; color: "#06060a"; border.color: "#45475a"; Text { anchors.centerIn: parent; text: "Super + T"; color: "#fff"; font.family: root.mono; font.pixelSize: 8; font.bold: true } }
+                                    Text { text: "Kitty Terminal"; color: root.textSub; font.family: root.mono; font.pixelSize: 9; anchors.verticalCenter: parent.verticalCenter }
+                                }
+                                Row {
+                                    spacing: 6
+                                    Rectangle { width: 62; height: 16; radius: 3; color: "#06060a"; border.color: "#45475a"; Text { anchors.centerIn: parent; text: "Super + B"; color: "#fff"; font.family: root.mono; font.pixelSize: 8; font.bold: true } }
+                                    Text { text: "Hardened Chromium"; color: root.textSub; font.family: root.mono; font.pixelSize: 9; anchors.verticalCenter: parent.verticalCenter }
+                                }
+                                Row {
+                                    spacing: 6
+                                    Rectangle { width: 62; height: 16; radius: 3; color: "#06060a"; border.color: "#45475a"; Text { anchors.centerIn: parent; text: "Super + I"; color: "#fff"; font.family: root.mono; font.pixelSize: 8; font.bold: true } }
+                                    Text { text: "Calamares Installer"; color: root.textSub; font.family: root.mono; font.pixelSize: 9; anchors.verticalCenter: parent.verticalCenter }
                                 }
                             }
                         }
 
-                        // Quick Launcher Action Tiles
+                        // Direct Launch Actions
                         Row {
                             width: parent.width
-                            height: 36
-                            spacing: 10
+                            height: 34
+                            spacing: 8
 
                             Rectangle {
-                                width: (parent.width - 20) / 3; height: parent.height; radius: 4; color: "#141422"; border.color: root.borderMuted
-                                Text { anchors.centerIn: parent; text: "[ OPEN COMMAND HUD ]"; color: root.accent; font { family: root.mono; pixelSize: 10; bold: true } }
-                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: if (typeof backend !== "undefined" && backend) backend.launchCmd("synapse-hud") }
+                                width: (parent.width - 8) / 2
+                                height: parent.height
+                                radius: 6
+                                color: "#141422"
+                                border.color: root.borderMuted
+                                Text { anchors.centerIn: parent; text: "[ OPEN HUD ]"; color: root.accent; font.family: root.mono; font.pixelSize: 9; font.bold: true }
+                                MouseArea {
+                                    anchors.fill: parent; cursorShape: Qt.PointingHandCursor
+                                    onClicked: if (typeof backend !== "undefined" && backend) backend.launchCmd("synapse-hud")
+                                }
                             }
+
                             Rectangle {
-                                width: (parent.width - 20) / 3; height: parent.height; radius: 4; color: "#141422"; border.color: root.borderMuted
-                                Text { anchors.centerIn: parent; text: "[ INSTALL DISK (CALAMARES) ]"; color: root.accent; font { family: root.mono; pixelSize: 10; bold: true } }
-                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: if (typeof backend !== "undefined" && backend) backend.launchCmd("calamares -d") }
+                                width: (parent.width - 8) / 2
+                                height: parent.height
+                                radius: 6
+                                color: "#141422"
+                                border.color: root.borderMuted
+                                Text { anchors.centerIn: parent; text: "[ INSTALL DISK ]"; color: "#a6e3a1"; font.family: root.mono; font.pixelSize: 9; font.bold: true }
+                                MouseArea {
+                                    anchors.fill: parent; cursorShape: Qt.PointingHandCursor
+                                    onClicked: if (typeof backend !== "undefined" && backend) backend.launchCmd("calamares -d")
+                                }
                             }
-                            Rectangle {
-                                width: (parent.width - 20) / 3; height: parent.height; radius: 4; color: "#141422"; border.color: root.borderMuted
-                                Text { anchors.centerIn: parent; text: "[ KEYBOARD CHEAT-SHEET ]"; color: root.accent; font { family: root.mono; pixelSize: 10; bold: true } }
-                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: if (typeof backend !== "undefined" && backend) backend.launchCmd("synapse-shortcuts") }
+                        }
+
+                        // Master Action Button: INITIATE CYBERDECK & ENTER DESKTOP
+                        Rectangle {
+                            width: parent.width
+                            height: 44
+                            radius: 8
+                            color: root.accent
+
+                            Row {
+                                anchors.centerIn: parent
+                                spacing: 8
+                                Text {
+                                    text: "INITIATE CYBERDECK & ENTER DESKTOP ▶"
+                                    color: "#08080e"
+                                    font.family: root.mono; font.pixelSize: 11; font.bold: true; font.letterSpacing: 0.8
+                                }
+                            }
+
+                            MouseArea {
+                                anchors.fill: parent
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: {
+                                    if (typeof backend !== "undefined" && backend) {
+                                        backend.applyAndFinish()
+                                    } else {
+                                        root.close()
+                                    }
+                                }
                             }
                         }
                     }
@@ -963,82 +692,29 @@ Window {
 
             // Divider Line
             Rectangle {
-                width: parent.width
-                height: 1
+                width: parent.width; height: 1
                 color: root.withAlpha(root.accent, 0.35)
             }
 
-            // ================================================================
-            // 3. BOTTOM NAVIGATION BAR
-            // ================================================================
+            // Bottom Footer Status Bar
             Item {
                 width: parent.width
-                height: 38
+                height: 20
 
-                // Back Button
-                Rectangle {
-                    width: 130
-                    height: 36
-                    radius: 4
+                Row {
                     anchors.left: parent.left
                     anchors.verticalCenter: parent.verticalCenter
-                    color: root.currentStep > 0 ? "#141422" : "#0a0a10"
-                    border.color: root.currentStep > 0 ? root.borderMuted : "#161622"
-                    enabled: root.currentStep > 0
-
-                    Text {
-                        anchors.centerIn: parent
-                        text: "◀ PREVIOUS"
-                        color: root.currentStep > 0 ? root.textMain : root.textMuted
-                        font { family: root.mono; pixelSize: 11; bold: true }
-                    }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        cursorShape: root.currentStep > 0 ? Qt.PointingHandCursor : Qt.ArrowCursor
-                        onClicked: if (root.currentStep > 0) root.currentStep--
-                    }
+                    spacing: 8
+                    Rectangle { width: 6; height: 6; radius: 3; color: "#a6e3a1"; anchors.verticalCenter: parent.verticalCenter }
+                    Text { text: "ZERO TELEMETRY ACTIVE  ·  SOVEREIGN LINUX COCKPIT"; color: root.textMuted; font.family: root.mono; font.pixelSize: 9 }
                 }
 
-                // Step Status Text
-                Row {
-                    anchors.centerIn: parent
-                    spacing: 6
-                    Rectangle { width: 6; height: 6; radius: 3; color: root.accent; anchors.verticalCenter: parent.verticalCenter }
-                    Text {
-                        text: "STAGE 0" + (root.currentStep + 1) + " // 04"
-                        color: root.textSub
-                        font { family: root.mono; pixelSize: 11; bold: true; letterSpacing: 1.0 }
-                    }
-                }
-
-                // Next / Finish Action Button
-                Rectangle {
-                    width: root.currentStep === root.totalSteps - 1 ? 230 : 150
-                    height: 36
-                    radius: 4
+                Text {
                     anchors.right: parent.right
                     anchors.verticalCenter: parent.verticalCenter
+                    text: "SUPER + S OPENS HUD AT ANY TIME"
                     color: root.accent
-
-                    Text {
-                        anchors.centerIn: parent
-                        text: root.currentStep === root.totalSteps - 1 ? "INITIATE CYBERDECK ▶" : "CONTINUE ▶"
-                        color: "#08080e"
-                        font { family: root.mono; pixelSize: 11; bold: true; letterSpacing: 0.8 }
-                    }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: {
-                            if (root.currentStep < root.totalSteps - 1) {
-                                root.currentStep++
-                            } else {
-                                if (typeof backend !== "undefined" && backend) backend.applyAndFinish()
-                            }
-                        }
-                    }
+                    font.family: root.mono; font.pixelSize: 9; font.bold: true
                 }
             }
         }
