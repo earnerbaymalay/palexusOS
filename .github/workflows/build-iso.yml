@@ -59,8 +59,11 @@ jobs:
             -w /workspace \
             archlinux:latest \
             bash -euo pipefail -c "
+              sed -i '/^\[options\]/a DisableDownloadTimeout' /etc/pacman.conf
+              pacman-key --init
+              pacman-key --populate archlinux
               pacman -Sy --noconfirm archlinux-keyring
-              pacman -Syu --noconfirm archiso base-devel git sudo namcap shellcheck rust cargo python python-pillow python-numpy
+              pacman -Syu --noconfirm archiso base-devel git sudo namcap shellcheck rust python python-pillow python-numpy
               git config --system --add safe.directory '*'
               useradd -m -G wheel -s /bin/bash builder 2>/dev/null || true
               install -d -m 0750 /etc/sudoers.d
