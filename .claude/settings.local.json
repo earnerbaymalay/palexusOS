@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git add *)",
+      "Bash(git commit -m 'fix\\(oobe\\): resolve three blocking issues from cloud review *)"
+    ]
+  }
+}
