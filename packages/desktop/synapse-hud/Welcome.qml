@@ -1,49 +1,315 @@
-// SynapseOS — Cyberdeck Onboarding Gate (Qt6 / Material You Cockpit)
-// Master Craftsmanship & Tactile Cyberdeck Redesign
-// Frameless chamfered obsidian glass architecture with dual traveling white-hot light trails,
-// liquid chrome emblem, calm sidebar + canvas layout, rich 16:9 wallpaper preview miniatures,
-// animated sliding hardware switches, physical mechanical keycaps, and live AI health telemetry.
+// SynapseOS — First-run setup (Qt6 / QtQuick)
+// Linear, keyboard-first wizard in the greeter's chamfered obsidian style.
+//   Live ISO  : Welcome (Try / Install) -> Look -> Done
+//   Installed : Welcome -> Look -> Assistant -> Privacy -> Keys -> Done
+// Keys: Enter = continue · Alt+Left = back · Esc = skip setup · Tab = move focus
 
 import QtQuick
-import QtQuick.Controls.Basic
+import QtQuick.Layouts
 import QtQuick.Shapes
-import QtQuick.Effects
 
 Window {
     id: root
-    width: 980
+    width: 920
     height: 640
     visible: true
-    title: "SynapseOS // Cyberdeck Onboarding Gate"
-    flags: Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.Dialog
+    title: "SynapseOS Setup"
+    flags: Qt.FramelessWindowHint | Qt.Dialog
     color: "transparent"
 
+    // ---- Backend access (falls back to defaults so the file previews without one) ----
+    readonly property bool hasBackend: typeof backend !== "undefined" && backend !== null
+    function bk(name, fallback) { return (hasBackend && backend[name] !== undefined) ? backend[name] : fallback }
+
+    readonly property bool isLive: bk("isLive", false)
+    readonly property bool reduceMotion: bk("reduceMotion", false)
+    readonly property string variant: bk("variant", "monolith-mauve")
+    readonly property string scene: variant.split("-")[0]
+    readonly property string accentName: variant.split("-")[1]
+    readonly property string iconTheme: bk("iconTheme", "Synapse-Liquid-Chrome")
+    readonly property string aiEngine: bk("aiEngine", "local")
+    readonly property string modelTier: bk("modelTier", "light")
+    readonly property bool downloadModels: bk("downloadModels", false)
+    readonly property real ramGb: bk("ramGb", 0)
+    readonly property string claudeKey: bk("claudeApiKey", "")
+    readonly property string keyState: bk("keyTestState", "idle")
+
+    // ---- Design tokens ----
     readonly property var accents: ({
         mauve: "#cba6f7", tungsten: "#fab387", crimson: "#f38ba8",
         sapphire: "#74c7ec", emerald: "#a6e3a1"
     })
-    property string variant: (typeof backend !== "undefined" && backend && backend.selectedWallpaper) ? backend.selectedWallpaper : "monolith-mauve"
-    readonly property color accent: accents[variant.split("-").pop()] || accents.mauve
+    readonly property var sceneLabels: ({ monolith: "Monolith", tower: "Basalt Tower", carbon: "Forged Carbon" })
+    readonly property color accent: accents[accentName] || accents.mauve
+    readonly property color accentInk: "#11111b"
+    readonly property color slab: Qt.rgba(13 / 255, 14 / 255, 21 / 255, 0.97)
     readonly property color surface: "#151522"
-    readonly property color surfaceContainer: "#1a1a2c"
+    readonly property color surfaceContainer: "#1c1c2e"
+    readonly property color raised: "#25253a"
+    readonly property color border: "#313244"
     readonly property color textMain: "#cdd6f4"
-    readonly property color textSub: "#a6adc8"
-    readonly property color textMuted: "#6c7086"
-    readonly property color borderMuted: "#2d2d44"
+    readonly property color textSub: "#bac2de"
+    readonly property color textMuted: "#9399b2"   // 6.2:1 on surface
+    readonly property color success: "#a6e3a1"
+    readonly property color warning: "#f9e2af"
     readonly property string mono: "JetBrainsMono Nerd Font"
-
-    readonly property string backendOperator: (typeof backend !== "undefined" && backend && backend.operator) ? backend.operator : "operator"
-    readonly property string backendHostname: (typeof backend !== "undefined" && backend && backend.hostname) ? backend.hostname : "synapse-deck"
-    readonly property string backendAiEngine: (typeof backend !== "undefined" && backend && backend.selectedAiEngine) ? backend.selectedAiEngine : "claude"
-    readonly property string backendIconTheme: (typeof backend !== "undefined" && backend && backend.selectedIconTheme) ? backend.selectedIconTheme : "Synapse-Liquid-Chrome"
-    readonly property var backendCombos: (typeof backend !== "undefined" && backend && backend.combos) ? backend.combos : ({})
-    readonly property string chromeLogoPath: (typeof backend !== "undefined" && backend && backend.chromeLogoPath) ? backend.chromeLogoPath : ""
-    readonly property string claudeKey: (typeof backend !== "undefined" && backend && backend.claudeApiKey) ? backend.claudeApiKey : ""
-
-    property int activeNav: 0
-    property bool showClaudeKey: false
+    readonly property int motion: reduceMotion ? 0 : 160
 
     function withAlpha(c, a) { return Qt.rgba(c.r, c.g, c.b, a) }
+    function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1) }
+    function iconLabel(t) { return t.replace("Synapse-", "").replace("-", " ") }
+    function tierSize(t) { return hasBackend ? backend.tierSizeGb(t) : (t === "standard" ? 7.0 : 3.3) }
+
+    // ---- Step machine ----
+    readonly property var steps: isLive ? ["welcome", "appearance", "done"]
+                                        : ["welcome", "appearance", "ai", "privacy", "keys", "done"]
+    readonly property var stepTitles: ({ welcome: "Welcome", appearance: "Look", ai: "Assistant",
+                                         privacy: "Privacy", keys: "Keys", done: "Done" })
+    property int stepIndex: 0
+    property int furthest: 0
+    readonly property string step: steps[stepIndex]
+    property bool liveInstall: false
+    property bool confirmSkip: false
+
+    readonly property bool canContinue: !(step === "ai" && aiEngine === "claude" && claudeKey === "")
+    readonly property string primaryLabel: step === "welcome" ? (isLive ? (liveInstall ? "Open installer" : "Next") : "Get started")
+                                         : step === "done" ? "Finish" : "Next"
+
+    function go(i) {
+        stepIndex = Math.max(0, Math.min(steps.length - 1, i))
+        furthest = Math.max(furthest, stepIndex)
+        confirmSkip = false
+        primaryBtn.forceActiveFocus()
+    }
+    function next() {
+        if (!canContinue) return
+        if (step === "welcome" && isLive && liveInstall) { if (hasBackend) backend.startInstaller(); else root.close(); return }
+        if (step === "done") { if (hasBackend) backend.finish(); else root.close(); return }
+        go(stepIndex + 1)
+    }
+    function back() { if (stepIndex > 0) go(stepIndex - 1) }
+    function skip() { if (hasBackend) backend.skip(); else root.close() }
+
+    // ====================================================================
+    // Reusable controls
+    // ====================================================================
+
+    component T: Text {
+        color: root.textMain
+        font.family: root.mono
+        font.pixelSize: 14
+        wrapMode: Text.WordWrap
+    }
+
+    component FocusRing: Rectangle {
+        property real r: 8
+        anchors.fill: parent
+        anchors.margins: -3
+        radius: r + 3
+        color: "transparent"
+        border.width: 2
+        border.color: root.accent
+    }
+
+    component Btn: Rectangle {
+        id: btn
+        property string text
+        property string kind: "secondary"      // primary | secondary | ghost
+        signal activated()
+        implicitWidth: Math.max(kind === "ghost" ? 0 : 112, label.implicitWidth + 32)
+        implicitHeight: 40
+        radius: 8
+        activeFocusOnTab: true
+        opacity: enabled ? 1 : 0.45
+        color: kind === "primary" ? (mouse.pressed ? Qt.darker(root.accent, 1.15) : mouse.containsMouse ? Qt.lighter(root.accent, 1.06) : root.accent)
+             : kind === "secondary" ? (mouse.pressed ? root.surface : mouse.containsMouse ? root.raised : root.surfaceContainer)
+             : (mouse.containsMouse ? root.surfaceContainer : "transparent")
+        border.width: kind === "secondary" ? 1 : 0
+        border.color: root.border
+        Behavior on color { ColorAnimation { duration: root.motion } }
+
+        Accessible.role: Accessible.Button
+        Accessible.name: text
+        Accessible.onPressAction: if (enabled) activated()
+        Keys.onReturnPressed: if (enabled) activated()
+        Keys.onEnterPressed: if (enabled) activated()
+        Keys.onSpacePressed: if (enabled) activated()
+
+        Text {
+            id: label
+            anchors.centerIn: parent
+            text: btn.text
+            color: btn.kind === "primary" ? root.accentInk : root.textMain
+            font.family: root.mono; font.pixelSize: 13; font.bold: btn.kind !== "ghost"
+        }
+        MouseArea {
+            id: mouse
+            anchors.fill: parent
+            hoverEnabled: true
+            enabled: btn.enabled
+            cursorShape: Qt.PointingHandCursor
+            onClicked: { btn.forceActiveFocus(); btn.activated() }
+        }
+        FocusRing { r: btn.radius; visible: btn.activeFocus }
+    }
+
+    // Selectable card that behaves like a radio button
+    component Choice: Rectangle {
+        id: ch
+        property string title
+        property string desc
+        property string badge
+        property bool selected
+        signal picked()
+        implicitHeight: Math.max(64, body.implicitHeight + 26)
+        radius: 10
+        activeFocusOnTab: true
+        color: selected ? root.withAlpha(root.accent, 0.10) : (cm.containsMouse ? root.raised : root.surfaceContainer)
+        border.width: selected ? 2 : 1
+        border.color: selected ? root.accent : root.border
+        Behavior on color { ColorAnimation { duration: root.motion } }
+
+        Accessible.role: Accessible.RadioButton
+        Accessible.name: title
+        Accessible.description: desc
+        Accessible.checkable: true
+        Accessible.checked: selected
+        Accessible.onPressAction: picked()
+        Keys.onSpacePressed: picked()
+
+        RowLayout {
+            id: body
+            anchors.fill: parent
+            anchors.margins: 13
+            spacing: 14
+
+            Rectangle {
+                Layout.alignment: Qt.AlignTop
+                Layout.topMargin: 2
+                width: 18; height: 18; radius: 9
+                color: "transparent"
+                border.width: 2
+                border.color: ch.selected ? root.accent : root.textMuted
+                Rectangle {
+                    anchors.centerIn: parent
+                    width: 8; height: 8; radius: 4
+                    color: root.accent
+                    visible: ch.selected
+                }
+            }
+            ColumnLayout {
+                Layout.fillWidth: true
+                spacing: 4
+                RowLayout {
+                    spacing: 10
+                    T { text: ch.title; font.bold: true; color: "#ffffff"; wrapMode: Text.NoWrap }
+                    Rectangle {
+                        visible: ch.badge !== ""
+                        implicitWidth: badgeText.implicitWidth + 14
+                        implicitHeight: 20
+                        radius: 4
+                        color: root.withAlpha(root.accent, 0.16)
+                        T { id: badgeText; anchors.centerIn: parent; text: ch.badge; color: root.accent; font.pixelSize: 11; font.bold: true }
+                    }
+                }
+                T { Layout.fillWidth: true; text: ch.desc; color: root.textSub; font.pixelSize: 13; visible: ch.desc !== "" }
+            }
+        }
+        MouseArea {
+            id: cm
+            anchors.fill: parent
+            hoverEnabled: true
+            cursorShape: Qt.PointingHandCursor
+            onClicked: { ch.forceActiveFocus(); ch.picked() }
+        }
+        FocusRing { r: ch.radius; visible: ch.activeFocus }
+    }
+
+    component Toggle: Item {
+        id: tg
+        property string text
+        property string detail
+        property bool checked
+        signal toggled()
+        implicitWidth: 360
+        implicitHeight: Math.max(26, tgText.implicitHeight)
+        activeFocusOnTab: true
+        Accessible.role: Accessible.CheckBox
+        Accessible.name: text
+        Accessible.checkable: true
+        Accessible.checked: checked
+        Accessible.onToggleAction: toggled()
+        Keys.onSpacePressed: toggled()
+
+        RowLayout {
+            anchors.fill: parent
+            spacing: 12
+            Rectangle {
+                Layout.alignment: Qt.AlignTop
+                width: 42; height: 24; radius: 12
+                color: tg.checked ? root.withAlpha(root.accent, 0.35) : root.surface
+                border.width: 1.5
+                border.color: tg.checked ? root.accent : root.textMuted
+                Rectangle {
+                    width: 16; height: 16; radius: 8; y: 4
+                    x: tg.checked ? 22 : 4
+                    color: tg.checked ? root.accent : root.textMuted
+                    Behavior on x { NumberAnimation { duration: root.motion; easing.type: Easing.OutCubic } }
+                }
+                FocusRing { r: 12; visible: tg.activeFocus }
+            }
+            ColumnLayout {
+                id: tgText
+                Layout.fillWidth: true
+                spacing: 2
+                T { Layout.fillWidth: true; text: tg.text; font.bold: true }
+                T { Layout.fillWidth: true; text: tg.detail; color: root.textMuted; font.pixelSize: 12; visible: tg.detail !== "" }
+            }
+        }
+        MouseArea {
+            anchors.fill: parent
+            cursorShape: Qt.PointingHandCursor
+            onClicked: { tg.forceActiveFocus(); tg.toggled() }
+        }
+    }
+
+    component Keycap: Rectangle {
+        property string label
+        implicitWidth: Math.max(30, capText.implicitWidth + 16)
+        implicitHeight: 28
+        radius: 5
+        gradient: Gradient {
+            GradientStop { position: 0.0; color: "#2a2a40" }
+            GradientStop { position: 1.0; color: "#18182a" }
+        }
+        border.color: "#45475a"
+        T { id: capText; anchors.centerIn: parent; text: parent.label; font.pixelSize: 12; font.bold: true; wrapMode: Text.NoWrap }
+    }
+
+    component PageHeader: ColumnLayout {
+        property string title
+        property string subtitle
+        Layout.fillWidth: true
+        spacing: 6
+        T { text: parent.title; color: "#ffffff"; font.pixelSize: 22; font.bold: true }
+        T { Layout.fillWidth: true; text: parent.subtitle; color: root.textSub; visible: text !== "" }
+    }
+
+    // Fading page container; only the current step is visible and focusable
+    component Page: Item {
+        property string name
+        readonly property bool current: root.step === name
+        anchors.fill: parent
+        opacity: current ? 1 : 0
+        visible: opacity > 0
+        enabled: current
+        transform: Translate { x: current ? 0 : 14; Behavior on x { NumberAnimation { duration: root.motion; easing.type: Easing.OutCubic } } }
+        Behavior on opacity { NumberAnimation { duration: root.motion } }
+    }
+
+    // ====================================================================
+    // Window chrome
+    // ====================================================================
 
     FocusScope {
         id: panel
@@ -52,36 +318,32 @@ Window {
         focus: true
         readonly property real c: 18
 
+        Keys.onEscapePressed: root.confirmSkip = !root.confirmSkip
+        Keys.onReturnPressed: if (!root.confirmSkip) root.next()
+        Keys.onEnterPressed: if (!root.confirmSkip) root.next()
         Keys.onPressed: function(event) {
-            if (event.key === Qt.Key_Escape) {
-                if (typeof backend !== "undefined" && backend) {
-                    backend.applyAndFinish()
-                } else {
-                    root.close()
-                }
-                event.accepted = true
-            }
+            if (event.key === Qt.Key_Left && (event.modifiers & Qt.AltModifier)) { root.back(); event.accepted = true }
+            else if (event.key === Qt.Key_Right && (event.modifiers & Qt.AltModifier)) { root.next(); event.accepted = true }
         }
 
-        // Ambient border drop-glow
         Rectangle {
             anchors.fill: parent
             anchors.margins: -4
             color: "transparent"
             border.color: root.accent
             border.width: 1
-            opacity: 0.35
+            opacity: 0.30
             radius: panel.c + 2
+            Behavior on border.color { ColorAnimation { duration: root.motion * 2 } }
         }
 
-        // Chamfered Obsidian Glass Slab
         Shape {
             anchors.fill: parent
             preferredRendererType: Shape.CurveRenderer
             ShapePath {
                 strokeWidth: 1.5
-                strokeColor: root.borderMuted
-                fillColor: Qt.rgba(13 / 255, 14 / 255, 21 / 255, 0.96)
+                strokeColor: root.border
+                fillColor: root.slab
                 startX: panel.c; startY: 0
                 PathLine { x: panel.width - panel.c; y: 0 }
                 PathLine { x: panel.width; y: panel.c }
@@ -94,24 +356,27 @@ Window {
             }
         }
 
-        // Animated Travelling Border Light Trails
+        // Single slow light trail, the greeter's signature; off with reduced motion
         Shape {
-            id: trails
+            id: trail
             anchors.fill: parent
+            visible: !root.reduceMotion
+            opacity: 0.7
             readonly property real perim: 2 * (panel.width + panel.height)
             property real offset: 0
             NumberAnimation on offset {
+                running: trail.visible
                 loops: Animation.Infinite
-                from: trails.perim; to: 0
-                duration: 6500
+                from: trail.perim; to: 0
+                duration: 12000
             }
             ShapePath {
                 strokeColor: root.accent
                 strokeWidth: 2
                 fillColor: "transparent"
                 strokeStyle: ShapePath.DashLine
-                dashPattern: [12, 120]
-                dashOffset: trails.offset
+                dashPattern: [10, 160]
+                dashOffset: trail.offset
                 startX: panel.c; startY: 0
                 PathLine { x: panel.width - panel.c; y: 0 }
                 PathLine { x: panel.width; y: panel.c }
@@ -124,869 +389,824 @@ Window {
             }
         }
 
-        // ====================================================================
-        // MAIN SPLIT LAYOUT: LEFT SIDEBAR + RIGHT CONTENT CANVAS
-        // ====================================================================
-        Row {
+        ColumnLayout {
             anchors.fill: parent
-            anchors.margins: 18
+            anchors.leftMargin: 32
+            anchors.rightMargin: 32
+            anchors.topMargin: 22
+            anchors.bottomMargin: 22
             spacing: 18
 
-            // ----------------------------------------------------------------
-            // 1. LEFT SIDEBAR (NAVIGATION & MASTER CONTROLS)
-            // ----------------------------------------------------------------
-            Rectangle {
-                id: sidebar
-                width: 250
-                height: parent.height
-                radius: 12
-                color: root.surface
-                border.color: root.borderMuted
-                border.width: 1
+            // ---- Header: brand, step counter, close ----
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 12
 
-                Column {
-                    anchors.fill: parent
-                    anchors.margins: 16
-                    spacing: 14
+                Image {
+                    id: logo
+                    Layout.preferredWidth: 30; Layout.preferredHeight: 30
+                    source: root.bk("chromeLogoPath", "") ? "file://" + root.bk("chromeLogoPath", "") : ""
+                    fillMode: Image.PreserveAspectFit
+                    smooth: true; mipmap: true
+                    visible: status === Image.Ready
+                    Accessible.ignored: true
+                }
+                T { text: "SYNAPSEOS"; color: "#ffffff"; font.pixelSize: 14; font.bold: true; font.letterSpacing: 1.5 }
+                T { text: root.isLive ? "Live session" : "Setup"; color: root.textMuted; font.pixelSize: 13 }
+                Item { Layout.fillWidth: true }
+                T {
+                    text: "Step " + (root.stepIndex + 1) + " of " + root.steps.length
+                    color: root.textMuted; font.pixelSize: 13
+                }
+                Btn {
+                    kind: "ghost"
+                    text: "✕"
+                    implicitWidth: 40
+                    Accessible.name: "Close setup"
+                    onActivated: root.confirmSkip = true
+                }
+            }
 
-                    // Brand Header
-                    Row {
-                        spacing: 12
-                        Item {
-                            width: 40; height: 40
-                            anchors.verticalCenter: parent.verticalCenter
+            // ---- Progress rail (completed steps are clickable) ----
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 8
+                Repeater {
+                    model: root.steps
+                    delegate: Item {
+                        id: seg
+                        required property string modelData
+                        required property int index
+                        readonly property bool done: index < root.stepIndex
+                        readonly property bool here: index === root.stepIndex
+                        readonly property bool reachable: index <= root.furthest && !here
+                        Layout.fillWidth: true
+                        implicitHeight: 34
+                        activeFocusOnTab: reachable
+                        Accessible.role: Accessible.PageTab
+                        Accessible.name: root.stepTitles[modelData] + (here ? ", current step" : done ? ", done" : "")
+                        Keys.onReturnPressed: if (reachable) root.go(index)
+                        Keys.onSpacePressed: if (reachable) root.go(index)
 
-                            Rectangle {
-                                anchors.centerIn: parent
-                                width: 44; height: 44; radius: 22
-                                color: root.withAlpha(root.accent, 0.20)
-                                SequentialAnimation on opacity {
-                                    loops: Animation.Infinite
-                                    PropertyAnimation { to: 0.85; duration: 2200; easing.type: Easing.InOutSine }
-                                    PropertyAnimation { to: 0.25; duration: 2200; easing.type: Easing.InOutSine }
-                                }
-                            }
-
-                            Image {
-                                id: chromeLogo
-                                anchors.fill: parent
-                                source: root.chromeLogoPath ? "file://" + root.chromeLogoPath : ""
-                                fillMode: Image.PreserveAspectFit
-                                smooth: true; mipmap: true
-                                visible: status === Image.Ready
-                            }
-
-                            Rectangle {
-                                anchors.centerIn: parent
-                                width: 32; height: 32; radius: 6
-                                color: "#141422"; border.color: root.accent; border.width: 1.5
-                                visible: !chromeLogo.visible
-                                Text { anchors.centerIn: parent; text: "SY"; color: root.accent; font.family: root.mono; font.pixelSize: 13; font.bold: true }
-                            }
+                        Rectangle {
+                            id: bar
+                            width: parent.width; height: 4; radius: 2
+                            color: seg.here || seg.done ? root.accent : root.border
+                            opacity: seg.done ? 0.6 : 1
+                            Behavior on color { ColorAnimation { duration: root.motion } }
                         }
-
-                        Column {
-                            anchors.verticalCenter: parent.verticalCenter
-                            spacing: 2
-                            Text {
-                                text: "SYNAPSEOS"
-                                color: "#ffffff"
-                                font.family: root.mono; font.pixelSize: 13; font.bold: true; font.letterSpacing: 1.4
-                            }
-                            Text {
-                                text: "Cyberdeck Gate"
-                                color: root.accent
-                                font.family: root.mono; font.pixelSize: 10
-                            }
+                        T {
+                            anchors.top: bar.bottom; anchors.topMargin: 8
+                            text: (seg.done ? "✓ " : "") + root.stepTitles[seg.modelData]
+                            color: seg.here ? "#ffffff" : seg.done ? root.textSub : root.textMuted
+                            font.pixelSize: 12; font.bold: seg.here
+                            wrapMode: Text.NoWrap
                         }
-                    }
-
-                    // Divider
-                    Rectangle { width: parent.width; height: 1; color: root.withAlpha(root.accent, 0.25) }
-
-                    // Navigation Menu
-                    readonly property var navItems: [
-                        { idx: 0, title: "Overview",   desc: "Deck Identity & Status", tag: "01" },
-                        { idx: 1, title: "AI Copilot", desc: "Neural Engine Selection", tag: "02" },
-                        { idx: 2, title: "Theme",      desc: "Wallpaper & Accents",    tag: "03" },
-                        { idx: 3, title: "Defense",    desc: "Security & Latency",     tag: "04" },
-                        { idx: 4, title: "Shortcuts",  desc: "Mnemonic Cheat Sheet",   tag: "05" }
-                    ]
-
-                    Repeater {
-                        model: parent.navItems
-                        delegate: Rectangle {
-                            required property var modelData
-                            width: parent.width
-                            height: 44
-                            radius: 8
-
-                            readonly property bool isCurrent: root.activeNav === modelData.idx
-                            color: isCurrent ? root.surfaceContainer : (navMouse.containsMouse ? "#202030" : "transparent")
-                            border.color: isCurrent ? root.accent : "transparent"
-                            border.width: 1
-
-                            Row {
-                                anchors.fill: parent
-                                anchors.margins: 10
-                                spacing: 10
-
-                                Rectangle {
-                                    width: 24; height: 20; radius: 4
-                                    color: isCurrent ? root.accent : "#141422"
-                                    border.color: isCurrent ? root.accent : root.borderMuted
-                                    border.width: 1
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    Text {
-                                        anchors.centerIn: parent
-                                        text: modelData.tag
-                                        color: isCurrent ? "#08080e" : root.accent
-                                        font.family: root.mono; font.pixelSize: 9; font.bold: true
-                                    }
-                                }
-
-                                Column {
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    spacing: 1
-                                    Text {
-                                        text: modelData.title
-                                        color: isCurrent ? "#ffffff" : root.textMain
-                                        font.family: root.mono; font.pixelSize: 11; font.bold: isCurrent
-                                    }
-                                    Text {
-                                        text: modelData.desc
-                                        color: root.textSub
-                                        font.family: root.mono; font.pixelSize: 8
-                                    }
-                                }
-                            }
-
-                            MouseArea {
-                                id: navMouse
-                                anchors.fill: parent
-                                hoverEnabled: true
-                                cursorShape: Qt.PointingHandCursor
-                                onClicked: root.activeNav = modelData.idx
-                            }
-                        }
-                    }
-
-                    Item { width: parent.width; height: 16 }
-
-                    // Tactile Cyberdeck Launch Control
-                    Rectangle {
-                        id: launchControl
-                        width: parent.width
-                        height: 44
-                        radius: 8
-                        gradient: Gradient {
-                            orientation: Gradient.Horizontal
-                            GradientStop { position: 0.0; color: root.withAlpha(root.accent, launchMouse.containsMouse ? 0.40 : 0.25) }
-                            GradientStop { position: 1.0; color: root.withAlpha(root.accent, launchMouse.containsMouse ? 0.22 : 0.14) }
-                        }
-                        border.color: root.accent
-                        border.width: 1.5
-
-                        Row {
-                            anchors.centerIn: parent
-                            spacing: 8
-
-                            Rectangle {
-                                width: 6; height: 6; radius: 3; color: root.accent
-                                anchors.verticalCenter: parent.verticalCenter
-                                SequentialAnimation on opacity {
-                                    loops: Animation.Infinite
-                                    PropertyAnimation { to: 1.0; duration: 900 }
-                                    PropertyAnimation { to: 0.3; duration: 900 }
-                                }
-                            }
-
-                            Text {
-                                text: "ENTER DESKTOP ▶"
-                                color: "#ffffff"
-                                font.family: root.mono; font.pixelSize: 11; font.bold: true; font.letterSpacing: 1.0
-                            }
-                        }
-
                         MouseArea {
-                            id: launchMouse
                             anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: {
-                                if (typeof backend !== "undefined" && backend) {
-                                    backend.applyAndFinish()
-                                } else {
-                                    root.close()
-                                }
-                            }
+                            enabled: seg.reachable
+                            cursorShape: seg.reachable ? Qt.PointingHandCursor : Qt.ArrowCursor
+                            onClicked: root.go(seg.index)
                         }
-                    }
-
-                    Text {
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        text: "[Esc] Quick Launch"
-                        color: root.textMuted
-                        font.family: root.mono; font.pixelSize: 9
+                        FocusRing { r: 4; visible: seg.activeFocus }
                     }
                 }
             }
 
-            // ----------------------------------------------------------------
-            // 2. RIGHT CONTENT CANVAS (FOCUSED, BREATHABLE, SPACIOUS)
-            // ----------------------------------------------------------------
-            Rectangle {
-                id: contentCanvas
-                width: parent.width - sidebar.width - 18
-                height: parent.height
-                radius: 12
-                color: root.surface
-                border.color: root.borderMuted
-                border.width: 1
+            // ====================================================================
+            // Pages
+            // ====================================================================
+            Item {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
 
-                // Top Header Row inside Canvas
-                Item {
-                    id: canvasHeader
-                    width: parent.width
-                    height: 52
-                    anchors.top: parent.top
+                // ---- 1. Welcome ----
+                Page {
+                    name: "welcome"
+                    ColumnLayout {
+                        anchors.fill: parent
+                        spacing: 22
 
-                    Row {
-                        anchors.left: parent.left
-                        anchors.leftMargin: 22
-                        anchors.verticalCenter: parent.verticalCenter
-                        spacing: 8
+                        RowLayout {
+                            spacing: 22
+                            Image {
+                                Layout.preferredWidth: 88; Layout.preferredHeight: 88
+                                source: logo.source
+                                fillMode: Image.PreserveAspectFit
+                                smooth: true; mipmap: true
+                                visible: status === Image.Ready
+                                Accessible.ignored: true
+                            }
+                            PageHeader {
+                                title: "Welcome, " + root.bk("displayName", "there") + "."
+                                subtitle: root.isLive
+                                    ? "You're running SynapseOS from the USB stick. Nothing is installed on this computer yet."
+                                    : "SynapseOS is a private, keyboard-first Arch workspace with a built-in AI assistant. Setup takes about two minutes, and you can change everything later."
+                            }
+                        }
 
+                        // Live: choose between trying and installing
+                        ColumnLayout {
+                            visible: root.isLive
+                            Layout.fillWidth: true
+                            spacing: 10
+                            Choice {
+                                Layout.fillWidth: true
+                                title: "Try SynapseOS"
+                                desc: "Pick a look and explore. Changes last until you shut down. You can install any time from the bar or with Super+I."
+                                selected: !root.liveInstall
+                                onPicked: root.liveInstall = false
+                            }
+                            Choice {
+                                Layout.fillWidth: true
+                                title: "Install SynapseOS"
+                                desc: "Open the installer now. The look you choose in this session carries over to the installed system."
+                                selected: root.liveInstall
+                                onPicked: root.liveInstall = true
+                            }
+                        }
+
+                        // Installed: preview of what's ahead
                         Rectangle {
-                            width: 6; height: 6; radius: 3
-                            color: root.accent
-                            anchors.verticalCenter: parent.verticalCenter
-                        }
-
-                        Text {
-                            text: root.activeNav === 0 ? "SYSTEM OVERVIEW" :
-                                  root.activeNav === 1 ? "NEURAL AI COPILOT" :
-                                  root.activeNav === 2 ? "VISUAL THEME STUDIO" :
-                                  root.activeNav === 3 ? "HARDWARE & DEFENSE" : "MNEMONIC CONTROLS"
-                            color: root.accent
-                            font.family: root.mono; font.pixelSize: 12; font.bold: true; font.letterSpacing: 1.2
-                        }
-                    }
-
-                    // Window Close button
-                    Rectangle {
-                        anchors.right: parent.right
-                        anchors.rightMargin: 18
-                        anchors.verticalCenter: parent.verticalCenter
-                        width: 26; height: 26; radius: 6
-                        color: closeMouse.containsMouse ? "#f38ba8" : "#26263a"
-
-                        Text {
-                            anchors.centerIn: parent
-                            text: "✕"
-                            color: closeMouse.containsMouse ? "#11111b" : "#cdd6f4"
-                            font.family: root.mono; font.pixelSize: 11; font.bold: true
-                        }
-
-                        MouseArea {
-                            id: closeMouse
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: {
-                                if (typeof backend !== "undefined" && backend) {
-                                    backend.applyAndFinish()
-                                } else {
-                                    root.close()
+                            visible: !root.isLive
+                            Layout.fillWidth: true
+                            implicitHeight: agenda.implicitHeight + 32
+                            radius: 10
+                            color: root.surfaceContainer
+                            border.color: root.border
+                            ColumnLayout {
+                                id: agenda
+                                anchors.fill: parent
+                                anchors.margins: 16
+                                spacing: 12
+                                T { text: "What we'll set up"; color: root.textMuted; font.pixelSize: 12; font.bold: true; font.letterSpacing: 1 }
+                                Repeater {
+                                    model: [
+                                        { n: "1", t: "A look", d: "Wallpaper scene, accent colour and icon style." },
+                                        { n: "2", t: "Your AI assistant", d: "Local and private, Claude in the cloud, or off." },
+                                        { n: "3", t: "A privacy check", d: "What's protecting you right now, read from this system." },
+                                        { n: "4", t: "Five keys", d: "Enough to get around without the mouse." }
+                                    ]
+                                    delegate: RowLayout {
+                                        required property var modelData
+                                        Layout.fillWidth: true
+                                        spacing: 14
+                                        Rectangle {
+                                            width: 26; height: 26; radius: 13
+                                            color: root.withAlpha(root.accent, 0.16)
+                                            T { anchors.centerIn: parent; text: modelData.n; color: root.accent; font.pixelSize: 12; font.bold: true }
+                                        }
+                                        T { text: modelData.t; font.bold: true; Layout.preferredWidth: 190; wrapMode: Text.NoWrap }
+                                        T { text: modelData.d; color: root.textSub; font.pixelSize: 13; Layout.fillWidth: true }
+                                    }
                                 }
                             }
                         }
-                    }
-
-                    Rectangle {
-                        anchors.bottom: parent.bottom
-                        width: parent.width; height: 1
-                        color: root.withAlpha(root.accent, 0.20)
+                        Item { Layout.fillHeight: true }
                     }
                 }
 
-                // Canvas Body Container
-                Item {
-                    anchors.top: canvasHeader.bottom
-                    anchors.bottom: parent.bottom
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    anchors.margins: 22
-
-                    // ========================================================
-                    // TAB 0: SYSTEM OVERVIEW
-                    // ========================================================
-                    Item {
+                // ---- 2. Appearance ----
+                Page {
+                    name: "appearance"
+                    ColumnLayout {
                         anchors.fill: parent
-                        visible: root.activeNav === 0
+                        spacing: 16
 
-                        Column {
-                            anchors.fill: parent
-                            spacing: 18
+                        PageHeader {
+                            title: "Choose a look"
+                            subtitle: "The wallpaper behind this window updates as you choose."
+                        }
 
-                            Column {
-                                spacing: 4
-                                Text {
-                                    text: "Welcome to SynapseOS"
-                                    color: "#ffffff"
-                                    font.family: root.mono; font.pixelSize: 20; font.bold: true
-                                }
-                                Text {
-                                    text: "A sovereign, neural-hardened cyberdeck workspace with zero telemetry."
-                                    color: root.textSub
-                                    font.family: root.mono; font.pixelSize: 12
-                                }
-                            }
+                        RowLayout {
+                            Layout.fillWidth: true
+                            Layout.fillHeight: true
+                            spacing: 24
 
-                            // Identity & Platform Cards
-                            Row {
-                                width: parent.width
-                                height: 150
-                                spacing: 14
-
+                            // Live preview
+                            ColumnLayout {
+                                Layout.preferredWidth: 380
+                                Layout.alignment: Qt.AlignTop
+                                spacing: 10
                                 Rectangle {
-                                    width: (parent.width - 14) / 2
-                                    height: parent.height
+                                    Layout.preferredWidth: 380
+                                    Layout.preferredHeight: 214
                                     radius: 10
-                                    color: root.surfaceContainer
-                                    border.color: root.borderMuted
-
-                                    Column {
-                                        anchors.fill: parent
-                                        anchors.margins: 16
-                                        spacing: 10
-
-                                        Text { text: "OPERATOR TELEMETRY"; color: root.accent; font.family: root.mono; font.pixelSize: 11; font.bold: true }
-
-                                        Row {
-                                            spacing: 8
-                                            Text { text: "OPERATOR:"; color: root.textMuted; font.family: root.mono; font.pixelSize: 11; width: 80 }
-                                            Text { text: root.backendOperator; color: "#ffffff"; font.family: root.mono; font.pixelSize: 11; font.bold: true }
-                                        }
-                                        Row {
-                                            spacing: 8
-                                            Text { text: "HOST NODE:"; color: root.textMuted; font.family: root.mono; font.pixelSize: 11; width: 80 }
-                                            Text { text: root.backendHostname; color: "#ffffff"; font.family: root.mono; font.pixelSize: 11; font.bold: true }
-                                        }
-                                        Row {
-                                            spacing: 8
-                                            Text { text: "SECURITY:"; color: root.textMuted; font.family: root.mono; font.pixelSize: 11; width: 80 }
-                                            Text { text: "HARDENED [ACTIVE]"; color: "#a6e3a1"; font.family: root.mono; font.pixelSize: 11; font.bold: true }
-                                        }
-                                    }
-                                }
-
-                                Rectangle {
-                                    width: (parent.width - 14) / 2
-                                    height: parent.height
-                                    radius: 10
-                                    color: root.surfaceContainer
-                                    border.color: root.borderMuted
-
-                                    Column {
-                                        anchors.fill: parent
-                                        anchors.margins: 16
-                                        spacing: 10
-
-                                        Text { text: "KERNEL ARCHITECTURE"; color: "#74c7ec"; font.family: root.mono; font.pixelSize: 11; font.bold: true }
-
-                                        Row {
-                                            spacing: 8
-                                            Text { text: "CORE:"; color: root.textMuted; font.family: root.mono; font.pixelSize: 11; width: 80 }
-                                            Text { text: "Arch Linux 6.13+"; color: "#ffffff"; font.family: root.mono; font.pixelSize: 11; font.bold: true }
-                                        }
-                                        Row {
-                                            spacing: 8
-                                            Text { text: "SCHEDULER:"; color: root.textMuted; font.family: root.mono; font.pixelSize: 11; width: 80 }
-                                            Text { text: "BORE Low-Latency Zen"; color: "#ffffff"; font.family: root.mono; font.pixelSize: 11; font.bold: true }
-                                        }
-                                        Row {
-                                            spacing: 8
-                                            Text { text: "MEMORY:"; color: root.textMuted; font.family: root.mono; font.pixelSize: 11; width: 80 }
-                                            Text { text: "ZRAM zstd Compression"; color: "#fab387"; font.family: root.mono; font.pixelSize: 11; font.bold: true }
-                                        }
-                                    }
-                                }
-                            }
-
-                            // Quick Actions Banner
-                            Row {
-                                width: parent.width
-                                height: 44
-                                spacing: 12
-
-                                Rectangle {
-                                    width: (parent.width - 12) / 2
-                                    height: parent.height
-                                    radius: 8
-                                    color: root.surfaceContainer
+                                    color: root.surface
+                                    border.width: 2
                                     border.color: root.accent
-
-                                    Row {
-                                        anchors.centerIn: parent
-                                        spacing: 8
-                                        Text { text: "▶"; color: root.accent; font.family: root.mono; font.pixelSize: 11 }
-                                        Text { text: "OPEN COMMAND HUD"; color: "#ffffff"; font.family: root.mono; font.pixelSize: 10; font.bold: true }
-                                    }
-                                    MouseArea {
-                                        anchors.fill: parent; cursorShape: Qt.PointingHandCursor
-                                        onClicked: if (typeof backend !== "undefined" && backend) backend.launchCmd("synapse-hud")
-                                    }
-                                }
-
-                                Rectangle {
-                                    width: (parent.width - 12) / 2
-                                    height: parent.height
-                                    radius: 8
-                                    color: root.surfaceContainer
-                                    border.color: "#a6e3a1"
-
-                                    Row {
-                                        anchors.centerIn: parent
-                                        spacing: 8
-                                        Text { text: "⤓"; color: "#a6e3a1"; font.family: root.mono; font.pixelSize: 13 }
-                                        Text { text: "INSTALL DISK (CALAMARES)"; color: "#ffffff"; font.family: root.mono; font.pixelSize: 10; font.bold: true }
-                                    }
-                                    MouseArea {
-                                        anchors.fill: parent; cursorShape: Qt.PointingHandCursor
-                                        onClicked: if (typeof backend !== "undefined" && backend) backend.launchCmd("calamares -d")
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    // ========================================================
-                    // TAB 1: AI NEURAL COPILOT
-                    // ========================================================
-                    Item {
-                        anchors.fill: parent
-                        visible: root.activeNav === 1
-
-                        Column {
-                            anchors.fill: parent
-                            spacing: 16
-
-                            Column {
-                                spacing: 4
-                                Text { text: "Neural AI Copilot"; color: "#ffffff"; font.family: root.mono; font.pixelSize: 18; font.bold: true }
-                                Text { text: "Select your primary AI model for quickfire queries (Super+S) and autonomous reasoning."; color: root.textSub; font.family: root.mono; font.pixelSize: 11 }
-                            }
-
-                            // 3 Clean Model Cards with Live Health Indicator
-                            readonly property var copilotOptions: [
-                                { id: "claude",   title: "Anthropic Claude 3.7 Sonnet", desc: "Frontier reasoning engine with extended thinking & deep code synthesis.", col: "#cba6f7", badge: "RECOMMENDED", tags: "200k Context · Extended Thinking" },
-                                { id: "ollama",   title: "Ollama Local (11434)",         desc: "100% Offline sovereign inference running Qwen 2.5 Coder Abliterated.", col: "#a6e3a1", badge: "● ONLINE (:11434)", tags: "Private GGUF · Sovereign" },
-                                { id: "deepseek", title: "DeepSeek R1 / API",            desc: "Open reasoning API engine with high speed and efficient throughput.", col: "#74c7ec", badge: "FLEXIBLE", tags: "Open Weights · High Throughput" }
-                            ]
-
-                            Repeater {
-                                model: parent.copilotOptions
-                                delegate: Rectangle {
-                                    required property var modelData
-                                    width: parent.width
-                                    height: 62
-                                    radius: 8
-
-                                    readonly property bool isSelected: root.backendAiEngine === modelData.id
-                                    color: isSelected ? root.surfaceContainer : (copilotMouse.containsMouse ? "#202030" : "#141420")
-                                    border.color: isSelected ? modelData.col : root.borderMuted
-                                    border.width: isSelected ? 1.5 : 1
-
-                                    Row {
+                                    clip: true
+                                    Image {
+                                        id: preview
                                         anchors.fill: parent
-                                        anchors.margins: 12
-                                        spacing: 12
-
-                                        Rectangle {
-                                            width: 14; height: 14; radius: 7
-                                            color: isSelected ? modelData.col : "transparent"
-                                            border.color: modelData.col; border.width: 2
-                                            anchors.verticalCenter: parent.verticalCenter
-                                        }
-
-                                        Column {
-                                            anchors.verticalCenter: parent.verticalCenter
-                                            spacing: 2
-                                            width: parent.width - 150
-                                            Row {
-                                                spacing: 8
-                                                Text { text: modelData.title; color: isSelected ? "#ffffff" : root.textMain; font.family: root.mono; font.pixelSize: 11; font.bold: true }
-                                                Text { text: "· " + modelData.tags; color: root.textMuted; font.family: root.mono; font.pixelSize: 9 }
-                                            }
-                                            Text { text: modelData.desc; color: root.textSub; font.family: root.mono; font.pixelSize: 9 }
-                                        }
-
-                                        Rectangle {
-                                            width: 98; height: 22; radius: 4; color: "#08080d"
-                                            border.color: isSelected ? modelData.col : root.borderMuted
-                                            anchors.verticalCenter: parent.verticalCenter
-                                            Text { anchors.centerIn: parent; text: modelData.badge; color: isSelected ? modelData.col : root.textMuted; font.family: root.mono; font.pixelSize: 8; font.bold: true }
-                                        }
+                                        anchors.margins: 2
+                                        source: root.hasBackend ? backend.wallpaperUrl(root.variant) : ""
+                                        sourceSize.width: 760
+                                        fillMode: Image.PreserveAspectCrop
+                                        asynchronous: true
+                                        Accessible.role: Accessible.Graphic
+                                        Accessible.name: "Wallpaper preview: " + root.sceneLabels[root.scene] + ", " + root.accentName
                                     }
-
-                                    MouseArea {
-                                        id: copilotMouse
-                                        anchors.fill: parent
-                                        hoverEnabled: true
-                                        cursorShape: Qt.PointingHandCursor
-                                        onClicked: if (typeof backend !== "undefined" && backend) backend.selectedAiEngine = modelData.id
+                                    T {
+                                        anchors.centerIn: parent
+                                        visible: preview.status !== Image.Ready
+                                        text: "Preview unavailable"
+                                        color: root.textMuted
                                     }
+                                }
+                                T {
+                                    text: root.sceneLabels[root.scene] + " · " + root.cap(root.accentName)
+                                    font.bold: true
+                                }
+                                T {
+                                    Layout.fillWidth: true
+                                    text: root.iconLabel(root.iconTheme) + " icons"
+                                    color: root.textMuted; font.pixelSize: 13
                                 }
                             }
 
-                            // Optional Token Field
-                            Rectangle {
-                                width: parent.width
-                                height: 46
-                                radius: 8
-                                color: root.surfaceContainer
-                                border.color: root.borderMuted
-
-                                Row {
-                                    anchors.fill: parent
-                                    anchors.margins: 8
-                                    spacing: 8
-
-                                    Text { text: "API KEY:"; color: root.textMuted; font.family: root.mono; font.pixelSize: 10; anchors.verticalCenter: parent.verticalCenter }
-
-                                    TextInput {
-                                        id: keyBox
-                                        width: parent.width - 130
-                                        anchors.verticalCenter: parent.verticalCenter
-                                        text: root.claudeKey
-                                        color: "#ffffff"
-                                        echoMode: root.showClaudeKey ? TextInput.Normal : TextInput.Password
-                                        font.family: root.mono; font.pixelSize: 11
-                                        selectByMouse: true
-                                        selectionColor: root.accent
-                                        onTextChanged: if (typeof backend !== "undefined" && backend) backend.claudeApiKey = text
-
-                                        Text {
-                                            text: "Optional authentication token..."
-                                            color: "#585b70"
-                                            font: keyBox.font
-                                            visible: !keyBox.text
-                                            anchors.verticalCenter: parent.verticalCenter
-                                        }
-                                    }
-
-                                    Rectangle {
-                                        width: 54; height: 28; radius: 4; color: "#222234"; border.color: root.borderMuted
-                                        anchors.verticalCenter: parent.verticalCenter
-                                        Text { anchors.centerIn: parent; text: root.showClaudeKey ? "HIDE" : "SHOW"; color: root.textSub; font.family: root.mono; font.pixelSize: 9; font.bold: true }
-                                        MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: root.showClaudeKey = !root.showClaudeKey }
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    // ========================================================
-                    // TAB 2: VISUAL THEME STUDIO (RICH 16:9 PREVIEWS)
-                    // ========================================================
-                    Item {
-                        anchors.fill: parent
-                        visible: root.activeNav === 2
-
-                        Column {
-                            anchors.fill: parent
-                            spacing: 14
-
-                            Column {
-                                spacing: 4
-                                Text { text: "Visual Theme & Accent Palette"; color: "#ffffff"; font.family: root.mono; font.pixelSize: 18; font.bold: true }
-                                Text { text: "Click any variant below to immediately shift the accent color, border glow, and light trails."; color: root.textSub; font.family: root.mono; font.pixelSize: 11 }
-                            }
-
-                            // Wallpapers Gallery with Rich 16:9 Aspect Previews
-                            Grid {
-                                id: galleryGrid
-                                width: parent.width
-                                columns: 2
+                            // Pickers
+                            ColumnLayout {
+                                Layout.fillWidth: true
+                                Layout.alignment: Qt.AlignTop
                                 spacing: 10
 
-                                readonly property var galleryItems: [
-                                    { id: "monolith-mauve",    name: "Monolith · Mauve (Default)", col: "#cba6f7", desc: "Classic Monolith in Violet Sheen", bg1: "#0c0a18", bg2: "#351e59" },
-                                    { id: "tower-mauve",       name: "Basalt Tower · Mauve",       col: "#cba6f7", desc: "Brutalist Cyberdeck Pillars",       bg1: "#0a0814", bg2: "#42246b" },
-                                    { id: "carbon-mauve",      name: "Forged Carbon · Mauve",      col: "#cba6f7", desc: "High-Density Carbon Weave",         bg1: "#14141d", bg2: "#2d1c44" },
-                                    { id: "monolith-tungsten", name: "Monolith · Tungsten",        col: "#fab387", desc: "Industrial Warm Gold Finish",       bg1: "#120e0a", bg2: "#472813" },
-                                    { id: "carbon-crimson",    name: "Forged Carbon · Crimson",    col: "#f38ba8", desc: "Stealth High-Contrast Crimson",     bg1: "#140a0e", bg2: "#4a1220" },
-                                    { id: "monolith-sapphire", name: "Monolith · Sapphire",        col: "#74c7ec", desc: "Aerospace Cold Chromium",           bg1: "#0a111a", bg2: "#14375a" },
-                                    { id: "monolith-emerald",  name: "Matrix Emerald",             col: "#a6e3a1", desc: "Phosphor Terminal Matrix",          bg1: "#09140c", bg2: "#164424" }
-                                ]
+                                T { text: "Scene"; color: root.textMuted; font.pixelSize: 12; font.bold: true; font.letterSpacing: 1 }
+                                RowLayout {
+                                    Layout.fillWidth: true
+                                    spacing: 10
+                                    Repeater {
+                                        model: ["monolith", "tower", "carbon"]
+                                        delegate: Rectangle {
+                                            id: sceneTile
+                                            required property string modelData
+                                            readonly property bool selected: root.scene === modelData
+                                            readonly property string thumbAccent: root.hasBackend && backend.variantExists(modelData, root.accentName) ? root.accentName : "mauve"
+                                            Layout.fillWidth: true
+                                            implicitHeight: 92
+                                            radius: 8
+                                            color: root.surfaceContainer
+                                            border.width: selected ? 2 : 1
+                                            border.color: selected ? root.accent : root.border
+                                            activeFocusOnTab: true
+                                            Accessible.role: Accessible.RadioButton
+                                            Accessible.name: root.sceneLabels[modelData]
+                                            Accessible.checkable: true
+                                            Accessible.checked: selected
+                                            Accessible.onPressAction: pick()
+                                            Keys.onSpacePressed: pick()
+                                            function pick() { if (root.hasBackend) backend.chooseVariant(modelData, root.accentName) }
 
-                                Repeater {
-                                    model: galleryGrid.galleryItems
-                                    delegate: Rectangle {
-                                        required property var modelData
-                                        width: (galleryGrid.width - 10) / 2
-                                        height: 52
-                                        radius: 8
-
-                                        readonly property bool isSelected: root.variant === modelData.id
-                                        color: isSelected ? root.surfaceContainer : (swatchMouse.containsMouse ? "#202030" : "#141420")
-                                        border.color: isSelected ? modelData.col : root.borderMuted
-                                        border.width: isSelected ? 2 : 1
-
-                                        Row {
-                                            anchors.fill: parent
-                                            anchors.margins: 8
-                                            spacing: 12
-
-                                            // 16:9 Miniature Wallpaper Swatch
-                                            Rectangle {
-                                                width: 48; height: 32; radius: 4
-                                                anchors.verticalCenter: parent.verticalCenter
-                                                gradient: Gradient {
-                                                    orientation: Gradient.Horizontal
-                                                    GradientStop { position: 0.0; color: modelData.bg1 }
-                                                    GradientStop { position: 1.0; color: modelData.bg2 }
-                                                }
-                                                border.color: isSelected ? modelData.col : "#33334d"
-                                                border.width: 1
-
-                                                // Inner accent hairline
-                                                Rectangle {
-                                                    width: 12; height: 2
-                                                    anchors.centerIn: parent
-                                                    color: modelData.col
-                                                    radius: 1
-                                                }
+                                            Image {
+                                                anchors.fill: parent
+                                                anchors.margins: 3
+                                                anchors.bottomMargin: 26
+                                                source: root.hasBackend ? backend.wallpaperUrl(sceneTile.modelData + "-" + sceneTile.thumbAccent) : ""
+                                                sourceSize.width: 260
+                                                fillMode: Image.PreserveAspectCrop
+                                                asynchronous: true
+                                                Accessible.ignored: true
                                             }
-
-                                            Column {
-                                                anchors.verticalCenter: parent.verticalCenter
-                                                spacing: 2
-                                                width: parent.width - 120
-                                                Text { text: modelData.name; color: isSelected ? "#ffffff" : root.textMain; font.family: root.mono; font.pixelSize: 10; font.bold: true; elide: Text.ElideRight; width: parent.width }
-                                                Text { text: modelData.desc; color: root.textSub; font.family: root.mono; font.pixelSize: 8; elide: Text.ElideRight; width: parent.width }
+                                            T {
+                                                anchors.bottom: parent.bottom; anchors.bottomMargin: 5
+                                                anchors.horizontalCenter: parent.horizontalCenter
+                                                text: root.sceneLabels[sceneTile.modelData]
+                                                color: sceneTile.selected ? "#ffffff" : root.textSub
+                                                font.pixelSize: 12; font.bold: sceneTile.selected
+                                                wrapMode: Text.NoWrap
                                             }
-
-                                            // Active Indicator Badge
-                                            Rectangle {
-                                                width: 52; height: 18; radius: 3
-                                                color: isSelected ? root.withAlpha(modelData.col, 0.2) : "transparent"
-                                                border.color: isSelected ? modelData.col : "transparent"
-                                                anchors.verticalCenter: parent.verticalCenter
-                                                visible: isSelected
-                                                Text {
-                                                    anchors.centerIn: parent
-                                                    text: "[✓] ACTIVE"
-                                                    color: modelData.col
-                                                    font.family: root.mono; font.pixelSize: 7; font.bold: true
-                                                }
+                                            MouseArea {
+                                                anchors.fill: parent
+                                                cursorShape: Qt.PointingHandCursor
+                                                onClicked: { sceneTile.forceActiveFocus(); sceneTile.pick() }
                                             }
+                                            FocusRing { r: 8; visible: sceneTile.activeFocus }
                                         }
+                                    }
+                                }
 
-                                        MouseArea {
-                                            id: swatchMouse
-                                            anchors.fill: parent
-                                            hoverEnabled: true
-                                            cursorShape: Qt.PointingHandCursor
-                                            onClicked: {
-                                                root.variant = modelData.id
-                                                if (typeof backend !== "undefined" && backend) backend.selectedWallpaper = modelData.id
+                                T { Layout.topMargin: 6; text: "Accent"; color: root.textMuted; font.pixelSize: 12; font.bold: true; font.letterSpacing: 1 }
+                                RowLayout {
+                                    spacing: 12
+                                    Repeater {
+                                        model: ["mauve", "tungsten", "crimson", "sapphire", "emerald"]
+                                        delegate: Rectangle {
+                                            id: sw
+                                            required property string modelData
+                                            readonly property bool available: !root.hasBackend || backend.variantExists(root.scene, modelData)
+                                            readonly property bool selected: root.accentName === modelData
+                                            width: 40; height: 40; radius: 20
+                                            color: root.accents[modelData]
+                                            opacity: available ? 1 : 0.25
+                                            border.width: selected ? 3 : 0
+                                            border.color: "#ffffff"
+                                            activeFocusOnTab: available
+                                            Accessible.role: Accessible.RadioButton
+                                            Accessible.name: root.cap(modelData) + (available ? "" : ", not available for this scene")
+                                            Accessible.checkable: true
+                                            Accessible.checked: selected
+                                            Accessible.onPressAction: pick()
+                                            Keys.onSpacePressed: pick()
+                                            function pick() { if (available && root.hasBackend) backend.chooseVariant(root.scene, modelData) }
+
+                                            T {
+                                                anchors.centerIn: parent
+                                                visible: sw.selected
+                                                text: "✓"; color: root.accentInk; font.bold: true; font.pixelSize: 16
                                             }
+                                            MouseArea {
+                                                anchors.fill: parent
+                                                enabled: sw.available
+                                                cursorShape: Qt.PointingHandCursor
+                                                onClicked: { sw.forceActiveFocus(); sw.pick() }
+                                            }
+                                            FocusRing { r: 20; visible: sw.activeFocus }
+                                        }
+                                    }
+                                }
+                                T {
+                                    Layout.fillWidth: true
+                                    visible: root.scene === "monolith"
+                                    text: "Crimson isn't available for Monolith."
+                                    color: root.textMuted; font.pixelSize: 12
+                                }
+
+                                T { Layout.topMargin: 6; text: "Icons"; color: root.textMuted; font.pixelSize: 12; font.bold: true; font.letterSpacing: 1 }
+                                GridLayout {
+                                    Layout.fillWidth: true
+                                    columns: 2
+                                    rowSpacing: 8; columnSpacing: 8
+                                    Repeater {
+                                        model: root.bk("iconThemes", ["Synapse-Liquid-Chrome", "Synapse-Smoked-Obsidian", "Synapse-Radial-Tungsten", "Synapse-Aerospace-Billet"])
+                                        delegate: Rectangle {
+                                            id: iconTile
+                                            required property string modelData
+                                            readonly property bool selected: root.iconTheme === modelData
+                                            Layout.fillWidth: true
+                                            implicitHeight: 46
+                                            radius: 8
+                                            color: selected ? root.withAlpha(root.accent, 0.10) : (im.containsMouse ? root.raised : root.surfaceContainer)
+                                            border.width: selected ? 2 : 1
+                                            border.color: selected ? root.accent : root.border
+                                            activeFocusOnTab: true
+                                            Accessible.role: Accessible.RadioButton
+                                            Accessible.name: root.iconLabel(modelData) + " icons"
+                                            Accessible.checkable: true
+                                            Accessible.checked: selected
+                                            Accessible.onPressAction: pick()
+                                            Keys.onSpacePressed: pick()
+                                            function pick() { if (root.hasBackend) backend.iconTheme = modelData }
+
+                                            RowLayout {
+                                                anchors.fill: parent
+                                                anchors.margins: 10
+                                                spacing: 6
+                                                Repeater {
+                                                    model: root.hasBackend ? backend.iconSamples(iconTile.modelData) : []
+                                                    delegate: Image {
+                                                        required property string modelData
+                                                        Layout.preferredWidth: 22; Layout.preferredHeight: 22
+                                                        source: modelData
+                                                        sourceSize: Qt.size(44, 44)
+                                                        Accessible.ignored: true
+                                                    }
+                                                }
+                                                T {
+                                                    Layout.fillWidth: true
+                                                    Layout.leftMargin: 4
+                                                    text: root.iconLabel(iconTile.modelData)
+                                                    color: iconTile.selected ? "#ffffff" : root.textSub
+                                                    font.pixelSize: 12
+                                                    elide: Text.ElideRight
+                                                    wrapMode: Text.NoWrap
+                                                }
+                                            }
+                                            MouseArea {
+                                                id: im
+                                                anchors.fill: parent
+                                                hoverEnabled: true
+                                                cursorShape: Qt.PointingHandCursor
+                                                onClicked: { iconTile.forceActiveFocus(); iconTile.pick() }
+                                            }
+                                            FocusRing { r: 8; visible: iconTile.activeFocus }
                                         }
                                     }
                                 }
                             }
+                        }
+                    }
+                }
 
-                            // Icon Theme Readout
-                            Rectangle {
-                                width: parent.width
-                                height: 38
+                // ---- 3. AI assistant ----
+                Page {
+                    name: "ai"
+                    ColumnLayout {
+                        anchors.fill: parent
+                        spacing: 12
+
+                        PageHeader {
+                            title: "Pick your AI assistant"
+                            subtitle: "It answers questions in the Command HUD (Super+Space) and helps in the terminal."
+                        }
+
+                        Choice {
+                            Layout.fillWidth: true
+                            title: "Local, on this computer"
+                            badge: "Recommended"
+                            desc: "Runs with Ollama. Nothing you type leaves this device, and it works offline."
+                            selected: root.aiEngine === "local"
+                            onPicked: if (root.hasBackend) backend.aiEngine = "local"
+                        }
+                        Choice {
+                            Layout.fillWidth: true
+                            title: "Claude, in the cloud"
+                            desc: "Anthropic's " + root.bk("claudeModel", "Claude") + ". Stronger answers, but your prompts are sent to Anthropic. Needs an API key."
+                            selected: root.aiEngine === "claude"
+                            onPicked: if (root.hasBackend) backend.aiEngine = "claude"
+                        }
+                        Choice {
+                            Layout.fillWidth: true
+                            title: "No assistant for now"
+                            desc: "You can turn it on later in Settings."
+                            selected: root.aiEngine === "none"
+                            onPicked: if (root.hasBackend) backend.aiEngine = "none"
+                        }
+
+                        // Local details: model size + download consent
+                        ColumnLayout {
+                            visible: root.aiEngine === "local"
+                            Layout.fillWidth: true
+                            Layout.topMargin: 4
+                            spacing: 10
+                            T {
+                                Layout.fillWidth: true
+                                text: root.ramGb > 0 ? "This computer has " + root.ramGb.toFixed(0) + " GB of memory." : "Model size"
+                                color: root.textMuted; font.pixelSize: 13
+                            }
+                            RowLayout {
+                                Layout.fillWidth: true
+                                spacing: 10
+                                Choice {
+                                    Layout.fillWidth: true
+                                    Layout.preferredWidth: 1
+                                    title: "Light"
+                                    badge: root.ramGb > 0 && root.ramGb < 12 ? "Fits best" : ""
+                                    desc: "About " + root.tierSize("light").toFixed(1) + " GB download. Good on 8 GB of memory."
+                                    selected: root.modelTier === "light"
+                                    onPicked: if (root.hasBackend) backend.modelTier = "light"
+                                }
+                                Choice {
+                                    Layout.fillWidth: true
+                                    Layout.preferredWidth: 1
+                                    title: "Standard"
+                                    badge: root.ramGb >= 12 ? "Fits best" : ""
+                                    desc: "About " + root.tierSize("standard").toFixed(1) + " GB download. Better code help; wants 12 GB or more."
+                                    selected: root.modelTier === "standard"
+                                    onPicked: if (root.hasBackend) backend.modelTier = "standard"
+                                }
+                            }
+                            Toggle {
+                                Layout.fillWidth: true
+                                text: "Download the models when I finish"
+                                detail: root.downloadModels
+                                    ? "Runs in the background at low priority. You'll get a notification when it's ready."
+                                    : "Nothing will be downloaded. Run synapse-setup --pull-core whenever you're ready."
+                                checked: root.downloadModels
+                                onToggled: if (root.hasBackend) backend.downloadModels = !root.downloadModels
+                            }
+                        }
+
+                        // Claude details: key entry + real connection test
+                        ColumnLayout {
+                            visible: root.aiEngine === "claude"
+                            Layout.fillWidth: true
+                            Layout.topMargin: 4
+                            spacing: 8
+                            T { text: "Anthropic API key"; font.bold: true; font.pixelSize: 13 }
+                            RowLayout {
+                                Layout.fillWidth: true
+                                spacing: 8
+                                Rectangle {
+                                    Layout.fillWidth: true
+                                    implicitHeight: 40
+                                    radius: 8
+                                    color: root.surface
+                                    border.width: keyBox.activeFocus ? 2 : 1
+                                    border.color: keyBox.activeFocus ? root.accent : root.border
+                                    TextInput {
+                                        id: keyBox
+                                        property bool reveal: false
+                                        anchors.fill: parent
+                                        anchors.leftMargin: 12; anchors.rightMargin: 12
+                                        verticalAlignment: TextInput.AlignVCenter
+                                        text: root.claudeKey
+                                        color: "#ffffff"
+                                        echoMode: reveal ? TextInput.Normal : TextInput.Password
+                                        font.family: root.mono; font.pixelSize: 13
+                                        selectByMouse: true
+                                        selectionColor: root.accent
+                                        selectedTextColor: root.accentInk
+                                        clip: true
+                                        activeFocusOnTab: true
+                                        Accessible.role: Accessible.EditableText
+                                        Accessible.name: "Anthropic API key"
+                                        onTextEdited: if (root.hasBackend) backend.claudeApiKey = text
+                                        onAccepted: if (root.hasBackend) backend.testClaudeKey()
+                                        T {
+                                            anchors.verticalCenter: parent.verticalCenter
+                                            text: "sk-ant-…"
+                                            color: root.textMuted
+                                            visible: keyBox.text === "" && !keyBox.activeFocus
+                                        }
+                                    }
+                                }
+                                Btn {
+                                    text: keyBox.reveal ? "Hide" : "Show"
+                                    Accessible.name: keyBox.reveal ? "Hide API key" : "Show API key"
+                                    implicitWidth: 76
+                                    onActivated: keyBox.reveal = !keyBox.reveal
+                                }
+                                Btn {
+                                    text: root.keyState === "testing" ? "Testing…" : "Test key"
+                                    enabled: root.claudeKey !== "" && root.keyState !== "testing"
+                                    onActivated: if (root.hasBackend) backend.testClaudeKey()
+                                }
+                            }
+                            RowLayout {
+                                Layout.fillWidth: true
+                                spacing: 8
+                                T {
+                                    visible: root.keyState === "ok" || root.keyState === "error"
+                                    text: root.keyState === "ok" ? "✓" : "!"
+                                    color: root.keyState === "ok" ? root.success : root.warning
+                                    font.bold: true
+                                }
+                                T {
+                                    Layout.fillWidth: true
+                                    text: root.claudeKey === ""
+                                        ? "Paste a key to continue, or pick another option. Get one at console.anthropic.com."
+                                        : (root.bk("keyTestMessage", "") || "Saved to ~/.config/synapse/anthropic_key, readable only by you.")
+                                    color: root.keyState === "ok" ? root.success : root.keyState === "error" ? root.warning : root.textMuted
+                                    font.pixelSize: 13
+                                    Accessible.role: Accessible.StaticText
+                                    Accessible.name: text
+                                }
+                            }
+                        }
+                        Item { Layout.fillHeight: true }
+                    }
+                }
+
+                // ---- 4. Privacy check (read-only, real state) ----
+                Page {
+                    name: "privacy"
+                    ColumnLayout {
+                        anchors.fill: parent
+                        spacing: 12
+
+                        PageHeader {
+                            title: "Privacy check"
+                            subtitle: "These protections are on by default. Here's what this system reports right now."
+                        }
+
+                        Repeater {
+                            id: checks
+                            model: root.bk("securityChecks", [])
+                            delegate: Rectangle {
+                                required property var modelData
+                                Layout.fillWidth: true
+                                implicitHeight: row.implicitHeight + 22
                                 radius: 8
                                 color: root.surfaceContainer
-                                border.color: root.borderMuted
-
-                                Row {
+                                border.color: root.border
+                                Accessible.role: Accessible.StaticText
+                                Accessible.name: modelData.label + ": " + (modelData.ok ? "active" : "needs attention") + ". " + modelData.detail
+                                RowLayout {
+                                    id: row
                                     anchors.fill: parent
-                                    anchors.margins: 10
-                                    spacing: 8
-                                    Rectangle { width: 10; height: 10; radius: 5; color: root.accent; anchors.verticalCenter: parent.verticalCenter }
-                                    Text { text: "METALLIC ICON SUITE: " + root.backendIconTheme; color: root.accent; font.family: root.mono; font.pixelSize: 10; font.bold: true; anchors.verticalCenter: parent.verticalCenter }
-                                }
-                            }
-                        }
-                    }
-
-                    // ========================================================
-                    // TAB 3: HARDWARE & DEFENSE (ANIMATED SLIDING SWITCHES)
-                    // ========================================================
-                    Item {
-                        anchors.fill: parent
-                        visible: root.activeNav === 3
-
-                        Column {
-                            anchors.fill: parent
-                            spacing: 12
-
-                            Column {
-                                spacing: 4
-                                Text { text: "Cyberdeck Defense & Latency"; color: "#ffffff"; font.family: root.mono; font.pixelSize: 18; font.bold: true }
-                                Text { text: "Hardened modules pre-configured for low latency and zero data leakage."; color: root.textSub; font.family: root.mono; font.pixelSize: 11 }
-                            }
-
-                            readonly property var defenseModules: [
-                                { k: "stealth",   title: "Stealth Tor Routing", desc: "Routes all egress DNS and network traffic through Tor circuits.", col: "#f38ba8" },
-                                { k: "bore",      title: "BORE CPU Scheduler",  desc: "Burst-Oriented Response Enhancer prevents GUI micro-stutters.", col: "#a6e3a1" },
-                                { k: "zram",      title: "ZRAM zstd Swap",      desc: "Fast compressed RAM swap device; eliminates physical disk thrashing.", col: "#74c7ec" },
-                                { k: "mem_scrub", title: "Memory Buffer Scrub", desc: "Zeroes kernel memory allocations on exit to defeat cold-boot extraction.", col: "#fab387" },
-                                { k: "wayland",   title: "Wayland Compositor",  desc: "GPU hardware-accelerated tearing-free Sway desktop compositing.", col: "#b4befe" }
-                            ]
-
-                            Repeater {
-                                model: parent.defenseModules
-                                delegate: Rectangle {
-                                    required property var modelData
-                                    width: parent.width
-                                    height: 44
-                                    radius: 8
-
-                                    readonly property bool isOn: root.backendCombos[modelData.k] !== false
-                                    color: isOn ? root.surfaceContainer : (moduleMouse.containsMouse ? "#202030" : "#141420")
-                                    border.color: isOn ? root.withAlpha(modelData.col, 0.6) : root.borderMuted
-                                    border.width: 1
-
-                                    Row {
-                                        anchors.fill: parent
-                                        anchors.margins: 10
-                                        spacing: 12
-
-                                        // Tactile Animated Hardware Sliding Switch
-                                        Item {
-                                            width: 44; height: 22
-                                            anchors.verticalCenter: parent.verticalCenter
-
-                                            Rectangle {
-                                                anchors.fill: parent
-                                                radius: 11
-                                                color: isOn ? root.withAlpha(modelData.col, 0.35) : "#0a0a12"
-                                                border.color: isOn ? modelData.col : root.borderMuted
-                                                border.width: 1.5
-
-                                                Behavior on color { ColorAnimation { duration: 180 } }
-
-                                                Rectangle {
-                                                    width: 16; height: 16; radius: 8
-                                                    y: 3
-                                                    x: isOn ? 24 : 3
-                                                    color: isOn ? modelData.col : "#585b70"
-
-                                                    Behavior on x { NumberAnimation { duration: 180; easing.type: Easing.InOutQuad } }
-                                                    Behavior on color { ColorAnimation { duration: 180 } }
-                                                }
-                                            }
-                                        }
-
-                                        Column {
-                                            anchors.verticalCenter: parent.verticalCenter
-                                            spacing: 1
-                                            width: parent.width - 64
-                                            Text { text: modelData.title; color: isOn ? "#ffffff" : root.textMain; font.family: root.mono; font.pixelSize: 10; font.bold: true }
-                                            Text { text: modelData.desc; color: root.textSub; font.family: root.mono; font.pixelSize: 8; elide: Text.ElideRight; width: parent.width }
-                                        }
+                                    anchors.margins: 11
+                                    spacing: 14
+                                    Rectangle {
+                                        width: 24; height: 24; radius: 12
+                                        color: root.withAlpha(modelData.ok ? root.success : root.warning, 0.18)
+                                        T { anchors.centerIn: parent; text: modelData.ok ? "✓" : "!"; color: modelData.ok ? root.success : root.warning; font.bold: true; font.pixelSize: 13 }
                                     }
-
-                                    MouseArea {
-                                        id: moduleMouse
-                                        anchors.fill: parent
-                                        hoverEnabled: true
-                                        cursorShape: Qt.PointingHandCursor
-                                        onClicked: if (typeof backend !== "undefined" && backend) backend.toggleCombo(modelData.k)
+                                    T { text: modelData.label; font.bold: true; Layout.preferredWidth: 210; wrapMode: Text.NoWrap }
+                                    T { text: modelData.detail; color: root.textSub; font.pixelSize: 13; Layout.fillWidth: true }
+                                    T {
+                                        text: modelData.ok ? "Active" : "Check"
+                                        color: modelData.ok ? root.success : root.warning
+                                        font.pixelSize: 12; font.bold: true
+                                        wrapMode: Text.NoWrap
                                     }
                                 }
                             }
                         }
-                    }
 
-                    // ========================================================
-                    // TAB 4: SHORTCUTS CHEAT SHEET (BEVELED KEYCAPS)
-                    // ========================================================
-                    Item {
-                        anchors.fill: parent
-                        visible: root.activeNav === 4
-
-                        Column {
-                            anchors.fill: parent
+                        RowLayout {
+                            Layout.fillWidth: true
+                            Layout.topMargin: 4
                             spacing: 14
-
-                            Column {
-                                spacing: 4
-                                Text { text: "Mnemonic Navigation"; color: "#ffffff"; font.family: root.mono; font.pixelSize: 18; font.bold: true }
-                                Text { text: "Hardware shortcuts designed for high-efficiency terminal and cyberdeck workflows."; color: root.textSub; font.family: root.mono; font.pixelSize: 11 }
+                            Btn {
+                                text: "Open full audit"
+                                onActivated: if (root.hasBackend) backend.openTool("audit")
                             }
+                            T {
+                                Layout.fillWidth: true
+                                text: "The audit lists every network interface and shows how to fix anything marked Check. Super+P opens it later."
+                                color: root.textMuted; font.pixelSize: 13
+                            }
+                        }
+                        Item { Layout.fillHeight: true }
+                    }
+                }
 
-                            readonly property var hotkeys: [
-                                { mod: "Super", key: "S", label: "Command HUD & Copilot", desc: "Global Quickfire search & AI assistant overlay" },
-                                { mod: "Super", key: "T", label: "Kitty GPU Terminal",    desc: "Hardware-accelerated terminal with fish shell" },
-                                { mod: "Super", key: "B", label: "Hardened Chromium",     desc: "Zero-telemetry privacy-hardened web browser" },
-                                { mod: "Super", key: "F", label: "Thunar File Manager",   desc: "Fast native desktop file manager" },
-                                { mod: "Super", key: "I", label: "Calamares Installer",   desc: "Install SynapseOS permanently to NVMe/SSD" },
-                                { mod: "Super", key: "K", label: "Cheat Sheet HUD",       desc: "Floating keyboard shortcut reference overlay" }
+                // ---- 5. Keys ----
+                Page {
+                    name: "keys"
+                    ColumnLayout {
+                        anchors.fill: parent
+                        spacing: 12
+
+                        PageHeader {
+                            title: "Five keys to remember"
+                            subtitle: "Super is the key with the Windows or Command logo."
+                        }
+
+                        Repeater {
+                            model: [
+                                { k: "Space",  t: "Command HUD",     d: "Launch apps, run commands, or ask the AI." },
+                                { k: "Return", t: "Terminal",        d: "Kitty, GPU-accelerated." },
+                                { k: "B",      t: "Browser",         d: "Chromium with telemetry turned off." },
+                                { k: "F",      t: "Files",           d: "Thunar file manager." },
+                                { k: "/",      t: "All shortcuts",   d: "The full cheat sheet, any time." }
                             ]
+                            delegate: Rectangle {
+                                required property var modelData
+                                Layout.fillWidth: true
+                                implicitHeight: 52
+                                radius: 8
+                                color: root.surfaceContainer
+                                border.color: root.border
+                                Accessible.role: Accessible.StaticText
+                                Accessible.name: "Super plus " + modelData.k + ": " + modelData.t + ". " + modelData.d
+                                RowLayout {
+                                    anchors.fill: parent
+                                    anchors.leftMargin: 14; anchors.rightMargin: 14
+                                    spacing: 8
+                                    RowLayout {
+                                        Layout.preferredWidth: 170
+                                        spacing: 6
+                                        Keycap { label: "Super" }
+                                        T { text: "+"; color: root.textMuted; wrapMode: Text.NoWrap }
+                                        Keycap { label: modelData.k }
+                                    }
+                                    T { text: modelData.t; font.bold: true; Layout.preferredWidth: 170; wrapMode: Text.NoWrap }
+                                    T { text: modelData.d; color: root.textSub; font.pixelSize: 13; Layout.fillWidth: true }
+                                }
+                            }
+                        }
+                        T {
+                            Layout.fillWidth: true
+                            Layout.topMargin: 4
+                            text: "Super+W reopens this setup whenever you want to change something."
+                            color: root.textMuted; font.pixelSize: 13
+                        }
+                        Item { Layout.fillHeight: true }
+                    }
+                }
 
-                            Repeater {
-                                model: parent.hotkeys
-                                delegate: Rectangle {
-                                    required property var modelData
-                                    width: parent.width
-                                    height: 40
-                                    radius: 6
-                                    color: root.surfaceContainer
-                                    border.color: root.borderMuted
+                // ---- 6. Done ----
+                Page {
+                    name: "done"
+                    ColumnLayout {
+                        anchors.fill: parent
+                        spacing: 16
 
-                                    Row {
-                                        anchors.fill: parent
-                                        anchors.margins: 8
-                                        spacing: 14
+                        PageHeader {
+                            title: root.isLive ? "Ready to explore" : "You're all set"
+                            subtitle: root.isLive
+                                ? "Install whenever you like: click INSTALL SYNAPSEOS in the bar, or press Super+I. Your look carries over."
+                                : "Here's what happens when you press Finish."
+                        }
 
-                                        // Beveled Mechanical Keycaps
-                                        Row {
-                                            spacing: 4
-                                            anchors.verticalCenter: parent.verticalCenter
-
-                                            Rectangle {
-                                                width: 48; height: 22; radius: 4
-                                                gradient: Gradient {
-                                                    orientation: Gradient.Vertical
-                                                    GradientStop { position: 0.0; color: "#252538" }
-                                                    GradientStop { position: 1.0; color: "#161622" }
-                                                }
-                                                border.color: "#45475a"; border.width: 1
-                                                Text { anchors.centerIn: parent; text: modelData.mod; color: root.accent; font.family: root.mono; font.pixelSize: 9; font.bold: true }
-                                            }
-
-                                            Text { text: "+"; color: root.textMuted; font.family: root.mono; font.pixelSize: 10; anchors.verticalCenter: parent.verticalCenter }
-
-                                            Rectangle {
-                                                width: 24; height: 22; radius: 4
-                                                gradient: Gradient {
-                                                    orientation: Gradient.Vertical
-                                                    GradientStop { position: 0.0; color: "#252538" }
-                                                    GradientStop { position: 1.0; color: "#161622" }
-                                                }
-                                                border.color: "#45475a"; border.width: 1
-                                                Text { anchors.centerIn: parent; text: modelData.key; color: "#ffffff"; font.family: root.mono; font.pixelSize: 9; font.bold: true }
-                                            }
+                        Rectangle {
+                            Layout.fillWidth: true
+                            implicitHeight: summary.implicitHeight + 32
+                            radius: 10
+                            color: root.surfaceContainer
+                            border.color: root.border
+                            ColumnLayout {
+                                id: summary
+                                anchors.fill: parent
+                                anchors.margins: 16
+                                spacing: 14
+                                Repeater {
+                                    model: {
+                                        var rows = [{
+                                            t: "Look",
+                                            d: root.sceneLabels[root.scene] + " · " + root.cap(root.accentName) + ", with " + root.iconLabel(root.iconTheme) + " icons."
+                                        }]
+                                        if (!root.isLive) {
+                                            var ai = root.aiEngine === "local"
+                                                ? (root.downloadModels
+                                                    ? "Local (" + root.modelTier + "). About " + root.tierSize(root.modelTier).toFixed(1) + " GB downloads in the background; you'll be notified when it's ready."
+                                                    : "Local (" + root.modelTier + "). Nothing downloads until you run synapse-setup --pull-core.")
+                                                : root.aiEngine === "claude"
+                                                    ? (root.keyState === "ok" ? "Claude, key verified." : "Claude. The key is saved but hasn't been tested.")
+                                                    : "Off. Turn it on later in Settings."
+                                            rows.push({ t: "Assistant", d: ai })
+                                            rows.push({ t: "Next", d: "Press Super+Space to open the Command HUD." })
                                         }
-
-                                        Text { text: modelData.label; color: "#ffffff"; font.family: root.mono; font.pixelSize: 10; font.bold: true; anchors.verticalCenter: parent.verticalCenter; width: 170 }
-                                        Text { text: modelData.desc; color: root.textSub; font.family: root.mono; font.pixelSize: 9; anchors.verticalCenter: parent.verticalCenter }
+                                        return rows
+                                    }
+                                    delegate: RowLayout {
+                                        required property var modelData
+                                        Layout.fillWidth: true
+                                        spacing: 14
+                                        T { text: modelData.t; color: root.textMuted; font.bold: true; font.pixelSize: 13; Layout.preferredWidth: 110; wrapMode: Text.NoWrap }
+                                        T { text: modelData.d; Layout.fillWidth: true }
                                     }
                                 }
                             }
                         }
+
+                        Btn {
+                            visible: root.isLive
+                            text: "Open installer instead"
+                            onActivated: if (root.hasBackend) backend.startInstaller()
+                        }
+                        Item { Layout.fillHeight: true }
                     }
+                }
+            }
+
+            // ---- Footer: skip / back / continue, or the skip confirmation ----
+            Rectangle {
+                Layout.fillWidth: true
+                implicitHeight: 1
+                color: root.border
+            }
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 10
+                visible: !root.confirmSkip
+
+                Btn {
+                    kind: "ghost"
+                    text: "Skip setup"
+                    visible: root.step !== "done"
+                    onActivated: root.confirmSkip = true
+                }
+                Item { Layout.fillWidth: true }
+                T {
+                    text: "Enter to continue · Esc to skip"
+                    color: root.textMuted; font.pixelSize: 12
+                    wrapMode: Text.NoWrap
+                }
+                Btn {
+                    text: "Back"
+                    visible: root.stepIndex > 0
+                    onActivated: root.back()
+                }
+                Btn {
+                    id: primaryBtn
+                    kind: "primary"
+                    text: root.primaryLabel
+                    enabled: root.canContinue
+                    focus: true
+                    onActivated: root.next()
+                }
+            }
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 10
+                visible: root.confirmSkip
+                onVisibleChanged: if (visible) keepGoing.forceActiveFocus()
+
+                T {
+                    Layout.fillWidth: true
+                    text: root.isLive
+                        ? "Skip setup? The desktop stays as it is."
+                        : "Skip setup? Your current look stays and the AI assistant stays off. Super+W brings this back."
+                    color: root.warning
+                    font.pixelSize: 13
+                    Accessible.role: Accessible.AlertMessage
+                    Accessible.name: text
+                }
+                Btn {
+                    id: keepGoing
+                    text: "Keep setting up"
+                    onActivated: { root.confirmSkip = false; primaryBtn.forceActiveFocus() }
+                }
+                Btn {
+                    kind: "primary"
+                    text: "Skip"
+                    onActivated: root.skip()
                 }
             }
         }
     }
+
+    Component.onCompleted: primaryBtn.forceActiveFocus()
 }

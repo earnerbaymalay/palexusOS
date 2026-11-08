@@ -206,7 +206,9 @@ bar {
 
 # --- Autostart Services & Onboarding ---
 
-# In live sessions or initial login, autostart synapse-welcome centered so user has an immediate cockpit
-exec [ -f /etc/sudoers.d/00-synapse-live ] || [ -x /usr/bin/calamares ] || [ ! -f ~/.config/synapse/.onboarding_complete ] && /usr/bin/synapse-welcome --autostart
+# First-run setup: --autostart exits at once when ~/.config/synapse/.onboarding_complete exists
+exec /usr/bin/synapse-welcome --autostart
+# Resumes a local-model download the user agreed to in setup; no-op otherwise
+exec /usr/bin/synapse-setup --first-boot
 
 include /etc/sway/config.d/*

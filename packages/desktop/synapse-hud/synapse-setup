@@ -8,6 +8,8 @@ set -eo pipefail
 
 STATE_DIR="${HOME}/.config/synapse"
 FIRSTBOOT_FLAG="${STATE_DIR}/.firstboot_complete"
+# Written by synapse-welcome: one model name per line the user agreed to download
+AI_MODELS_FILE="${STATE_DIR}/ai_models"
 OLLAMA_API="http://127.0.0.1:11434"
 
 # Targeted core models for SynapseOS
@@ -26,7 +28,7 @@ Usage:
   synapse-setup [OPTIONS]
 
 Core Operations:
-  --first-boot        Run non-blocking first-boot setup (pulls code, chat & embed models)
+  --first-boot        Download the models chosen in synapse-welcome (no-op without consent)
   --status            Display local AI engine, active models, memory & stealth status
   --pull-core         Download the core model trinity (Code + Chat + Embeddings)
   --pull-model [NAME] Download and verify any Ollama or Hugging Face model
@@ -208,6 +210,15 @@ run_first_boot() {
         exit 0
     fi
 
+    # Only download what the user agreed to in synapse-welcome; no file means no consent
+    if [[ ! -s "${AI_MODELS_FILE}" ]]; then
+        exit 0
+    fi
+
+    # One instance at a time (autostart on login and the wizard may both start us)
+    exec 9>"${STATE_DIR}/.firstboot.lock"
+    flock -n 9 || exit 0
+
     sleep 4
 
     if ! is_online; then
@@ -218,10 +229,23 @@ run_first_boot() {
         exit 0
     fi
 
-    notify "Synapse AI Setup" "Provisioning local AI core models in background..." "system-software-update"
-    pull_core_models >/dev/null 2>&1 || true
+    notify "Synapse AI Setup" "Downloading your local AI models in the background..." "system-software-update"
+    local model failed=0
+    while IFS= read -r model; do
+        [[ -n "$model" ]] || continue
+        if ! model_exists "${model}"; then
+            pull_single_model "${model}" >/dev/null 2>&1 || failed=1
+        fi
+    done < "${AI_MODELS_FILE}"
 
-    notify "Synapse AI Ready" "Local AI & Memory models are initialized and operational." "dialog-information"
+    if (( failed )); then
+        # Leave the marker unset so the next login resumes the download
+        notify "Synapse AI Setup" "Model download stopped before finishing. It will resume next time you log in." "dialog-warning"
+        exit 0
+    fi
+
+    warm_models >/dev/null 2>&1 || true
+    notify "Synapse AI Ready" "Your local AI assistant is ready. Press Super+Space to ask it something." "dialog-information"
     touch "${FIRSTBOOT_FLAG}"
 }
 

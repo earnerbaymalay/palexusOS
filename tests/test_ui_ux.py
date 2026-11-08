@@ -2,8 +2,8 @@
 
 Executes offscreen automated testing across all SynapseOS desktop user interfaces:
 - synapse-hud: QML engine loading, signal/slot bindings, findFirstMatch command search, search box hotkeys.
-- synapse-welcome: OnboardingWizard initialization, navigation across 4 onboarding steps,
-                   page indicator updates, icon/wallpaper/screensaver selection, GTK settings updater.
+- synapse-welcome: local-first defaults, variant fallback, consent-gated model download,
+                   private key storage, skip path, QML load in live + installed modes, GTK settings updater.
 - synapse-settings: SynapseSettingsWindow initialization, tab structure, accent buttons, Ollama toggles.
 - synapse-notes: SynapseNotesWindow scratchpad initialization, Markdown highlighter, auto-sync, word counter, hotkeys.
 - synapse-screensaver: Argument parsing, command mode options, and cyberdeck glyph validation.
@@ -156,33 +156,120 @@ class TestSynapseWelcome:
     def welcome_mod(self):
         return load_script_module("synapse_welcome_mod", HUD_DIR / "synapse-welcome")
 
-    def test_welcome_backend_initialization(self, qapp, welcome_mod):
-        """Verify WelcomeBackend initializes with correct default values and properties."""
-        backend = welcome_mod.WelcomeBackend(qapp)
-        assert backend.selectedIconTheme == "Synapse-Liquid-Chrome"
-        assert backend.selectedWallpaper == "monolith-mauve"
-        assert backend.selectedAiEngine == "claude"
-        assert isinstance(backend.combos, dict)
-        assert backend.combos.get("stealth") is True
-        assert backend.combos.get("dot") is True
-        assert backend.combos.get("firewall") is True
+    @pytest.fixture
+    def sandbox(self, welcome_mod, tmp_path, monkeypatch):
+        """Point the backend at a temp config dir and stop it launching real programs."""
+        cfg = tmp_path / "synapse"
+        monkeypatch.setattr(welcome_mod, "CONFIG_DIR", str(cfg))
+        monkeypatch.setattr(welcome_mod, "ONBOARDING_FLAG", str(cfg / ".onboarding_complete"))
+        monkeypatch.setattr(welcome_mod, "AI_MODELS_FILE", str(cfg / "ai_models"))
+        monkeypatch.setattr(welcome_mod, "LIVE_MARKER", str(tmp_path / "no-live-marker"))
+        monkeypatch.setenv("HOME", str(tmp_path))
+        monkeypatch.setattr(welcome_mod, "unit_active", lambda unit: False)
+        popen = MagicMock()
+        monkeypatch.setattr(welcome_mod.subprocess, "Popen", popen)
+        return cfg, popen
 
-    def test_welcome_backend_toggle_and_qml_loading(self, qapp, welcome_mod):
-        """Verify combo toggling and QtQuick Welcome.qml load integrity."""
-        from PyQt6.QtQml import QQmlApplicationEngine
-        from PyQt6.QtCore import QUrl
+    @staticmethod
+    def make_backend(welcome_mod):
+        return welcome_mod.WelcomeBackend(MagicMock())
 
-        backend = welcome_mod.WelcomeBackend(qapp)
-        initial_stealth = backend.combos["stealth"]
-        backend.toggleCombo("stealth")
-        assert backend.combos["stealth"] != initial_stealth
+    def test_welcome_backend_defaults_are_local_first(self, qapp, welcome_mod, sandbox):
+        """Nothing should leave the device by default; state must come from the system."""
+        backend = self.make_backend(welcome_mod)
+        assert backend.aiEngine == "local"
+        assert backend.iconTheme == "Synapse-Liquid-Chrome"
+        assert backend.variant in welcome_mod.VARIANTS
+        assert backend.keyTestState == "idle"
+        assert backend.isLive is False
+        checks = backend.securityChecks
+        assert {c["label"] for c in checks} >= {"Firewall", "Encrypted DNS", "MAC randomization"}
+        assert all(isinstance(c["ok"], bool) and c["detail"] for c in checks)
+
+    def test_variant_selection_skips_missing_combinations(self, qapp, welcome_mod, sandbox):
+        """Monolith has no crimson plate; choosing it must fall back to a real variant."""
+        backend = self.make_backend(welcome_mod)
+        assert backend.variantExists("tower", "crimson")
+        assert not backend.variantExists("monolith", "crimson")
+        backend.chooseVariant("monolith", "crimson")
+        assert backend.variant == "monolith-mauve"
+        backend.chooseVariant("carbon", "sapphire")
+        assert backend.variant == "carbon-sapphire"
+
+    def test_finish_writes_profile_and_consented_models(self, qapp, welcome_mod, sandbox):
+        cfg, popen = sandbox
+        backend = self.make_backend(welcome_mod)
+        backend.chooseVariant("tower", "emerald")
+        backend.modelTier = "light"
+        backend.downloadModels = True
+        backend.finish()
+
+        assert (cfg / ".onboarding_complete").read_text().strip() == "completed"
+        import json
+        profile = json.loads((cfg / "operator_profile.json").read_text())
+        assert profile["wallpaper_variant"] == "tower-emerald"
+        assert profile["ai_engine"] == "local"
+        assert (cfg / "ai_models").read_text().split() == welcome_mod.MODEL_TIERS["light"]["models"]
+        assert not (cfg / "anthropic_key").exists()
+        launched = [c.args[0][0] for c in popen.call_args_list]
+        assert any(p.endswith("synapse-setup") for p in launched)
+
+    def test_claude_key_is_private_and_no_models_downloaded(self, qapp, welcome_mod, sandbox):
+        cfg, _ = sandbox
+        backend = self.make_backend(welcome_mod)
+        backend.aiEngine = "claude"
+        backend.claudeApiKey = "  sk-ant-test  "
+        backend.finish()
+        key = cfg / "anthropic_key"
+        assert key.read_text().strip() == "sk-ant-test"
+        assert (key.stat().st_mode & 0o777) == 0o600
+        assert not (cfg / "ai_models").exists()
+
+    def test_skip_applies_nothing(self, qapp, welcome_mod, sandbox):
+        cfg, popen = sandbox
+        backend = self.make_backend(welcome_mod)
+        backend.skip()
+        assert (cfg / ".onboarding_complete").read_text().strip() == "skipped"
+        assert not (cfg / "operator_profile.json").exists()
+        assert not (cfg / "ai_models").exists()
+        popen.assert_not_called()
+
+    def test_key_check_reports_failure_honestly(self, welcome_mod, monkeypatch):
+        import urllib.error
+
+        def reject(*_a, **_k):
+            raise urllib.error.HTTPError("u", 401, "unauthorized", {}, None)
+
+        monkeypatch.setattr(welcome_mod.urllib.request, "urlopen", reject)
+        ok, msg = welcome_mod.check_claude_key("sk-ant-bad")
+        assert ok is False and "rejected" in msg
+
+    @pytest.mark.parametrize("live", [False, True])
+    def test_welcome_qml_loads_cleanly(self, qapp, welcome_mod, sandbox, monkeypatch, live):
+        """Welcome.qml must load in both live and installed modes with no QML warnings."""
+        if live:
+            marker = Path(welcome_mod.CONFIG_DIR).parent / "live-marker"
+            marker.write_text("")
+            monkeypatch.setattr(welcome_mod, "LIVE_MARKER", str(marker))
+        backend = self.make_backend(welcome_mod)
+        assert backend.isLive is live
 
         engine = QQmlApplicationEngine()
+        warnings = []
+        engine.warnings.connect(lambda ws: warnings.extend(w.toString() for w in ws))
         engine.rootContext().setContextProperty("backend", backend)
-        qml_path = HUD_DIR / "Welcome.qml"
-        assert qml_path.exists()
-        engine.load(QUrl.fromLocalFile(str(qml_path)))
-        assert len(engine.rootObjects()) > 0
+        engine.load(QUrl.fromLocalFile(str(HUD_DIR / "Welcome.qml")))
+        assert engine.rootObjects()
+        root = engine.rootObjects()[0]
+        expected = 3 if live else 6
+        assert len(root.property("steps").toVariant() if hasattr(root.property("steps"), "toVariant") else root.property("steps")) == expected
+
+        # Walk every step forward so each page's bindings are exercised
+        for _ in range(expected - 1):
+            root.setProperty("stepIndex", root.property("stepIndex") + 1)
+            qapp.processEvents()
+        assert root.property("step") == "done"
+        assert warnings == []
 
     def test_update_gtk_settings_function(self, welcome_mod, tmp_path):
         """Verify update_gtk_settings writes and updates gtk-icon-theme-name under [Settings]."""
