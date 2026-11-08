@@ -2,11 +2,11 @@
 
 # SynapseOS
 
-### **The AI-Native Rolling Linux Workstation**  
-*Surgical Precision. Zero Friction. One Brain. All Models.*
+### **The AI-Native Sovereign Workstation**  
+*Surgical Precision. Zero Cloud Friction. One Brain. All Models.*
 
 [![Build & Engineering Gates](https://img.shields.io/github/actions/workflow/status/earnerbaymalay/synapseOS/build-iso.yml?branch=main&label=Build%20%26%20Gates&logo=githubactions&logoColor=cdd6f4&color=cba6f7&style=flat-square)](https://github.com/earnerbaymalay/synapseOS/actions/workflows/build-iso.yml)
-[![Verification Gates](https://img.shields.io/badge/Gates-270%2F270%20Passing-3fb950?style=flat-square&logo=shield&logoColor=ffffff)](build/verify-gates.sh)
+[![Verification Gates](https://img.shields.io/badge/Gates-276%20checks-3fb950?style=flat-square&logo=shield&logoColor=ffffff)](build/verify-gates.sh)
 [![Release](https://img.shields.io/github/v/release/earnerbaymalay/synapseOS?include_prereleases&label=Latest%20Release&color=74c7ec&style=flat-square)](https://github.com/earnerbaymalay/synapseOS/releases)
 [![Rolling Base](https://img.shields.io/badge/Rolling%20Base-Arch%20Linux-1793d1?style=flat-square&logo=archlinux&logoColor=ffffff)](https://archlinux.org)
 [![Kernel](https://img.shields.io/badge/Kernel-linux--cachyos%20(BORE)-fab387?style=flat-square&logo=linux&logoColor=ffffff)](https://github.com/CachyOS/linux-cachyos)
@@ -19,11 +19,33 @@
 
 <br/>
 
-**SynapseOS** is an open-source, AI-native operating system designed to liberate personal computing from cloud telemetry, forced subscriptions, and interface bloat. Powered by low-latency schedulers, aggressive memory compression, and deeply integrated local neural models, SynapseOS converts any modern PC into an ultra-fast sovereign cyberdeck.
+SynapseOS breaks the telemetry paradigm. Built on the high-throughput CachyOS BORE kernel and an EndeavourOS-style Arch foundation, it runs AI models directly on your own hardware. No telemetry, no token meters, and nothing leaves the machine unless you choose a cloud model.
+
+<img src="docs/assets/synapseos-teaser.gif" alt="Animated concept render: a SynapseOS laptop booting into its neural HUD" width="480"/>
+<br/><sub><i>Concept render</i></sub>
 
 [**60-Second Virtual Test Drive**](#-test-drive-in-60-seconds-no-usb-required) • [**Install in 3 Steps**](#-get-started-in-3-steps) • [**System Architecture**](#-system-architecture--subsystems) • [**Hardware Support**](#-supported-hardware-matrix) • [**Documentation**](docs/)
 
 </div>
+
+### The Sovereign Architecture
+
+<table>
+<tr>
+<td width="44%" valign="top">
+<img src="docs/assets/synapseos-super-space.gif" alt="Animated concept render: Super+Space summons the assistant over a terminal showing TELEMETRY: 0" width="100%"/>
+<sub><i>Concept render</i></sub>
+</td>
+<td valign="top">
+
+- **Silicon-Resident AI (`Super + Space`):** One keystroke opens the Command HUD, answered by a local Ollama model built on x86-64-v3 (AVX2/BMI2) optimized packages. Cloud Claude is strictly opt-in.
+- **The Prime Directive:** Hardware MAC randomization, Quad9 DNS-over-TLS (`9.9.9.9:853`), RFC 4941 IPv6 privacy addresses, and a default-drop inbound firewall.
+- **BORE Responsiveness:** CPU scheduling keeps terminal and UI threads responsive even while local inference saturates every core.
+- **Btrfs Foundation:** Installs onto a Btrfs subvolume layout by default, ready for snapshot-based rollback.
+
+</td>
+</tr>
+</table>
 
 ---
 
@@ -36,7 +58,7 @@ Modern commercial operating systems increasingly treat your hardware as a client
 * 🧠 **Your AI Lives on Your Silicon**: Tap **`Super + Space`** from any screen to summon your local AI assistant. Query documentation, generate code, draft technical reports, and execute system commands. The weights run **100% locally on your CPU and GPU via resident Ollama models**—no internet connection required, zero token meters, and total privacy on airplane mode.
 * 🛡️ **The Prime Directive (Zero Telemetry)**: Every network interface enforces hardware MAC address randomization. IPv6 privacy extensions (RFC 4941) are active by default. Outbound DNS queries are encrypted over TLS via Quad9 (`9.9.9.9:853`), and system daemons operate with a default-drop inbound firewall posture.
 * 🚀 **Instantaneous Response (BORE Scheduler & AVX2)**: Utilizing `linux-cachyos` with the **Burst-Oriented Response Enhancer (BORE)**, interactive terminal typing and UI animations retain zero-latency priority even during 100% CPU multi-threaded local AI inference or kernel compilation.
-* 🛡️ **Bulletproof Snapshot Protection (Time Machine)**: Every `pacman` update automatically generates a read-only Btrfs snapshot. If an upstream regression ever occurs, roll your entire workstation back to a pristine working state in under 5 seconds directly from the bootloader.
+* 🛡️ **Btrfs Foundation**: Installs onto a Btrfs subvolume layout by default. Automatic per-update snapshots with boot-menu rollback (snapper + snap-pac + grub-btrfs) are planned but not shipped yet.
 * 🎨 **Bespoke Cyberdeck Aesthetic**: Built with dark obsidian glass, liquid chrome typography, Catppuccin Mocha Mauve palettes, laser-engraved Plymouth boot animations, and 4 precision CNC vector icon suites.
 
 ---
