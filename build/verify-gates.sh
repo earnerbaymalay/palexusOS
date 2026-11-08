@@ -520,22 +520,21 @@ check_file_lacks "${REPO_ROOT}/packages/core/synapse-core/synapse.service" 'Exec
 check_file_lacks "${REPO_ROOT}/packages/core/synapse-core/synapse.service" 'network-online\.target' "synapse.service does not wait on network-online (localhost gateway)"
 check_file_contains "${REPO_ROOT}/build/archiso/airootfs/root/customize_airootfs.sh" 'systemctl disable systemd-networkd\.service' "systemd-networkd disabled (NetworkManager owns networking)"
 
-# Boot splash (Plymouth, Twin Hook)
+# Boot splash (Plymouth, official boot animation)
 PLY_DIR="${REPO_ROOT}/packages/desktop/synapse-plymouth"
 check_file_contains "${REPO_ROOT}/build/archiso/airootfs/etc/mkinitcpio.conf.d/archiso.conf" '^HOOKS=\(.* kms plymouth .*\)$' "Live initramfs runs the plymouth hook"
-check_file_contains "${REPO_ROOT}/overlay/etc/plymouth/plymouthd.conf" '^Theme=synapseos-mauve$' "Plymouth defaults to synapseos-mauve"
+check_file_contains "${REPO_ROOT}/overlay/etc/plymouth/plymouthd.conf" '^Theme=synapseos$' "Plymouth uses the single synapseos theme"
 check_file_contains "${REPO_ROOT}/build/archiso/efiboot/loader/entries/01-synapseos-x86_64-linux.conf" '^options .* splash' "Live boot entry passes splash"
 check_file_contains "${REPO_ROOT}/packages/installer/calamares/modules/bootloader.conf" '"splash"' "Installed systems boot with splash"
 check_file_contains "${PLY_DIR}/synapseos.script.in" 'Plymouth\.SetDisplayPasswordFunction' "Splash handles the LUKS passphrase prompt"
 check_file_contains "${PLY_DIR}/synapseos.script.in" 'Plymouth\.SetRefreshFunction' "Splash script drives frame playback"
-check_file_contains "${REPO_ROOT}/packages/desktop/synapse-themes/synapse-theme" 'plymouth-set-default-theme -R' "synapse-theme can sync the boot splash accent"
-for accent in mauve tungsten crimson sapphire emerald; do
-    check_file_contains "${PLY_DIR}/PKGBUILD" "'${accent}:[0-9a-f]{6}:" "Boot splash renders the ${accent} accent"
-done
-if python3 -m py_compile "${PLY_DIR}/render_frames.py" 2>/dev/null; then
-    pass "render_frames.py compiles"
+check_file_contains "${PLY_DIR}/synapseos.script.in" 'Plymouth\.SetQuitFunction' "Splash holds the final frame for the login hand-off"
+check_file_contains "${PLY_DIR}/PKGBUILD" "^source=\\('synapse-boot\\.mp4'" "Boot splash is built from the official synapse-boot.mp4"
+check_file_contains "${PLY_DIR}/PKGBUILD" "ffmpeg .*-an" "Boot splash frames are extracted without audio"
+if [[ -s "${PLY_DIR}/synapse-boot.mp4" ]]; then
+    pass "Official boot video present"
 else
-    fail "render_frames.py compiles"
+    fail "Official boot video present"
 fi
 
 # V4 theme pack & screensaver

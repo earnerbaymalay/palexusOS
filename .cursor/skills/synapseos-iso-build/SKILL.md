@@ -34,6 +34,6 @@ Full native packages + ISO (root required for `mkarchiso`):
 ## Gate-checked UI files
 
 - `packages/desktop/synapse-greeter/{Main.qml,theme.conf,metadata.desktop}`
-- `packages/desktop/synapse-plymouth/{PKGBUILD,render_frames.py,synapseos.script.in}`
+- `packages/desktop/synapse-plymouth/{PKGBUILD,synapse-boot.mp4,synapseos.script.in}`
 - `packages/desktop/synapse-themes/{PKGBUILD,synapse-theme}`
 - `packages/desktop/llm-quickfire-panel/config/llm-quickfire-panel.desktop`
