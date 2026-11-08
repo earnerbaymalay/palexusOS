@@ -12,7 +12,6 @@ Window {
     id: root
     width: 1100
     height: 720
-    visible: true
     visibility: (isOobe || isLive) ? Window.FullScreen : Window.Windowed
     title: "SynapseOS Setup"
     flags: (isOobe || isLive) ? Qt.Window : (Qt.FramelessWindowHint | Qt.Dialog)
@@ -70,7 +69,7 @@ Window {
                                : isLive ? ["welcome", "appearance", "done"]
                                         : ["welcome", "appearance", "ai", "done"]
     property int stepIndex: 0
-    readonly property string step: steps[stepIndex]
+    readonly property string step: steps[Math.min(stepIndex, steps.length - 1)] || "welcome"
     property bool liveInstall: false
     property bool confirmSkip: false
     property bool accountTried: false
@@ -106,7 +105,7 @@ Window {
         font.family: root.sans
         font.pixelSize: 15
         wrapMode: Text.WordWrap
-        lineHeight: 1.25
+        lineHeight: wrapMode === Text.NoWrap ? 1.0 : 1.25
     }
 
     component Caption: T {
@@ -799,7 +798,7 @@ Window {
                             Option {
                                 Layout.fillWidth: true
                                 title: "Claude, in the cloud"
-                                desc: "Anthropic's " + root.bk("claudeModel", "Claude") + ". Stronger answers; your prompts go to Anthropic. Needs an API key."
+                                desc: "Anthropic's Claude. Stronger answers; your prompts go to Anthropic. Needs an API key."
                                 selected: root.aiEngine === "claude"
                                 onPicked: if (root.hasBackend) backend.aiEngine = "claude"
                             }
@@ -932,7 +931,7 @@ Window {
                                         rows.push({ t: "Look", d: root.sceneLabels[root.scene] + " · " + root.cap(root.accentName) + ", " + root.iconLabel(root.iconTheme) + " icons" })
                                         if (!root.isLive)
                                             rows.push({ t: "Assistant", d: root.aiEngine === "local"
-                                                ? "Local, " + root.modelTier + (root.downloadModels ? " (~" + root.tierSize(root.modelTier).toFixed(1) + " GB downloads in the background)" : " (not downloaded yet)")
+                                                ? "Local, " + root.modelTier + " models" + (root.downloadModels ? " (~" + root.tierSize(root.modelTier).toFixed(1) + " GB downloads in the background)" : " (not downloaded yet)")
                                                 : root.aiEngine === "claude" ? (root.keyState === "ok" ? "Claude, key verified" : "Claude, key not tested")
                                                 : "Off" })
                                         return rows
