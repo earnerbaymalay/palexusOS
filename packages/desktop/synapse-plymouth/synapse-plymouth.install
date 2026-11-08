@@ -1,0 +1,10 @@
+# Systems on a retired per-accent theme (synapseos-<accent>) move to the single boot video
+post_upgrade() {
+    command -v plymouth-set-default-theme >/dev/null 2>&1 || return 0
+    case "$(plymouth-set-default-theme 2>/dev/null)" in
+        synapseos-*)
+            echo ":: Switching boot splash to the SynapseOS boot video (rebuilding initramfs)..."
+            plymouth-set-default-theme -R synapseos || true
+            ;;
+    esac
+}
