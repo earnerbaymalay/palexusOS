@@ -244,15 +244,14 @@ class TestSynapseWelcome:
         ok, msg = welcome_mod.check_claude_key("sk-ant-bad")
         assert ok is False and "rejected" in msg
 
-    @pytest.mark.parametrize("live", [False, True])
-    def test_welcome_qml_loads_cleanly(self, qapp, welcome_mod, sandbox, monkeypatch, live):
-        """Welcome.qml must load in both live and installed modes with no QML warnings."""
-        if live:
+    @pytest.mark.parametrize("mode,expected", [("session", 4), ("live", 3), ("oobe", 5)])
+    def test_welcome_qml_loads_cleanly(self, qapp, welcome_mod, sandbox, monkeypatch, mode, expected):
+        """Welcome.qml must load in every mode with no QML warnings and reach the last step."""
+        if mode == "live":
             marker = Path(welcome_mod.CONFIG_DIR).parent / "live-marker"
             marker.write_text("")
             monkeypatch.setattr(welcome_mod, "LIVE_MARKER", str(marker))
-        backend = self.make_backend(welcome_mod)
-        assert backend.isLive is live
+        backend = welcome_mod.WelcomeBackend(MagicMock(), oobe=(mode == "oobe"))
 
         engine = QQmlApplicationEngine()
         warnings = []
@@ -261,15 +260,93 @@ class TestSynapseWelcome:
         engine.load(QUrl.fromLocalFile(str(HUD_DIR / "Welcome.qml")))
         assert engine.rootObjects()
         root = engine.rootObjects()[0]
-        expected = 3 if live else 6
-        assert len(root.property("steps").toVariant() if hasattr(root.property("steps"), "toVariant") else root.property("steps")) == expected
+        steps = root.property("steps")
+        steps = steps.toVariant() if hasattr(steps, "toVariant") else steps
+        assert len(steps) == expected
+        assert ("account" in steps) == (mode == "oobe")
 
-        # Walk every step forward so each page's bindings are exercised
         for _ in range(expected - 1):
             root.setProperty("stepIndex", root.property("stepIndex") + 1)
             qapp.processEvents()
         assert root.property("step") == "done"
         assert warnings == []
+
+    def test_oobe_account_validation_and_request(self, qapp, welcome_mod, sandbox, monkeypatch):
+        backend = welcome_mod.WelcomeBackend(MagicMock(), oobe=True)
+        assert backend.isOobe and not backend.isLive
+        assert set(backend.accountErrors) >= {"username", "password"}
+
+        backend.fullName = "Ada Lovelace"
+        assert backend.username == "ada"
+        assert backend.newHostname == "ada-synapse"
+        backend.password = "secret1"
+        backend.passwordConfirm = "secret2"
+        assert backend.accountErrors == {"confirm": "The passwords don't match."}
+        backend.passwordConfirm = "secret1"
+        assert backend.accountErrors == {}
+
+        backend.username = "Bad Name"
+        assert "username" in backend.accountErrors
+        backend.username = "root"
+        assert "reserved" in backend.accountErrors["username"]
+        backend.username = "ada"
+
+        req = backend.oobe_request()
+        assert req["username"] == "ada" and req["password"] == "secret1"
+        assert req["ai_engine"] == "local"
+
+        # finish() hands the request to the root helper via sudo, never writing locally
+        run = MagicMock(return_value=MagicMock(stdout='{"ok": true}\n'))
+        monkeypatch.setattr(welcome_mod.subprocess, "run", run)
+        ok, _ = welcome_mod.WelcomeBackend._run_helper('{"x": 1}')
+        assert ok
+        assert run.call_args.args[0] == ["sudo", "-n", welcome_mod.OOBE_HELPER]
+
+
+class TestOobeHelper:
+    """The root helper must reject anything outside its allow-lists."""
+
+    @pytest.fixture
+    def helper(self):
+        return load_script_module("synapse_oobe_apply_mod", HUD_DIR / "synapse-oobe-apply")
+
+    def good(self, **over):
+        req = {"full_name": "Ada Lovelace", "username": "zz-oobe-test", "password": "secret1",
+               "hostname": "ada-synapse", "variant": "tower-emerald", "icon_theme": "Synapse-Liquid-Chrome",
+               "ai_engine": "local", "ai_models": ["qwen2.5-coder:1.5b"], "anthropic_key": "", "profile": {}}
+        req.update(over)
+        return req
+
+    def test_accepts_valid_request(self, helper):
+        r = helper.validate(self.good())
+        assert r["username"] == "zz-oobe-test" and r["ai_models"] == ["qwen2.5-coder:1.5b"]
+
+    @pytest.mark.parametrize("field,value", [
+        ("username", "root"), ("username", "Has Space"), ("username", "../etc"),
+        ("full_name", "Evil:0:0"), ("password", "short"), ("password", "a\nroot:x"),
+        ("hostname", "-bad"), ("variant", "monolith-crimson"), ("icon_theme", "../../x"),
+        ("ai_engine", "shell"), ("ai_models", ["$(rm -rf /)"]),
+    ])
+    def test_rejects_bad_fields(self, helper, field, value):
+        with pytest.raises(helper.Invalid):
+            helper.validate(self.good(**{field: value}))
+
+    def test_key_only_kept_for_claude(self, helper):
+        assert helper.validate(self.good(anthropic_key="sk-ant-abcdefghijklmnopqrstuvwxyz"))["anthropic_key"] == ""
+        r = helper.validate(self.good(ai_engine="claude", anthropic_key="sk-ant-abcdefghijklmnopqrstuvwxyz"))
+        assert r["anthropic_key"].startswith("sk-ant-") and r["ai_models"] == []
+
+    def test_refuses_after_setup_finished(self, helper, monkeypatch, tmp_path, capsys):
+        monkeypatch.setattr(helper, "MARKER", str(tmp_path / "gone"))
+        with pytest.raises(SystemExit):
+            helper.apply()
+        assert "already finished" in capsys.readouterr().out
+
+
+class TestSynapseWelcomeGtk:
+    @pytest.fixture
+    def welcome_mod(self):
+        return load_script_module("synapse_welcome_mod", HUD_DIR / "synapse-welcome")
 
     def test_update_gtk_settings_function(self, welcome_mod, tmp_path):
         """Verify update_gtk_settings writes and updates gtk-icon-theme-name under [Settings]."""
