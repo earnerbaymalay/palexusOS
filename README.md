@@ -263,7 +263,7 @@ SynapseOS replaces complex legacy distributions with four tightly integrated arc
 
 ### Layer 4: Cyberdeck Interface & Presentation
 * **Dual Compositor Choice**: Ultra-fast XFCE 4.20 with `picom dual_kawase` glass blur, alongside an optional hardware-accelerated Sway Wayland tiling session.
-* **QtQuick Cyberdeck Onboarding Wizard**: Guided 8-step first-boot gate (`synapse-welcome`) in native QtQuick/QML. Matches the SDDM lock screen with chamfered obsidian glass, animated traveling border trails, horizontal circuit leads with light pulses, and authentic 3D liquid chrome master emblem stamping.
+* **First-Boot Setup**: Boot goes straight into a full-screen setup wizard (`synapse-welcome --oobe`): create your account, pick a look (the wallpaper behind it is the live preview), choose a local or cloud AI assistant, review live privacy status, then land on the login screen with your account selected. No account is created by the installer; a single argument-less root helper (`synapse-oobe-apply`) creates it and removes the setup session afterwards.
 * **Dedicated Claude & Multi-Model AI Console**: Integrated directly into onboarding with Anthropic API key configuration, Claude 3.7 Sonnet / Opus model targeting, and live interactive query testing.
 * **12-Toggle Modular Combo Matrix**: Interactive cyberdeck hardware, privacy, and kernel switches (Prime Directive stealth MAC, Quad9 DoT, strict firewall drop, volatile RAM scrub, Ollama daemon, vector memory, GPU tensor boost, BORE scheduler, ZRAM filesystem, 64-sample audio).
 * **Qt6 Chamfered HUD**: Standalone `Super + Space` command HUD for instant AI chatting, calculations, file search, and app launching.
