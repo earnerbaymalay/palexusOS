@@ -442,10 +442,10 @@ check_file_contains "${REPO_ROOT}/build/archiso/airootfs/root/customize_airootfs
 check_file_contains "${REPO_ROOT}/packages/installer/calamares/settings.conf" 'shellprocess@cleanup' "Calamares runs live-session cleanup"
 check_file_contains "${REPO_ROOT}/packages/installer/calamares/modules/shellprocess@cleanup.conf" '00-synapse-live' "Calamares cleanup removes live NOPASSWD sudoers"
 check_file_contains "${REPO_ROOT}/packages/installer/calamares/modules/shellprocess@cleanup.conf" 'userdel -r synapse' "Calamares cleanup removes passwordless live user"
-check_file_contains "${REPO_ROOT}/packages/desktop/synapse-hud/synapse-oobe-apply" '%wheel ALL=(ALL:ALL) ALL' "First-boot account gets password-protected wheel sudo"
+check_file_contains "${REPO_ROOT}/packages/desktop/synapse-hud/synapse-oobe-apply" '%wheel ALL=\(ALL:ALL\) ALL' "First-boot account gets password-protected wheel sudo"
 check_file_contains "${REPO_ROOT}/packages/installer/calamares/settings.conf" 'shellprocess@oobe' "Calamares arms first-boot account setup"
 check_file_contains "${REPO_ROOT}/packages/desktop/synapse-hud/synapse-oobe-arm" 'synapse-oobe-apply ""' "First-boot sudo rule allows only the argument-less helper"
-check_file_contains "${REPO_ROOT}/packages/desktop/synapse-hud/synapse-oobe-apply" 'os.remove(MARKER)' "First-boot helper disarms itself after one use"
+check_file_contains "${REPO_ROOT}/packages/desktop/synapse-hud/synapse-oobe-apply" 'os\.remove\(MARKER\)' "First-boot helper disarms itself after one use"
 check_file_contains "${REPO_ROOT}/packages/installer/calamares/modules/shellprocess@cleanup.conf" '00-synapse-live.conf' "Calamares cleanup removes live autologin"
 check_file_contains "${REPO_ROOT}/build/build-iso.sh" 'mkarchiso -v -C' "ISO build uses isolated build pacman.conf/keyring"
 
@@ -535,6 +535,14 @@ check_file_contains "${PLY_DIR}/synapseos.script.in" 'Plymouth\.SetRefreshFuncti
 check_file_contains "${PLY_DIR}/synapseos.script.in" 'Plymouth\.SetQuitFunction' "Splash holds the final frame for the login hand-off"
 check_file_contains "${PLY_DIR}/PKGBUILD" "^source=\\('synapse-boot\\.mp4'" "Boot splash is built from the official synapse-boot.mp4"
 check_file_contains "${PLY_DIR}/PKGBUILD" "ffmpeg .*-an" "Boot splash frames are extracted without audio"
+check_file_contains "${PLY_DIR}/PKGBUILD" '^install=synapse-plymouth\.install$' "Boot splash package selects its theme on install/upgrade"
+check_file_contains "${PLY_DIR}/95-synapse-plymouth.hook" '^Target = usr/share/plymouth/themes/synapseos/\*$' "Initramfs is rebuilt when the boot animation changes"
+check_file_contains "${PLY_DIR}/95-synapse-plymouth.hook" '^When = PostTransaction$' "Initramfs rebuild waits for the whole transaction"
+if bash -n "${PLY_DIR}/synapse-plymouth.install" 2>/dev/null && ! grep -q 'mkinitcpio\|-R ' <(grep -v '^ *#\|echo' "${PLY_DIR}/synapse-plymouth.install"); then
+    pass "Boot splash install scriptlet is valid and never rebuilds the initramfs mid-transaction"
+else
+    fail "Boot splash install scriptlet is valid and never rebuilds the initramfs mid-transaction"
+fi
 if [[ -s "${PLY_DIR}/synapse-boot.mp4" ]]; then
     pass "Official boot video present"
 else

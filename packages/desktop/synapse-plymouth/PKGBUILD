@@ -1,7 +1,7 @@
 # Maintainer: SynapseOS Engineering Team <maintainers@synapseos.org>
 pkgname=synapse-plymouth
 pkgver=0.2.0
-pkgrel=1
+pkgrel=2
 install=synapse-plymouth.install
 pkgdesc="SynapseOS Plymouth boot splash: the official SynapseOS boot animation"
 arch=('any')
@@ -9,8 +9,8 @@ url="https://github.com/earnerbaymalay/synapseOS"
 license=('MIT')
 depends=('plymouth')
 makedepends=('ffmpeg')
-source=('synapse-boot.mp4' 'synapseos.script.in')
-sha256sums=('SKIP' 'SKIP')
+source=('synapse-boot.mp4' 'synapseos.script.in' '95-synapse-plymouth.hook')
+sha256sums=('SKIP' 'SKIP' 'SKIP')
 
 # The frames end up in the initramfs, so keep the sequence small:
 # 720x405 (Plymouth scales it to fit), 128-colour palette PNG (the footage is
@@ -33,6 +33,7 @@ build() {
 }
 
 package() {
+  install -Dm644 95-synapse-plymouth.hook "$pkgdir/usr/share/libalpm/hooks/95-synapse-plymouth.hook"
   local dir="$pkgdir/usr/share/plymouth/themes/synapseos"
   local frames
   install -dm755 "$dir"
