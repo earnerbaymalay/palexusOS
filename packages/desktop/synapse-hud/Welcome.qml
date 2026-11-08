@@ -89,9 +89,15 @@ Window {
     function next() {
         if (!canContinue) return
         if (step === "welcome" && isLive && liveInstall) { if (hasBackend) backend.startInstaller(); return }
-        if (step === "account" && !accountValid) { accountTried = true; return }
+        if (step === "account" && !accountValid) { accountTried = true; focusFirstAccountError(); return }
         if (step === "done") { if (hasBackend) backend.finish(); else root.close(); return }
         go(stepIndex + 1)
+    }
+    function focusFirstAccountError() {
+        var order = [["fullName", nameField], ["username", userField], ["hostname", hostField],
+                     ["password", passField], ["confirm", confirmField]]
+        for (var i = 0; i < order.length; i++)
+            if (accountErrors[order[i][0]]) { order[i][1].input.forceActiveFocus(); return }
     }
     function back() { if (stepIndex > 0 && applyState !== "working" && applyState !== "done") go(stepIndex - 1) }
     function skip() { if (hasBackend) backend.skip(); else root.close() }
@@ -297,16 +303,25 @@ Window {
                 onTextEdited: fld.edited(text)
                 onActiveFocusChanged: if (!activeFocus && text !== "") fld.showError = true
             }
-            T {
+            Item {
+                id: revealBtn
                 visible: fld.secret
-                anchors.right: parent.right; anchors.rightMargin: 14
-                anchors.verticalCenter: parent.verticalCenter
-                text: input.reveal ? "Hide" : "Show"
-                color: root.accent; font.pixelSize: 13; font.weight: Font.DemiBold
-                wrapMode: Text.NoWrap
+                anchors.right: parent.right
+                anchors.top: parent.top; anchors.bottom: parent.bottom
+                width: 60
+                activeFocusOnTab: fld.secret
                 Accessible.role: Accessible.Button
                 Accessible.name: input.reveal ? "Hide " + fld.label : "Show " + fld.label
-                MouseArea { anchors.fill: parent; anchors.margins: -8; cursorShape: Qt.PointingHandCursor; onClicked: input.reveal = !input.reveal }
+                Accessible.onPressAction: input.reveal = !input.reveal
+                Keys.onSpacePressed: input.reveal = !input.reveal
+                T {
+                    anchors.centerIn: parent
+                    text: input.reveal ? "Hide" : "Show"
+                    color: root.accent; font.pixelSize: 13; font.weight: Font.DemiBold
+                    wrapMode: Text.NoWrap
+                }
+                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: input.reveal = !input.reveal }
+                FocusRing { r: 6; anchors.margins: 4; visible: revealBtn.activeFocus }
             }
         }
         T {
@@ -315,6 +330,8 @@ Window {
             text: fld.showError && fld.error ? fld.error : fld.helper
             color: fld.showError && fld.error ? root.warning : root.textMuted
             font.pixelSize: 13
+            Accessible.role: fld.showError && fld.error ? Accessible.AlertMessage : Accessible.StaticText
+            Accessible.name: text
         }
     }
 
@@ -583,6 +600,7 @@ Window {
                                     onEdited: (v) => { if (root.hasBackend) backend.fullName = v }
                                 }
                                 Field {
+                                    id: userField
                                     label: "Username"
                                     helper: "Lowercase, no spaces."
                                     error: root.accountErrors.username || ""
@@ -591,6 +609,7 @@ Window {
                                     onEdited: (v) => { if (root.hasBackend) backend.username = v }
                                 }
                                 Field {
+                                    id: hostField
                                     label: "Computer name"
                                     helper: "How this computer appears on networks."
                                     error: root.accountErrors.hostname || ""
@@ -599,6 +618,7 @@ Window {
                                     onEdited: (v) => { if (root.hasBackend) backend.newHostname = v }
                                 }
                                 Field {
+                                    id: passField
                                     label: "Password"
                                     secret: true
                                     helper: "At least 6 characters."
@@ -607,6 +627,7 @@ Window {
                                     onEdited: (v) => { if (root.hasBackend) backend.password = v }
                                 }
                                 Field {
+                                    id: confirmField
                                     label: "Confirm password"
                                     secret: true
                                     error: root.accountErrors.confirm || ""
