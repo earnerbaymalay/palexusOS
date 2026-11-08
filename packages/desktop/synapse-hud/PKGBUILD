@@ -1,18 +1,23 @@
 # Maintainer: SynapseOS Engineering Team <maintainers@synapseos.org>
 pkgname=synapse-hud
 pkgver=0.1.0
-pkgrel=6
+pkgrel=7
 pkgdesc="Native Qt6/QML Material You Command HUD, Synapse Settings Control Center, Brain Notes, Metallic Icon Suites, and Neural Governor"
 arch=('any')
 url="https://github.com/earnerbaymalay/synapseOS"
 license=('MIT')
-depends=('python' 'python-pyqt6' 'qt6-declarative' 'qt6-svg' 'qt6-5compat' 'kitty')
+depends=('python' 'python-pyqt6' 'qt6-declarative' 'qt6-svg' 'qt6-5compat' 'qt6-wayland' 'kitty' 'sway' 'sudo')
 source=(
   "synapse-hud"
   "synapse-settings"
   "synapse-notes"
   "synapse-setup"
   "synapse-welcome"
+  "synapse-oobe-apply"
+  "synapse-oobe-arm"
+  "synapse-oobe-session"
+  "synapse-oobe.desktop"
+  "oobe-sway.conf"
   "synapse-shortcuts"
   "synapse-power"
   "synapse-stealth"
@@ -73,6 +78,12 @@ package() {
   install -Dm755 "${srcdir}/synapse-notes" "${pkgdir}/usr/bin/synapse-notes"
   install -Dm755 "${srcdir}/synapse-setup" "${pkgdir}/usr/bin/synapse-setup"
   install -Dm755 "${srcdir}/synapse-welcome" "${pkgdir}/usr/bin/synapse-welcome"
+  # First-boot setup (armed by the installer, see synapse-oobe-arm)
+  install -Dm755 "${srcdir}/synapse-oobe-apply" "${pkgdir}/usr/lib/synapse/synapse-oobe-apply"
+  install -Dm755 "${srcdir}/synapse-oobe-arm" "${pkgdir}/usr/lib/synapse/synapse-oobe-arm"
+  install -Dm755 "${srcdir}/synapse-oobe-session" "${pkgdir}/usr/lib/synapse/synapse-oobe-session"
+  install -Dm644 "${srcdir}/synapse-oobe.desktop" "${pkgdir}/usr/share/synapse-hud/synapse-oobe.desktop"
+  install -Dm644 "${srcdir}/oobe-sway.conf" "${pkgdir}/usr/share/synapse-hud/oobe-sway.conf"
   install -Dm755 "${srcdir}/synapse-shortcuts" "${pkgdir}/usr/bin/synapse-shortcuts"
   install -Dm755 "${srcdir}/synapse-power" "${pkgdir}/usr/bin/synapse-power"
   install -Dm755 "${srcdir}/synapse-stealth" "${pkgdir}/usr/bin/synapse-stealth"

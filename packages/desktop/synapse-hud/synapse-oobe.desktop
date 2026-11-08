@@ -1,0 +1,5 @@
+[Desktop Entry]
+Name=SynapseOS First-Boot Setup
+Comment=Create your account and pick a look. Removed once setup finishes.
+Exec=/usr/lib/synapse/synapse-oobe-session
+Type=Application

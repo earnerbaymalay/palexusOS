@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+# synapse-oobe-arm — run once by the installer (Calamares shellprocess@oobe, in the target chroot).
+# Arms first-boot setup: the next boot logs straight into the setup wizard, which creates the
+# real account and then removes everything this script adds (see synapse-oobe-apply --finalize).
+set -euo pipefail
+
+OOBE_USER=synapse-oobe
+
+install -d -m 0755 /var/lib/synapse
+if ! id -u "$OOBE_USER" >/dev/null 2>&1; then
+    useradd --system --create-home --home-dir /var/lib/synapse-oobe --shell /bin/bash \
+        --groups video,input,audio "$OOBE_USER"
+fi
+passwd -l "$OOBE_USER" >/dev/null
+
+install -Dm644 /usr/share/synapse-hud/synapse-oobe.desktop /usr/share/wayland-sessions/synapse-oobe.desktop
+
+install -d -m 0755 /etc/sddm.conf.d
+cat > /etc/sddm.conf.d/50-synapse-oobe.conf << CONF
+# First-boot setup only; removed by synapse-oobe-apply --finalize
+[Autologin]
+User=${OOBE_USER}
+Session=synapse-oobe.desktop
+Relogin=false
+CONF
+
+# The setup user may run exactly one command as root, with no arguments
+install -d -m 0750 /etc/sudoers.d
+rule=/etc/sudoers.d/50-synapse-oobe
+printf '%s ALL=(root) NOPASSWD: /usr/lib/synapse/synapse-oobe-apply ""\n' "$OOBE_USER" > "$rule"
+chmod 0440 "$rule"
+if command -v visudo >/dev/null 2>&1 && ! visudo -cqf "$rule"; then
+    rm -f "$rule"
+    echo "synapse-oobe-arm: sudoers rule failed validation" >&2
+    exit 1
+fi
+
+touch /var/lib/synapse/oobe-pending

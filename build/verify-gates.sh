@@ -442,7 +442,11 @@ check_file_contains "${REPO_ROOT}/build/archiso/airootfs/root/customize_airootfs
 check_file_contains "${REPO_ROOT}/packages/installer/calamares/settings.conf" 'shellprocess@cleanup' "Calamares runs live-session cleanup"
 check_file_contains "${REPO_ROOT}/packages/installer/calamares/modules/shellprocess@cleanup.conf" '00-synapse-live' "Calamares cleanup removes live NOPASSWD sudoers"
 check_file_contains "${REPO_ROOT}/packages/installer/calamares/modules/shellprocess@cleanup.conf" 'userdel -r synapse' "Calamares cleanup removes passwordless live user"
-check_file_contains "${REPO_ROOT}/packages/installer/calamares/modules/users.conf" '^sudoersGroup: wheel' "Installed users get password-protected wheel sudo"
+check_file_contains "${REPO_ROOT}/packages/desktop/synapse-hud/synapse-oobe-apply" '%wheel ALL=(ALL:ALL) ALL' "First-boot account gets password-protected wheel sudo"
+check_file_contains "${REPO_ROOT}/packages/installer/calamares/settings.conf" 'shellprocess@oobe' "Calamares arms first-boot account setup"
+check_file_contains "${REPO_ROOT}/packages/desktop/synapse-hud/synapse-oobe-arm" 'synapse-oobe-apply ""' "First-boot sudo rule allows only the argument-less helper"
+check_file_contains "${REPO_ROOT}/packages/desktop/synapse-hud/synapse-oobe-apply" 'os.remove(MARKER)' "First-boot helper disarms itself after one use"
+check_file_contains "${REPO_ROOT}/packages/installer/calamares/modules/shellprocess@cleanup.conf" '00-synapse-live.conf' "Calamares cleanup removes live autologin"
 check_file_contains "${REPO_ROOT}/build/build-iso.sh" 'mkarchiso -v -C' "ISO build uses isolated build pacman.conf/keyring"
 
 # Package file-ownership conflicts (pacstrap aborts on these)

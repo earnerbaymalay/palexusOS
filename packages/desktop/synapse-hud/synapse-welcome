@@ -4,8 +4,10 @@ Author: earnerbaymalay
 
 A short, linear QtQuick wizard that runs once per user after the first login:
 
-  Live ISO   : Welcome (Install / Try) -> Appearance -> Done
-  Installed  : Welcome -> Appearance -> AI assistant -> Privacy -> Keys -> Done
+  First boot (--oobe) : Welcome -> Account -> Look -> Assistant -> Ready
+                        then hands off to the login screen with the new account selected
+  Live ISO            : Welcome (Try / Install) -> Look -> Ready
+  In session          : Welcome -> Look -> Assistant -> Ready   (Super+W, or first login)
 
 Design rules:
   - Nothing is downloaded or sent off-device without an explicit choice on screen.
@@ -16,6 +18,8 @@ Design rules:
 import os
 import sys
 import json
+import re
+import pwd
 import shutil
 import socket
 import threading
@@ -33,6 +37,11 @@ ONBOARDING_FLAG = os.path.join(CONFIG_DIR, ".onboarding_complete")
 # Read by `synapse-setup --first-boot`; its absence means "do not download models"
 AI_MODELS_FILE = os.path.join(CONFIG_DIR, "ai_models")
 LIVE_MARKER = "/etc/sudoers.d/00-synapse-live"
+OOBE_SEED_DIR = "/var/lib/synapse/oobe-seed"
+OOBE_HELPER = "/usr/lib/synapse/synapse-oobe-apply"
+USERNAME_RE = re.compile(r"^[a-z_][a-z0-9_-]{0,31}$")
+HOSTNAME_RE = re.compile(r"^(?!-)[a-zA-Z0-9-]{1,63}(?<!-)$")
+RESERVED_USERS = {"root", "synapse", "synapse-oobe", "sddm", "ollama", "git", "synapse-daemon", "nobody"}
 WALLPAPER_DIR = Path("/usr/share/backgrounds/synapseos")
 ICON_DIR = Path("/usr/share/icons")
 
@@ -116,14 +125,48 @@ def icon_path(theme: str, icon: str) -> str:
     return ""
 
 
-def read_current_variant() -> str:
-    try:
-        v = Path(CONFIG_DIR, "theme").read_text().strip()
-        if v in VARIANTS:
-            return v
-    except OSError:
-        pass
-    return DEFAULT_VARIANT
+def read_pref(name: str, allowed, default: str, dirs) -> str:
+    for d in dirs:
+        try:
+            v = Path(d, name).read_text().strip()
+            if v in allowed:
+                return v
+        except OSError:
+            pass
+    return default
+
+
+def username_from_name(name: str) -> str:
+    first = re.sub(r"[^a-z0-9]", "", (name.strip().split() or [""])[0].lower())
+    if first and not first[0].isalpha():
+        first = "u" + first
+    return first[:32]
+
+
+def account_errors(full_name: str, username: str, password: str, confirm: str, hostname: str) -> dict:
+    """Field -> message for everything wrong with the account form (empty when valid)."""
+    errors = {}
+    if any(c in full_name for c in ":,\n"):
+        errors["fullName"] = "Your name can't contain commas or colons."
+    if not username:
+        errors["username"] = "Pick a username."
+    elif not USERNAME_RE.match(username):
+        errors["username"] = "Use lowercase letters, digits, - or _, starting with a letter."
+    elif username in RESERVED_USERS:
+        errors["username"] = "That name is reserved by the system."
+    else:
+        try:
+            pwd.getpwnam(username)
+            errors["username"] = "That username is already taken."
+        except KeyError:
+            pass
+    if len(password) < 6:
+        errors["password"] = "Use at least 6 characters."
+    elif confirm != password:
+        errors["confirm"] = "The passwords don't match."
+    if not HOSTNAME_RE.match(hostname):
+        errors["hostname"] = "Letters, digits and dashes only."
+    return errors
 
 
 def total_ram_gb() -> float:
@@ -263,11 +306,15 @@ class WelcomeBackend(QObject):
     keyTestChanged = pyqtSignal()
     finished = pyqtSignal()
     _keyResult = pyqtSignal(bool, str)
+    accountChanged = pyqtSignal()
+    applyChanged = pyqtSignal()
+    _applyResult = pyqtSignal(bool, str)
 
-    def __init__(self, app, parent=None):
+    def __init__(self, app, parent=None, oobe=False):
         super().__init__(parent)
         self.app = app
-        self._is_live = os.path.exists(LIVE_MARKER)
+        self._is_oobe = oobe
+        self._is_live = os.path.exists(LIVE_MARKER) and not oobe
         self._chrome_logo_path = find_chrome_logo()
         self._operator = os.environ.get("USER", "operator")
         self._display_name = display_name()
@@ -278,9 +325,21 @@ class WelcomeBackend(QObject):
         self._ram_gb = total_ram_gb()
         self._reduce_motion = os.environ.get("SYNAPSE_REDUCE_MOTION", "") not in ("", "0")
 
-        self._original_variant = read_current_variant()
+        pref_dirs = [OOBE_SEED_DIR] if oobe else [CONFIG_DIR]
+        self._original_variant = read_pref("theme", VARIANTS, DEFAULT_VARIANT, pref_dirs)
         self._variant = self._original_variant
-        self._icon_theme = "Synapse-Liquid-Chrome"
+        self._icon_theme = read_pref("icon_theme", ICON_THEMES, "Synapse-Liquid-Chrome", pref_dirs)
+
+        # First-boot account form
+        self._full_name = ""
+        self._username = ""
+        self._username_edited = False
+        self._password = ""
+        self._confirm = ""
+        self._new_hostname = "synapse"
+        self._hostname_edited = False
+        self._apply_state = "idle"   # idle | working | done | error
+        self._apply_message = ""
 
         # Local-first: nothing leaves the device unless the user picks the cloud engine
         self._ai_engine = "local"
@@ -292,11 +351,85 @@ class WelcomeBackend(QObject):
         self._security = security_checks()
 
         self._keyResult.connect(self._on_key_result)
+        self._applyResult.connect(self._on_apply_result)
 
     # ---- Identity & environment ----
     @pyqtProperty(bool, constant=True)
     def isLive(self):
         return self._is_live
+
+    @pyqtProperty(bool, constant=True)
+    def isOobe(self):
+        return self._is_oobe
+
+    # ---- First-boot account ----
+    @pyqtProperty(str, notify=accountChanged)
+    def fullName(self):
+        return self._full_name
+
+    @fullName.setter
+    def fullName(self, val):
+        if val != self._full_name:
+            self._full_name = val
+            if not self._username_edited:
+                self._username = username_from_name(val)
+            if not self._hostname_edited and self._username:
+                self._new_hostname = f"{self._username}-synapse"[:63]
+            self.accountChanged.emit()
+
+    @pyqtProperty(str, notify=accountChanged)
+    def username(self):
+        return self._username
+
+    @username.setter
+    def username(self, val):
+        if val != self._username:
+            self._username = val
+            self._username_edited = val != ""
+            self.accountChanged.emit()
+
+    @pyqtProperty(str, notify=accountChanged)
+    def password(self):
+        return self._password
+
+    @password.setter
+    def password(self, val):
+        if val != self._password:
+            self._password = val
+            self.accountChanged.emit()
+
+    @pyqtProperty(str, notify=accountChanged)
+    def passwordConfirm(self):
+        return self._confirm
+
+    @passwordConfirm.setter
+    def passwordConfirm(self, val):
+        if val != self._confirm:
+            self._confirm = val
+            self.accountChanged.emit()
+
+    @pyqtProperty(str, notify=accountChanged)
+    def newHostname(self):
+        return self._new_hostname
+
+    @newHostname.setter
+    def newHostname(self, val):
+        if val != self._new_hostname:
+            self._new_hostname = val
+            self._hostname_edited = True
+            self.accountChanged.emit()
+
+    @pyqtProperty("QVariantMap", notify=accountChanged)
+    def accountErrors(self):
+        return account_errors(self._full_name, self._username, self._password, self._confirm, self._new_hostname)
+
+    @pyqtProperty(str, notify=applyChanged)
+    def applyState(self):
+        return self._apply_state
+
+    @pyqtProperty(str, notify=applyChanged)
+    def applyMessage(self):
+        return self._apply_message
 
     @pyqtProperty(bool, constant=True)
     def reduceMotion(self):
@@ -484,12 +617,68 @@ class WelcomeBackend(QObject):
 
     @pyqtSlot()
     def finish(self):
+        if self._is_oobe:
+            self._finish_oobe()
+            return
         os.makedirs(CONFIG_DIR, exist_ok=True)
         self._save_profile()
         self._apply_appearance()
         self._apply_ai()
         self._mark_complete("completed")
         self._quit()
+
+    # ---- First boot ----
+    def oobe_request(self) -> dict:
+        local = self._ai_engine == "local" and self._download_models
+        return {
+            "full_name": self._full_name.strip(),
+            "username": self._username,
+            "password": self._password,
+            "hostname": self._new_hostname,
+            "variant": self._variant,
+            "icon_theme": self._icon_theme,
+            "ai_engine": self._ai_engine,
+            "ai_models": MODEL_TIERS[self._model_tier]["models"] if local else [],
+            "anthropic_key": self._claude_key if self._ai_engine == "claude" else "",
+            "profile": {
+                "claude_model": CLAUDE_MODEL if self._ai_engine == "claude" else "",
+                "local_model_tier": self._model_tier if self._ai_engine == "local" else "",
+            },
+        }
+
+    def _finish_oobe(self):
+        if self._apply_state in ("working", "done"):
+            return
+        errors = self.accountErrors
+        if errors:
+            self._apply_state, self._apply_message = "error", next(iter(errors.values()))
+            self.applyChanged.emit()
+            return
+        self._apply_state, self._apply_message = "working", "Creating your account…"
+        self.applyChanged.emit()
+        payload = json.dumps(self.oobe_request())
+        threading.Thread(target=lambda: self._applyResult.emit(*self._run_helper(payload)), daemon=True).start()
+
+    @staticmethod
+    def _run_helper(payload: str) -> tuple:
+        try:
+            proc = subprocess.run(["sudo", "-n", OOBE_HELPER], input=payload, text=True,
+                                  capture_output=True, timeout=120)
+            out = proc.stdout.strip()
+            result = json.loads(out.splitlines()[-1]) if out else {}
+        except (OSError, subprocess.TimeoutExpired, ValueError, IndexError):
+            return False, "Setup couldn't run its system helper. Restart the computer to try again."
+        if result.get("ok"):
+            return True, "Account created. Taking you to the login screen…"
+        return False, result.get("error") or "Setup failed. Restart the computer to try again."
+
+    def _on_apply_result(self, ok, message):
+        self._apply_state = "done" if ok else "error"
+        self._apply_message = message
+        if ok:
+            # Don't keep the password in memory longer than needed
+            self._password = self._confirm = ""
+        self.applyChanged.emit()
 
     # ---- Internals ----
     def _quit(self):
@@ -499,6 +688,8 @@ class WelcomeBackend(QObject):
     def _preview_wallpaper(self, variant):
         """Swap the wallpaper behind the wizard without persisting anything."""
         image = wallpaper_path(variant)
+        if self._is_oobe:
+            return  # the full-screen wizard paints the wallpaper itself
         if image and os.environ.get("SWAYSOCK") and shutil.which("swaymsg"):
             try:
                 subprocess.Popen(["swaymsg", "-q", "output", "*", "bg", image, "fill"])
@@ -589,6 +780,7 @@ class WelcomeBackend(QObject):
 
 
 def main():
+    oobe = "--oobe" in sys.argv
     if "--autostart" in sys.argv and os.path.exists(ONBOARDING_FLAG):
         sys.exit(0)
 
@@ -596,7 +788,7 @@ def main():
     app.setDesktopFileName("synapse-welcome")
     engine = QQmlApplicationEngine()
 
-    backend = WelcomeBackend(app)
+    backend = WelcomeBackend(app, oobe=oobe)
     engine.rootContext().setContextProperty("backend", backend)
 
     script_dir = Path(__file__).resolve().parent
