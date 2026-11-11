@@ -47,12 +47,13 @@ BRAND_SECONDS = 14
 DOTS = ((0x01, 0x08), (0x02, 0x10), (0x04, 0x20), (0x40, 0x80))
 
 GLYPHS = {
-    "S": ["█████", "█    ", "█████", "    █", "█████"],
-    "Y": ["█   █", " █ █ ", "  █  ", "  █  ", "  █  "],
-    "N": ["█   █", "██  █", "█ █ █", "█  ██", "█   █"],
-    "A": [" ███ ", "█   █", "█████", "█   █", "█   █"],
     "P": ["████ ", "█   █", "████ ", "█    ", "█    "],
+    "A": [" ███ ", "█   █", "█████", "█   █", "█   █"],
+    "L": ["█    ", "█    ", "█    ", "█    ", "█████"],
     "E": ["█████", "█    ", "████ ", "█    ", "█████"],
+    "X": ["█   █", " █ █ ", "  █  ", " █ █ ", "█   █"],
+    "U": ["█   █", "█   █", "█   █", "█   █", "█████"],
+    "S": ["█████", "█    ", "█████", "    █", "█████"],
 }
 NOISE = "!@#$%&*+=?<>/\\|01░▒▓"
 
@@ -337,7 +338,7 @@ def brand_builtin(term, accent, seconds, rain=None, reverse=False):
     """
     cols, rows = term.size()
     targets, top, left, lines = logo_targets(cols, rows)
-    subtitle = "S Y N A P S E   O S"
+    subtitle = "P A L E X U S   O S"
     bright = fg(accent)
     dim    = fg(scale_rgb(accent, 0.35))
     glint  = fg((255, 255, 255))
@@ -500,7 +501,7 @@ def run_unified(term, accent, mesh):
             frame_start = time.monotonic()
             cols, rows = term.size()
             targets, top, left, lines = logo_targets(cols, rows)
-            subtitle = "S Y N A P S E   O S"
+            subtitle = "P A L E X U S   O S"
             buf = ["\x1b[2J\x1b[H\x1b[48;2;0;0;0m"]
             rain.tick(dt)
             for rr, rc, rch, rcol in rain.render(alpha=1.0):
