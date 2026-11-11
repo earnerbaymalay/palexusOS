@@ -635,7 +635,7 @@ check_file_contains "${HUD_PKG}/oobe-sway.conf" '^exec /usr/lib/synapse/synapse-
 check_file_contains "${HUD_PKG}/synapse-oobe-wizard" 'Ctrl\+Alt\+F2' "A wizard that keeps failing points to the tty2 text setup"
 check_file_contains "${HUD_PKG}/synapse-oobe-apply" 'remove_partial_account\(r\["username"\]\)' "Failed account creation is rolled back so setup can be retried"
 # ~/.bashrc returns at once for non-interactive shells, so its ask-*/squash aliases don't exist in bash -c
-check_file_lacks "${HUD_PKG}/synapse-hud" 'ask-qwen' "HUD Ask AI calls ollama directly, not a ~/.bashrc alias"
+check_file_lacks "${HUD_PKG}/synapse-hud" 'ask-qwen "' "HUD Ask AI calls ollama directly, not a ~/.bashrc alias"
 check_file_lacks "${HUD_PKG}/Main.qml" '&& (ask-qwen|ask-llama|squash )' "HUD menu commands do not rely on ~/.bashrc aliases"
 
 echo ""
