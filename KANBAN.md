@@ -40,13 +40,6 @@ Plan the project here. Each card can start a Parallel Code task.
   - [ ] Installed system boots, has no live user or NOPASSWD sudoers, and `palexus.service` is active
   - [ ] Release has the ISO, checksums and signatures attached
 
-- [ ] Design spike: eBPF secret leak interceptor (Milestone 9.2)
-  Write `docs/EBPF_SECRET_INTERCEPTOR.md` only. Decide the hook point (cgroup/skb egress, sock_ops, or LSM), how plaintext is inspected given TLS (uprobes on OpenSSL/GnuTLS versus pre-encryption only), pattern set (`sk-*`, PEM headers, OpenSSH private keys), false-positive handling, kernel config requirements on `linux-cachyos`, and how it reuses the patterns in the upstream daemon's `firewall.rs`.
-  group: phase-9
-  - [ ] Document names one recommended hook point with its limits stated
-  - [ ] Lists required kernel options and the toolchain (aya or libbpf)
-  - [ ] Breaks implementation into follow-up cards
-
 - [ ] Implement the eBPF secret leak interceptor package
   New package `packages/core/palexus-ebpf-guard/` (PKGBUILD, loader, systemd unit) following the design document. Default mode is log-only with an enforce switch; add it to `build/archiso/packages.x86_64` and a gate check.
   group: phase-9
@@ -68,6 +61,13 @@ Plan the project here. Each card can start a Parallel Code task.
 ## Review
 
 ## Done
+
+- [x] Design spike: eBPF secret leak interceptor (Milestone 9.2)
+  Write `docs/EBPF_SECRET_INTERCEPTOR.md` only. Decide the hook point (cgroup/skb egress, sock_ops, or LSM), how plaintext is inspected given TLS (uprobes on OpenSSL/GnuTLS versus pre-encryption only), pattern set (`sk-*`, PEM headers, OpenSSH private keys), false-positive handling, kernel config requirements on `linux-cachyos`, and how it reuses the patterns in the upstream daemon's `firewall.rs`.
+  group: phase-9
+  - [x] Document names one recommended hook point with its limits stated
+  - [x] Lists required kernel options and the toolchain (aya or libbpf)
+  - [x] Breaks implementation into follow-up cards
 
 - [x] Commit the in-progress rebrand working tree as the baseline
   The SynapseOS -> PalexusOS rename exists only as ~220 uncommitted changes on branch `rebrand/palexusos` (staged renames plus unstaged edits and untracked files). Card worktrees are created from committed history, so nothing below can see this work until it is committed. This card must be done in the main checkout, not a fresh worktree. Stage the intended files (`overlay/usr/`, `overlay/etc/skel/.themes/`, `.config/gtk-3.0`, `.config/gtk-4.0`, `xfwm4.xml`, `xsettings.xml`, `docs/*AUDIT*.md`, `docs/PALEXUS_BOOT_VIDEO_SUITE.md`, `docs/assets/palexus-banner.png`, `KANBAN.md`, sources under `build/blender` and `build/videos`). Do not commit build output: the old `packages/core/synapse-core`, `packages/desktop/synapse-{greeter,hud,plymouth,themes}` and `packages/installer/calamares/branding/synapseos` paths now hold only ignored leftovers (`src/`, `pkg/`, `*.pkg.tar.zst`, `__pycache__`), and `build/blender/renders`, `*.blend` and `docs/assets/videos` should be checked for size before staging (AGENTS.md: no binary blobs).
