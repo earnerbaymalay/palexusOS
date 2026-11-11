@@ -1,7 +1,7 @@
 [Desktop Entry]
 Type=Application
 Name=PalexusOS Screensaver
-Comment=Geodesic torus and SYNAPSE brand screensaver
+Comment=Geodesic torus and PALEXUS brand screensaver
 Exec=/usr/bin/palexus-screensaver --launch
 Icon=preferences-desktop-screensaver
 Terminal=false

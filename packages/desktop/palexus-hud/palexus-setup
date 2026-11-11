@@ -233,7 +233,7 @@ interactive_menu() {
     while true; do
         clear
         cat << 'EOF'
- 🧠 SYNAPSEOS — LOCAL AI & MODEL PROVISIONING CONSOLE
+ 🧠 PALEXUSOS — LOCAL AI & MODEL PROVISIONING CONSOLE
 ══════════════════════════════════════════════════════════════════════════════
  1) [Core Trinity] Install Code (Qwen), Chat (LLaMA 3.2), and Memory (Nomic)
  2) [Coding Focus] Install Flagship Qwen 2.5 Coder 7B (Requires 8GB+ RAM)

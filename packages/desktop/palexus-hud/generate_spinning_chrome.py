@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-SynapseOS — Authentic 4D Liquid Chrome Plate & 360° Right-to-Left Spatial Engine.
+PalexusOS — Authentic 4D Liquid Chrome Plate & 360° Right-to-Left Spatial Engine.
 Architected for military-grade cyberdeck hardware aesthetics:
 1. Floating Chamfered Obsidian Glass / Chrome Metallic Plate
 2. Extruded Physical Rim / Depth with CNC Milled Chamfers & Gunmetal Titanium Edges
@@ -78,7 +78,7 @@ def build_front_plate(plate_w, plate_h, emblem_img):
     bdraw.polygon(pts_inner, outline=(116, 199, 236, 120), width=1) # Sapphire inner hairline
     
     # Technical markings & optical registration ticks
-    bdraw.text((inset + 12, inset + 4), "SYNAPSE // OB-4D PLATE", fill=(147, 153, 178, 190))
+    bdraw.text((inset + 12, inset + 4), "PALEXUS // OB-4D PLATE", fill=(147, 153, 178, 190))
     bdraw.text((plate_w - inset - 88, inset + 4), "SYS-CORE 01", fill=(203, 166, 247, 210))
     bdraw.text((inset + 12, plate_h - inset - 14), "SPECULAR LIQUID CHROME", fill=(108, 112, 134, 160))
     bdraw.text((plate_w - inset - 72, plate_h - inset - 14), "[VERIFIED]", fill=(166, 227, 161, 200))
@@ -173,7 +173,7 @@ def build_reverse_plate(plate_w, plate_h):
     draw.rectangle(die_rect, fill=(24, 24, 37, 255), outline=silver, width=1)
     
     # Internal silicon neural core markings
-    draw.text((cx - 48, cy - 28), "SYNAPSE NPU", fill=mauve)
+    draw.text((cx - 48, cy - 28), "PALEXUS NPU", fill=mauve)
     draw.text((cx - 52, cy - 14), "1024-TFLOPS BORE", fill=cyan)
     draw.text((cx - 56, cy + 2), "TENSOR MATRIX ACCEL", fill=gold)
     draw.text((cx - 42, cy + 18), "SEC-LEVEL 0", fill=(166, 227, 161, 240))
@@ -329,8 +329,9 @@ def main():
     script_dir = Path(__file__).resolve().parent
     master_candidates = [
         script_dir / "master_plate_960.png",
-        script_dir / "../synapse-plymouth/master_plate_960.png",
-        script_dir / "../../desktop/synapse-plymouth/master_plate_960.png",
+        script_dir / "../palexus-plymouth/master_plate_960.png",
+        script_dir / "../../desktop/palexus-plymouth/master_plate_960.png",
+        Path("/usr/share/palexusos/branding/master_plate_960.png"),
         Path("/usr/share/synapseos/branding/master_plate_960.png"),
     ]
     master_path = None
@@ -351,7 +352,7 @@ def main():
     paste_x = (512 - emblem.width) // 2
     paste_y = (512 - emblem.height) // 2
     logo_canvas.paste(emblem, (paste_x, paste_y), emblem)
-    logo_out = script_dir / "synapse_chrome_logo.png"
+    logo_out = script_dir / "palexus_chrome_logo.png"
     logo_canvas.save(logo_out, optimize=True)
     print(f"Saved master uncropped emblem: {logo_out}")
     
@@ -472,12 +473,12 @@ def main():
     
     # Save Hero Still at 28 degrees angle (Frame 5)
     hero_frame = frames[5]
-    hero_out = script_dir / "synapse_chrome_plate_4d.png"
+    hero_out = script_dir / "palexus_chrome_plate_4d.png"
     hero_frame.save(hero_out, optimize=True)
     print(f"Saved 4D plate hero still: {hero_out}")
     
     # Save Animated 32-bit Lossless WebP
-    webp_out = script_dir / "synapse_chrome_spin_360.webp"
+    webp_out = script_dir / "palexus_chrome_spin_360.webp"
     frames[0].save(
         webp_out,
         save_all=True,
@@ -489,7 +490,7 @@ def main():
     print(f"Saved animated 360 4D plate WebP: {webp_out} ({webp_out.stat().st_size} bytes)")
     
     # Also save with explicit plate name
-    webp_plate_out = script_dir / "synapse_chrome_plate_spin_360.webp"
+    webp_plate_out = script_dir / "palexus_chrome_plate_spin_360.webp"
     frames[0].save(
         webp_plate_out,
         save_all=True,
@@ -501,7 +502,7 @@ def main():
     print(f"Saved animated WebP alias: {webp_plate_out}")
     
     # Save Animated GIF (with transparent background)
-    gif_out = script_dir / "synapse_chrome_spin_360.gif"
+    gif_out = script_dir / "palexus_chrome_spin_360.gif"
     frames[0].save(
         gif_out,
         save_all=True,

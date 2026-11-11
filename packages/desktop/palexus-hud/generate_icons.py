@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""generate_icons.py — Generator for SynapseOS 4 Metallic Icon Themes.
+"""generate_icons.py — Generator for PalexusOS 4 Metallic Icon Themes.
 
 Generates:
-  1. Synapse-Liquid-Chrome   (Mirror-polished liquid chrome, 45° diamond chamfers)
-  2. Synapse-Smoked-Obsidian (Mirror jet-black ceramic, knurled rim, neon mauve conduit)
-  3. Synapse-Radial-Tungsten (Anisotropic lathe-milled tungsten, orbital purple donut)
-  4. Synapse-Aerospace-Billet(Hairline brushed titanium plate, satin mauve, micro-rivets)
+  1. Palexus-Liquid-Chrome   (Mirror-polished liquid chrome, 45° diamond chamfers)
+  2. Palexus-Smoked-Obsidian (Mirror jet-black ceramic, knurled rim, neon mauve conduit)
+  3. Palexus-Radial-Tungsten (Anisotropic lathe-milled tungsten, orbital purple donut)
+  4. Palexus-Aerospace-Billet(Hairline brushed titanium plate, satin mauve, micro-rivets)
 
 Each theme inherits from Hatter-Purple, Papirus-Dark, hicolor.
 """
@@ -17,52 +17,52 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 ICONS_DEST = os.path.join(BASE_DIR, "icons")
 
 THEMES = {
-    "Synapse-Liquid-Chrome": {
-        "comment": "SynapseOS Liquid Mauve Chrome — High-gloss mirror finish & diamond chamfers",
+    "Palexus-Liquid-Chrome": {
+        "comment": "PalexusOS Liquid Mauve Chrome — High-gloss mirror finish & diamond chamfers",
         "style": "chrome"
     },
-    "Synapse-Smoked-Obsidian": {
-        "comment": "SynapseOS Smoked Obsidian — Mirror black ceramic & neon mauve conduit",
+    "Palexus-Smoked-Obsidian": {
+        "comment": "PalexusOS Smoked Obsidian — Mirror black ceramic & neon mauve conduit",
         "style": "obsidian"
     },
-    "Synapse-Radial-Tungsten": {
-        "comment": "SynapseOS Radial Milled Tungsten — Anisotropic lathe grain & singularity torus",
+    "Palexus-Radial-Tungsten": {
+        "comment": "PalexusOS Radial Milled Tungsten — Anisotropic lathe grain & singularity torus",
         "style": "tungsten"
     },
-    "Synapse-Aerospace-Billet": {
-        "comment": "SynapseOS Aerospace Billet — Brushed titanium slab, satin mauve & micro-bolts",
+    "Palexus-Aerospace-Billet": {
+        "comment": "PalexusOS Aerospace Billet — Brushed titanium slab, satin mauve & micro-bolts",
         "style": "billet"
     }
 }
 
 # Core Application & Place Glyphs (Centered in 128x128 canvas)
 GLYPHS = {
-    "synapse-hud": """
-        <!-- Synapse AI Core / Orbital HUD Glyph -->
+    "palexus-hud": """
+        <!-- Palexus AI Core / Orbital HUD Glyph -->
         <circle cx="64" cy="64" r="26" fill="none" stroke="{accent}" stroke-width="3.5" stroke-dasharray="32 10 16 10"/>
         <circle cx="64" cy="64" r="16" fill="none" stroke="{fg}" stroke-width="2.5"/>
         <circle cx="64" cy="64" r="6" fill="{accent}"/>
         <path d="M 64 24 L 64 34 M 64 94 L 64 104 M 24 64 L 34 64 M 94 64 L 104 64" stroke="{fg}" stroke-width="2.5" stroke-linecap="round"/>
     """,
-    "synapse-settings": """
+    "palexus-settings": """
         <!-- Precision Milled Control Center / Gear -->
         <path d="M 64 38 L 68 44 L 76 42 L 78 49 L 85 50 L 84 58 L 91 61 L 88 68 L 93 73 L 88 78 L 91 85 L 84 88 L 85 96 L 78 97 L 76 104 L 68 102 L 64 108 L 60 102 L 52 104 L 50 97 L 43 96 L 44 88 L 37 85 L 40 78 L 35 73 L 40 68 L 37 61 L 44 58 L 43 50 L 50 49 L 52 42 L 60 44 Z" fill="none" stroke="{accent}" stroke-width="3" stroke-linejoin="round"/>
         <circle cx="64" cy="73" r="14" fill="none" stroke="{fg}" stroke-width="3"/>
         <circle cx="64" cy="73" r="6" fill="{accent}"/>
     """,
-    "synapse-notes": """
+    "palexus-notes": """
         <!-- Brain Scratchpad / Markdown Note -->
         <rect x="42" y="36" width="44" height="56" rx="4" fill="none" stroke="{fg}" stroke-width="3"/>
         <path d="M 52 50 L 76 50 M 52 62 L 76 62 M 52 74 L 68 74" stroke="{accent}" stroke-width="3" stroke-linecap="round"/>
         <polygon points="76,36 86,46 76,46" fill="{accent}"/>
     """,
-    "synapse-setup": """
+    "palexus-setup": """
         <!-- System Setup / Hex Tuning Wrench & Spark -->
         <path d="M 44 44 L 84 84 M 54 38 L 90 74 M 84 40 L 92 48 L 86 54 L 78 46 Z" fill="none" stroke="{accent}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
         <circle cx="48" cy="80" r="10" fill="none" stroke="{fg}" stroke-width="3"/>
         <circle cx="48" cy="80" r="4" fill="{accent}"/>
     """,
-    "synapse-welcome": """
+    "palexus-welcome": """
         <!-- Welcome Spark / Cyberdeck Compass -->
         <polygon points="64,32 72,56 96,64 72,72 64,96 56,72 32,64 56,56" fill="{accent}" stroke="{fg}" stroke-width="2" stroke-linejoin="round"/>
         <circle cx="64" cy="64" r="5" fill="#ffffff"/>
@@ -147,7 +147,7 @@ ALIASES = {
     "browser": "web-browser",
     "thunar": "system-file-manager",
     "org.xfce.thunar": "system-file-manager",
-    "synapse-palette": "synapse-hud"
+    "palexus-palette": "palexus-hud"
 }
 
 def render_svg(name, glyph_template, style):

@@ -1,7 +1,7 @@
-// SynapseOS -- SDDM greeter (Qt6)
+// PalexusOS -- SDDM greeter (Qt6)
 // Right-aligned clock + system readout, and a chamfered login panel whose border
 // carries two travelling light trails. Every glow follows the theme variant
-// (config "variant", e.g. monolith-mauve), which `synapse-theme --sync-greeter` sets.
+// (config "variant", e.g. monolith-mauve), which `palexus-theme --sync-greeter` sets.
 import QtQuick
 import QtQuick.Controls.Basic
 import QtQuick.Shapes
@@ -26,7 +26,7 @@ Item {
     readonly property color muted: "#9399b2"
     readonly property string mono: "JetBrainsMono Nerd Font"
     readonly property bool animate: (typeof config !== "undefined" && config && config.stringValue) ? (config.stringValue("animations") !== "false") : true
-    readonly property string wallDir: (typeof config !== "undefined" && config && config.stringValue && config.stringValue("backgrounds") !== "") ? config.stringValue("backgrounds") : "/usr/share/backgrounds/synapseos"
+    readonly property string wallDir: (typeof config !== "undefined" && config && config.stringValue && config.stringValue("backgrounds") !== "") ? config.stringValue("backgrounds") : "/usr/share/backgrounds/palexusos"
 
     property string userName: (typeof config !== "undefined" && config && config.stringValue && config.stringValue("user") !== "") ? config.stringValue("user") : ((typeof userModel !== "undefined" && userModel && userModel.lastUser) ? userModel.lastUser : "")
     property int sessionIndex: (typeof sessionModel !== "undefined" && sessionModel && sessionModel.lastIndex >= 0) ? sessionModel.lastIndex : 0
@@ -85,11 +85,11 @@ Item {
     Image {
         id: wallpaper
         anchors.fill: parent
-        source: "file://" + root.wallDir + "/synapse-" + root.variant + ".jpg"
+        source: "file://" + root.wallDir + "/palexus-" + root.variant + ".jpg"
         fillMode: Image.PreserveAspectCrop
         smooth: true
         mipmap: true
-        onStatusChanged: if (status === Image.Error) source = "file://" + root.wallDir + "/synapse-monolith-mauve.jpg"
+        onStatusChanged: if (status === Image.Error) source = "file://" + root.wallDir + "/palexus-monolith-mauve.jpg"
     }
 
     // --- Clock + readout (right aligned) ---------------------------------
@@ -100,7 +100,7 @@ Item {
 
         Text {
             anchors.right: parent.right
-            text: "SYNAPSE"
+            text: "PALEXUS"
             color: root.accent
             font { family: root.mono; pixelSize: 11 * root.s; letterSpacing: 5.5 * root.s }
         }
@@ -122,7 +122,7 @@ Item {
             spacing: 8 * root.s
             Repeater {
                 model: [
-                    ["HOST", (typeof sddm !== "undefined" && sddm && sddm.hostName) ? sddm.hostName : "synapse", false],
+                    ["HOST", (typeof sddm !== "undefined" && sddm && sddm.hostName) ? sddm.hostName : "palexus", false],
                     ["KERNEL", "linux-cachyos · BORE", false],
                     ["DNS", "Quad9 · DNS-over-TLS", false],
                     ["MAC", "randomized", true],
@@ -310,7 +310,7 @@ Item {
 
             Item {
                 width: parent.width; height: 30 * root.s
-                Text { anchors.verticalCenter: parent.verticalCenter; x: 2 * root.s; text: "synapseos — tty7"; color: root.subtext; font { family: root.mono; pixelSize: 11 * root.s } }
+                Text { anchors.verticalCenter: parent.verticalCenter; x: 2 * root.s; text: "palexusos — tty7"; color: root.subtext; font { family: root.mono; pixelSize: 11 * root.s } }
                 Text { anchors { verticalCenter: parent.verticalCenter; right: parent.right } text: "● auth gate"; color: root.accent; font { family: root.mono; pixelSize: 11 * root.s } }
                 Rectangle { anchors.bottom: parent.bottom; x: -22 * root.s; width: panel.width; height: 1; color: root.withAlpha(root.accent, 0.45) }
             }
@@ -318,9 +318,9 @@ Item {
 
             Repeater {
                 model: [
-                    ["", "SynapseOS 0.1.0-alpha · linux-cachyos BORE (tty7)"],
+                    ["", "PalexusOS 0.1.0-alpha · linux-cachyos BORE (tty7)"],
                     ["[&nbsp;&nbsp;OK&nbsp;&nbsp;]&nbsp;", "Reached target Graphical Interface."],
-                    ["[&nbsp;&nbsp;OK&nbsp;&nbsp;]&nbsp;", "Started Synapse AI gateway on 127.0.0.1:8000."],
+                    ["[&nbsp;&nbsp;OK&nbsp;&nbsp;]&nbsp;", "Started Palexus AI gateway on 127.0.0.1:8000."],
                     ["[&nbsp;&nbsp;OK&nbsp;&nbsp;]&nbsp;", "Resolver: Quad9 over TLS · MAC randomized."]
                 ]
                 delegate: Text {
@@ -341,7 +341,7 @@ Item {
             Item { width: 1; height: 6 * root.s }
             Text {
                 textFormat: Text.StyledText
-                text: "synapseos login: <font color='" + root.accent + "'>" + root.userName + "</font>"
+                text: "palexusos login: <font color='" + root.accent + "'>" + root.userName + "</font>"
                 color: root.text
                 font { family: root.mono; pixelSize: 12.5 * root.s }
             }

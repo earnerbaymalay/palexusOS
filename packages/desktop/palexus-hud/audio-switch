@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# /usr/bin/audio-switch — SynapseOS Cyberdeck Audio Output & Sink Switcher
+# /usr/bin/audio-switch — PalexusOS Cyberdeck Audio Output & Sink Switcher
 # Seamlessly enumerates PipeWire/PulseAudio output sinks and updates routing.
 # ==============================================================================
 set -euo pipefail
@@ -86,7 +86,7 @@ elif command -v wofi >/dev/null 2>&1 && [ -n "${WAYLAND_DISPLAY:-}" ]; then
 elif command -v zenity >/dev/null 2>&1 && [ -n "${WAYLAND_DISPLAY:-}${DISPLAY:-}" ]; then
     choice=$(printf '%s\n' "${menu_items[@]}" | zenity --list --title="Audio Output Switcher" --column="Select Audio Output" 2>/dev/null) || exit 0
 elif [ -t 0 ]; then
-    echo "=== SynapseOS Audio Output Switcher ==="
+    echo "=== PalexusOS Audio Output Switcher ==="
     select opt in "${menu_items[@]}"; do
         choice="$opt"
         break

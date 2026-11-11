@@ -83,7 +83,7 @@ class PalexusNotesWindow(QMainWindow):
         self.setMinimumSize(480, 360)
 
         # Brain notes storage path
-        brain_root = os.environ.get("SYNAPSE_BRAIN", str(Path.home() / "AIBrain"))
+        brain_root = os.environ.get("PALEXUS_BRAIN", os.environ.get("SYNAPSE_BRAIN", str(Path.home() / "AIBrain")))
         notes_dir = Path(brain_root) / "notes"
         notes_dir.mkdir(parents=True, exist_ok=True)
         self.notes_file = notes_dir / "scratchpad.md"
@@ -112,7 +112,7 @@ class PalexusNotesWindow(QMainWindow):
         header = QHBoxLayout()
         header.setSpacing(10)
 
-        title_badge = QLabel("🧠 SYNAPSE NOTES")
+        title_badge = QLabel("🧠 PALEXUS NOTES")
         title_badge.setStyleSheet(f"""
             font-family: 'JetBrainsMono Nerd Font', monospace;
             font-size: 13px;

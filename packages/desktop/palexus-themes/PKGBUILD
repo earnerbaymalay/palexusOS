@@ -1,7 +1,7 @@
 # Maintainer: PalexusOS Engineering Team <maintainers@palexusos.org>
 pkgname=palexus-themes
 pkgver=0.1.0
-pkgrel=4
+pkgrel=5
 pkgdesc="PalexusOS wallpapers (3 designs x accent variants), system theme switcher (Super+Ctrl+T) and geodesic torus screensaver"
 arch=('any')
 url="https://github.com/earnerbaymalay/synapseOS"
@@ -20,20 +20,20 @@ source=(
   'palexus-theme-restore.desktop'
   'palexus-idle.desktop'
   'palexus-screensaver.desktop'
-  'synapse-carbon-crimson.jpg'
-  'synapse-carbon-emerald.jpg'
-  'synapse-carbon-mauve.jpg'
-  'synapse-carbon-sapphire.jpg'
-  'synapse-carbon-tungsten.jpg'
-  'synapse-monolith-emerald.jpg'
-  'synapse-monolith-mauve.jpg'
-  'synapse-monolith-sapphire.jpg'
-  'synapse-monolith-tungsten.jpg'
-  'synapse-tower-crimson.jpg'
-  'synapse-tower-emerald.jpg'
-  'synapse-tower-mauve.jpg'
-  'synapse-tower-sapphire.jpg'
-  'synapse-tower-tungsten.jpg'
+  'palexus-carbon-crimson.jpg'
+  'palexus-carbon-emerald.jpg'
+  'palexus-carbon-mauve.jpg'
+  'palexus-carbon-sapphire.jpg'
+  'palexus-carbon-tungsten.jpg'
+  'palexus-monolith-emerald.jpg'
+  'palexus-monolith-mauve.jpg'
+  'palexus-monolith-sapphire.jpg'
+  'palexus-monolith-tungsten.jpg'
+  'palexus-tower-crimson.jpg'
+  'palexus-tower-emerald.jpg'
+  'palexus-tower-mauve.jpg'
+  'palexus-tower-sapphire.jpg'
+  'palexus-tower-tungsten.jpg'
 )
 sha256sums=('SKIP'
             'SKIP'
@@ -77,11 +77,11 @@ package() {
 
   install -dm755 "$pkgdir/usr/share/backgrounds/palexusos"
   local wp
-  for wp in synapse-*.jpg; do
-    local base="${wp#synapse-}"
+  for wp in palexus-*.jpg; do
+    local base="${wp#palexus-}"
     install -Dm644 "$wp" "$pkgdir/usr/share/backgrounds/palexusos/$wp"
-    ln -sf "$wp" "$pkgdir/usr/share/backgrounds/palexusos/palexus-$base"
+    ln -sf "$wp" "$pkgdir/usr/share/backgrounds/palexusos/synapse-$base"
   done
-  ln -sf "/usr/share/backgrounds/palexusos/synapse-monolith-mauve.jpg" "$pkgdir/usr/share/backgrounds/palexusos/monolith-mauve.png"
+  ln -sf "/usr/share/backgrounds/palexusos/palexus-monolith-mauve.jpg" "$pkgdir/usr/share/backgrounds/palexusos/monolith-mauve.png"
   ln -sf "palexusos" "$pkgdir/usr/share/backgrounds/synapseos"
 }

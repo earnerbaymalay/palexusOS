@@ -1,6 +1,6 @@
 [Icon Theme]
-Name=Synapse-Liquid-Chrome
-Comment=SynapseOS Liquid Mauve Chrome — High-gloss mirror finish & diamond chamfers
+Name=Palexus-Smoked-Obsidian
+Comment=PalexusOS Smoked Obsidian — Mirror black ceramic & neon mauve conduit
 Inherits=Hatter-Purple,Papirus-Dark,hicolor
 Directories=scalable/apps,scalable/places
 

@@ -1,7 +1,7 @@
 # Maintainer: PalexusOS Engineering Team <maintainers@palexusos.org>
 pkgname=palexus-greeter
 pkgver=0.1.0
-pkgrel=3
+pkgrel=4
 pkgdesc="PalexusOS SDDM login theme: clock + system readout, chamfered panel with animated accent trails"
 arch=('any')
 url="https://github.com/earnerbaymalay/synapseOS"

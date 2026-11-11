@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# sec-status — SynapseOS Prime Directive Security, MAC Randomization & DoT Auditor
+# sec-status — PalexusOS Prime Directive Security, MAC Randomization & DoT Auditor
 set -euo pipefail
 
 # If launched from GUI/Waybar without a TTY, spawn within an interactive terminal
 if [ ! -t 1 ] && [ -n "${WAYLAND_DISPLAY:-}${DISPLAY:-}" ]; then
-    exec kitty --class sec-status -T "SynapseOS Security & Anonymity Audit" "$0" "$@"
+    exec kitty --class sec-status -T "PalexusOS Security & Anonymity Audit" "$0" "$@"
 fi
 
 BOLD="\033[1m"
@@ -15,7 +15,7 @@ MAUVE="\033[1;35m"
 RESET="\033[0m"
 
 echo -e "${MAUVE}══════════════════════════════════════════════════════════════════${RESET}"
-echo -e "${MAUVE} 󰒃 SYNAPSEOS PRIME DIRECTIVE SECURITY & ANONYMITY AUDIT          ${RESET}"
+echo -e "${MAUVE} 󰒃 PALEXUSOS PRIME DIRECTIVE SECURITY & ANONYMITY AUDIT          ${RESET}"
 echo -e "${MAUVE}══════════════════════════════════════════════════════════════════${RESET}\n"
 
 # 1. MAC Address Randomization Check

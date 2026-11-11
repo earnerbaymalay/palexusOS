@@ -1,7 +1,7 @@
 [Desktop Entry]
 Type=Application
 Name=LLM Quickfire Panel
-Comment=SynapseOS Cyberdeck Command Palette & Local LLM HUD
+Comment=PalexusOS Cyberdeck Command Palette & Local LLM HUD
 Exec=/usr/bin/quickfire --autostart
 Icon=utilities-terminal
 Terminal=false
