@@ -155,3 +155,30 @@ sha256sum -c SHA256SUMS
 gpg --verify palexusos-*.iso.sig palexusos-*.iso
 ```
 
+---
+
+## 6. Automated Headless QEMU Boot Smoke Testing
+
+Prior to publishing any release or committing build changes, live ISO bootability is verified headlessly using `build/test-iso-boot.sh`.
+
+### 6.1 Architecture & Design
+- **Zero Display & Unprivileged**: Runs completely headless (`-display none`) without root privileges or `sudo`.
+- **Hardware Acceleration**: Automatically detects and leverages KVM (`/dev/kvm`) when accessible, falling back cleanly to TCG emulation on resource-constrained runners.
+- **UEFI OVMF Support**: Auto-locates OVMF firmware (`/usr/share/ovmf/OVMF.fd`, `/usr/share/qemu/OVMF.fd`) to simulate modern UEFI boot paths.
+- **Serial Console Telemetry**: Monitors guest boot progression via serial output stream (`console=tty0 console=ttyS0,115200`) and asserts two critical operational milestones:
+  1. `Reached target Graphical Interface` — verifies systemd multi-user and display manager staging.
+  2. `Started palexus.service` — verifies the Palexus AI Core gateway daemon successfully binds to localhost.
+
+### 6.2 Running the Smoke Test
+```bash
+# Test the newest generated ISO in out/ (default timeout 120s):
+./build/test-iso-boot.sh
+
+# Test a specific ISO image with a custom timeout and memory allocation:
+./build/test-iso-boot.sh --timeout 180 --ram 4096 out/palexusos-2026.04-x86_64.iso
+
+# Validate QEMU boot parameters and prerequisites without starting the VM:
+./build/test-iso-boot.sh --dry-run
+```
+
+

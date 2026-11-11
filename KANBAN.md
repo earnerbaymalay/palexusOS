@@ -4,14 +4,6 @@ Plan the project here. Each card can start a Parallel Code task.
 
 ## Backlog
 
-- [ ] Add a scripted QEMU boot smoke test
-  Create `build/test-iso-boot.sh` that boots the newest `out/palexusos-*.iso` headless under QEMU/KVM with OVMF, watches the serial console for the graphical target and `palexus.service` becoming active, and exits non-zero on timeout. Base the approach on `build/test-plymouth-container.sh` (also rename its old-brand references). Add a matching gate entry that is skipped when no ISO is present.
-  - [ ] Script exits 0 against a good ISO and non-zero against a truncated one
-  - [ ] Runs without a display and without root
-  - [ ] Documented in `docs/RELEASE_CHANNELS.md`
-  depends: Rebrand the verification gate harness
-  related: Make the ISO build reproducible
-  group: testing
 - [ ] Build, verify and tag the first PalexusOS ISO
   Run `./build/build-iso.sh --build-pkgs`, the gate harness, pytest and the QEMU smoke test, walk through a Calamares install in a VM, then update `ROADMAP.md` and tag `v0.2.0-alpha`. Remove stale `out/repo/synapse-*` packages and the old `synapseos` database first.
   - [ ] `out/palexusos-<date>-x86_64.iso` boots to the greeter and desktop under UEFI
@@ -67,6 +59,15 @@ Plan the project here. Each card can start a Parallel Code task.
 ## Review
 
 ## Done
+
+- [x] Add a scripted QEMU boot smoke test
+  Create `build/test-iso-boot.sh` that boots the newest `out/palexusos-*.iso` headless under QEMU/KVM with OVMF, watches the serial console for the graphical target and `palexus.service` becoming active, and exits non-zero on timeout. Base the approach on `build/test-plymouth-container.sh` (also rename its old-brand references). Add a matching gate entry that is skipped when no ISO is present.
+  - [x] Script exits 0 against a good ISO and non-zero against a truncated one
+  - [x] Runs without a display and without root
+  - [x] Documented in `docs/RELEASE_CHANNELS.md`
+  depends: Rebrand the verification gate harness
+  related: Make the ISO build reproducible
+  group: testing
 
 - [x] Sign the package repository and the ISO
   The local repo is added with `repo-add` unsigned and the ISO ships without a signature. Add optional signing to `build/build-iso.sh`, driven by a `PALEXUS_GPG_KEY` environment variable: `repo-add --sign`, detached `.sig` for the ISO and checksum files. Set an explicit `SigLevel` for the `[palexusos]` repo in both pacman configs. Never store key material in the repo; document the CI secret in `docs/RELEASE_CHANNELS.md`.

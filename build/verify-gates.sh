@@ -581,6 +581,36 @@ GH_WORKFLOW="${REPO_ROOT}/.github/workflows/build-iso.yml"
 check_file_contains "${GH_WORKFLOW}" "verify-gates\.sh" "GitHub workflow runs verify-gates.sh"
 check_file_contains "${GH_WORKFLOW}" "SHA256SUMS" "GitHub workflow generates SHA256SUMS"
 
+# QEMU boot smoke test harness check
+TEST_BOOT_SH="${REPO_ROOT}/build/test-iso-boot.sh"
+if [[ -f "${TEST_BOOT_SH}" ]] && [[ -x "${TEST_BOOT_SH}" ]]; then
+    if bash -n "${TEST_BOOT_SH}"; then
+        pass "test-iso-boot.sh is executable and syntactically valid"
+    else
+        fail "test-iso-boot.sh has syntax errors"
+    fi
+    check_file_contains "${TEST_BOOT_SH}" "qemu-system-x86_64" "test-iso-boot.sh invokes qemu-system-x86_64"
+    check_file_contains "${TEST_BOOT_SH}" "Reached target Graphical Interface" "test-iso-boot.sh monitors Graphical Interface target"
+    check_file_contains "${TEST_BOOT_SH}" "Started palexus\.service" "test-iso-boot.sh monitors palexus.service startup"
+
+    # Execute boot smoke test if a built ISO is present
+    shopt -s nullglob
+    iso_build_artifacts=("${REPO_ROOT}"/out/palexusos-*.iso)
+    shopt -u nullglob
+    if [[ ${#iso_build_artifacts[@]} -gt 0 ]]; then
+        echo "==> Detected built ISO: ${iso_build_artifacts[0]}. Running QEMU boot smoke test..."
+        if "${TEST_BOOT_SH}" "${iso_build_artifacts[0]}"; then
+            pass "QEMU boot smoke test passed on ${iso_build_artifacts[0]}"
+        else
+            fail "QEMU boot smoke test failed on ${iso_build_artifacts[0]}"
+        fi
+    else
+        echo "  [INFO] Skipping live QEMU boot smoke test (no out/palexusos-*.iso present yet)"
+    fi
+else
+    fail "build/test-iso-boot.sh not found or not executable"
+fi
+
 # ------------------------------------------------------------------------------
 # Leftover Name Gate: Verify zero stray 'synapseos' references
 # ------------------------------------------------------------------------------
