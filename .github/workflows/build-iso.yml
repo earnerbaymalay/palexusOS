@@ -1,4 +1,4 @@
-name: Build & Verify SynapseOS Live ISO
+name: Build & Verify PalexusOS Live ISO
 
 on:
   push:
@@ -24,7 +24,7 @@ jobs:
       - name: Install Verification Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y shellcheck python3-pytest python3-yaml jq
+          sudo apt-get install -y shellcheck python3-pytest python3-pyqt6 python3-yaml jq
 
       - name: Run ShellCheck on Build Scripts
         run: |
@@ -33,6 +33,10 @@ jobs:
       - name: Execute Verification Gates (G1-G4)
         run: |
           ./build/verify-gates.sh
+
+      - name: Run Pytest Test Suite
+        run: |
+          pytest tests/
 
       - name: Run Dry-Run ISO Validation
         run: |
@@ -52,7 +56,7 @@ jobs:
           sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc
           df -h
 
-      - name: Build SynapseOS ISO in Privileged Arch Linux Container
+      - name: Build PalexusOS ISO in Privileged Arch Linux Container
         run: |
           docker run --privileged --rm \
             -v "${GITHUB_WORKSPACE}:/workspace" \
@@ -76,29 +80,33 @@ jobs:
               ./build/build-iso.sh --build-pkgs
             "
 
-      - name: Generate SHA256 Checksums
+      - name: Generate Checksums
         run: |
           cd out
-          sha256sum *.iso > SHA256SUMS
+          sha256sum ./*.iso > SHA256SUMS
+          sha512sum ./*.iso > SHA512SUMS
           cat SHA256SUMS
+          cat SHA512SUMS
 
       - name: Upload ISO Build Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: synapseos-live-iso
+          name: palexusos-live-iso
           path: |
             out/*.iso
             out/SHA256SUMS
+            out/SHA512SUMS
           retention-days: 14
 
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
-        if: startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main'
+        if: startsWith(github.ref, 'refs/tags/v')
         with:
-          tag_name: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || 'latest' }}
-          name: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || 'SynapseOS Rolling Preview' }}
-          prerelease: ${{ !startsWith(github.ref, 'refs/tags/v') }}
+          tag_name: ${{ github.ref_name }}
+          name: PalexusOS ${{ github.ref_name }}
+          prerelease: ${{ contains(github.ref_name, '-alpha') || contains(github.ref_name, '-beta') || contains(github.ref_name, '-rc') }}
           generate_release_notes: true
           files: |
             out/*.iso
             out/SHA256SUMS
+            out/SHA512SUMS

@@ -4,14 +4,6 @@ Plan the project here. Each card can start a Parallel Code task.
 
 ## Backlog
 
-- [ ] Rebrand the CI workflow and add release checksums
-  In `.github/workflows/build-iso.yml` rename the workflow, step, artifact (`palexusos-live-iso`) and release names. Add `pytest tests/` to the `verify-gates` job (dependencies are already installed there). Generate `SHA512SUMS` alongside `SHA256SUMS` and upload both. Stop publishing a release on every push to `main`; publish only for `v*` tags.
-  - [ ] Workflow passes `actionlint`
-  - [ ] Verify job runs shellcheck, gates, pytest and the dry-run build
-  - [ ] Tag builds attach the ISO, `SHA256SUMS` and `SHA512SUMS`
-  depends: Rebrand the verification gate harness
-  related: Rebrand the pytest suites
-  group: release
 - [ ] Make the ISO build reproducible
   Add `SOURCE_DATE_EPOCH` handling to `build/build-iso.sh` (default to the last commit time) and pass it through to `mkarchiso` and `makepkg`, and pin the upstream daemon source in `packages/core/palexus-core/PKGBUILD` to a tag or commit instead of `#branch=main`. Record the resolved commit and package versions in `out/BUILD_MANIFEST.txt`.
   - [ ] Two builds from the same commit produce the same package list and manifest
@@ -89,6 +81,15 @@ Plan the project here. Each card can start a Parallel Code task.
 ## Review
 
 ## Done
+
+- [x] Rebrand the CI workflow and add release checksums
+  In `.github/workflows/build-iso.yml` rename the workflow, step, artifact (`palexusos-live-iso`) and release names. Add `pytest tests/` to the `verify-gates` job (dependencies are already installed there). Generate `SHA512SUMS` alongside `SHA256SUMS` and upload both. Stop publishing a release on every push to `main`; publish only for `v*` tags.
+  - [x] Workflow passes `actionlint`
+  - [x] Verify job runs shellcheck, gates, pytest and the dry-run build
+  - [x] Tag builds attach the ISO, `SHA256SUMS` and `SHA512SUMS`
+  depends: Rebrand the verification gate harness
+  related: Rebrand the pytest suites
+  group: release
 
 - [x] Rebrand docs, agent rules and editor config
   Text-only pass over `ROADMAP.md`, `AGENTS.md`, `GEMINI.md`, `IDE_HANDOVER.md`, `docs/*.md`, `.cursor/**` (rename `.cursor/skills/synapseos-iso-build`), `.vscode/tasks.json`, `synapseos.code-workspace` (rename to `palexusos.code-workspace`), and `.gitignore` comments/paths. Delete the superseded `docs/assets/synapseos-banner.png` and make `generate_banner.py` write `palexus-banner.png`. Leave `docs/RESEARCH_SYNAPSE_INTEGRATION.md` content about the upstream Synapse project intact and keep completed roadmap history readable (add a one-line "formerly SynapseOS" note rather than rewriting history). Leave `.gitmodules` and GitHub URLs unchanged until the repository itself is renamed.
