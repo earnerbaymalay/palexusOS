@@ -4,13 +4,6 @@ Plan the project here. Each card can start a Parallel Code task.
 
 ## Backlog
 
-- [ ] Make the ISO build reproducible
-  Add `SOURCE_DATE_EPOCH` handling to `build/build-iso.sh` (default to the last commit time) and pass it through to `mkarchiso` and `makepkg`, and pin the upstream daemon source in `packages/core/palexus-core/PKGBUILD` to a tag or commit instead of `#branch=main`. Record the resolved commit and package versions in `out/BUILD_MANIFEST.txt`.
-  - [ ] Two builds from the same commit produce the same package list and manifest
-  - [ ] `palexus-core` no longer tracks a moving branch
-  - [ ] Manifest is written next to the ISO and not committed
-  depends: Rebrand build-iso.sh and remove the host-specific path
-  group: release
 - [ ] Sign the package repository and the ISO
   The local repo is added with `repo-add` unsigned and the ISO ships without a signature. Add optional signing to `build/build-iso.sh`, driven by a `PALEXUS_GPG_KEY` environment variable: `repo-add --sign`, detached `.sig` for the ISO and checksum files. Set an explicit `SigLevel` for the `[palexusos]` repo in both pacman configs. Never store key material in the repo; document the CI secret in `docs/RELEASE_CHANNELS.md`.
   - [ ] With the variable set, repo database, ISO and checksums each have a valid signature
@@ -81,6 +74,14 @@ Plan the project here. Each card can start a Parallel Code task.
 ## Review
 
 ## Done
+
+- [x] Make the ISO build reproducible
+  Add `SOURCE_DATE_EPOCH` handling to `build/build-iso.sh` (default to the last commit time) and pass it through to `mkarchiso` and `makepkg`, and pin the upstream daemon source in `packages/core/palexus-core/PKGBUILD` to a tag or commit instead of `#branch=main`. Record the resolved commit and package versions in `out/BUILD_MANIFEST.txt`.
+  - [x] Two builds from the same commit produce the same package list and manifest
+  - [x] `palexus-core` no longer tracks a moving branch
+  - [x] Manifest is written next to the ISO and not committed
+  depends: Rebrand build-iso.sh and remove the host-specific path
+  group: release
 
 - [x] Rebrand the CI workflow and add release checksums
   In `.github/workflows/build-iso.yml` rename the workflow, step, artifact (`palexusos-live-iso`) and release names. Add `pytest tests/` to the `verify-gates` job (dependencies are already installed there). Generate `SHA512SUMS` alongside `SHA256SUMS` and upload both. Stop publishing a release on every push to `main`; publish only for `v*` tags.

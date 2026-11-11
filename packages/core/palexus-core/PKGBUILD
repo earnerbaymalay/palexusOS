@@ -17,7 +17,7 @@ optdepends=(
 backup=('etc/palexus/config.toml' 'etc/synapse/config.toml')
 options=('!debug' '!lto')
 source=(
-  "synapse::git+https://github.com/earnerbaymalay/synapse.git#branch=main"
+  "synapse::git+https://github.com/earnerbaymalay/synapse.git#tag=v1.0.0"
   "palexus.service"
   "palexus-sync.service"
   "palexus-sync.timer"

@@ -22,6 +22,12 @@ BUILD_GPGDIR="${BUILD_STATE_DIR}/gnupg"
 BUILD_PACMAN_CONF="${BUILD_STATE_DIR}/pacman.conf"
 CACHYOS_KEY_FPR="882DCFE48E2051D48E2562ABF3B607488DB35A47"
 
+# Reproducible builds: default SOURCE_DATE_EPOCH to the last git commit timestamp
+if [[ -z "${SOURCE_DATE_EPOCH:-}" ]]; then
+    SOURCE_DATE_EPOCH="$(git -C "${REPO_ROOT}" log -1 --pretty=%ct 2>/dev/null || date +%s)"
+fi
+export SOURCE_DATE_EPOCH
+
 DRY_RUN=0
 BUILD_PKGS=0
 
@@ -189,12 +195,12 @@ build_local_packages() {
                     mkdir -p "${user_home}/.cargo"
                     chown -R "${build_user}:${build_user}" "${pkg_dir}" "${LOCAL_REPO_DIR}" "${user_home}"
                     if command -v sudo >/dev/null 2>&1; then
-                        sudo -H -u "${build_user}" env HOME="${user_home}" CARGO_HOME="${user_home}/.cargo" makepkg "${makepkg_flags[@]}"
+                        sudo -H -u "${build_user}" env HOME="${user_home}" CARGO_HOME="${user_home}/.cargo" SOURCE_DATE_EPOCH="${SOURCE_DATE_EPOCH}" makepkg "${makepkg_flags[@]}"
                     else
-                        runuser -u "${build_user}" -- env HOME="${user_home}" CARGO_HOME="${user_home}/.cargo" makepkg "${makepkg_flags[@]}"
+                        runuser -u "${build_user}" -- env HOME="${user_home}" CARGO_HOME="${user_home}/.cargo" SOURCE_DATE_EPOCH="${SOURCE_DATE_EPOCH}" makepkg "${makepkg_flags[@]}"
                     fi
                 else
-                    makepkg "${makepkg_flags[@]}"
+                    SOURCE_DATE_EPOCH="${SOURCE_DATE_EPOCH}" makepkg "${makepkg_flags[@]}"
                 fi
                 cp -f ./*.pkg.tar.* "${LOCAL_REPO_DIR}/"
             )
@@ -219,11 +225,49 @@ if compgen -G "${LOCAL_REPO_DIR}/*.pkg.tar.*" > /dev/null; then
     cp -af "${LOCAL_REPO_DIR}/." "${AIROOTFS_DIR}${SYSTEM_REPO_DIR}/"
 fi
 
+generate_build_manifest() {
+    local manifest_file="${OUT_DIR}/BUILD_MANIFEST.txt"
+    mkdir -p "${OUT_DIR}"
+    echo "==> Recording reproducible build manifest to ${manifest_file}..."
+    {
+        echo "PalexusOS Build Manifest"
+        echo "=============================================================================="
+        echo "Build Timestamp (UTC): $(date -u -d "@${SOURCE_DATE_EPOCH}" '+%Y-%m-%d %H:%M:%S UTC' 2>/dev/null || date -u '+%Y-%m-%d %H:%M:%S UTC')"
+        echo "SOURCE_DATE_EPOCH:     ${SOURCE_DATE_EPOCH}"
+        echo "Git Commit:            $(git -C "${REPO_ROOT}" rev-parse HEAD 2>/dev/null || echo 'unknown')"
+        echo "Git Branch:            $(git -C "${REPO_ROOT}" rev-parse --abbrev-ref HEAD 2>/dev/null || echo 'unknown')"
+        echo "Git Status Clean:      $([[ -z "$(git -C "${REPO_ROOT}" status --porcelain 2>/dev/null)" ]] && echo 'true' || echo 'false')"
+        echo ""
+        echo "Native Packages:"
+        echo "------------------------------------------------------------------------------"
+        for pkg_dir in \
+            "${REPO_ROOT}/packages/core/palexus-core" \
+            "${REPO_ROOT}/packages/desktop/llm-quickfire-panel" \
+            "${REPO_ROOT}/packages/desktop/palexus-themes" \
+            "${REPO_ROOT}/packages/desktop/palexus-greeter" \
+            "${REPO_ROOT}/packages/desktop/palexus-plymouth" \
+            "${REPO_ROOT}/packages/desktop/palexus-hud"; do
+            if [[ -f "${pkg_dir}/PKGBUILD" ]]; then
+                local p_name p_ver p_rel
+                p_name="$(grep -E '^[[:space:]]*pkgname=' "${pkg_dir}/PKGBUILD" | head -n1 | cut -d= -f2 | tr -d ' "\047')"
+                p_ver="$(grep -E '^[[:space:]]*pkgver=' "${pkg_dir}/PKGBUILD" | head -n1 | cut -d= -f2 | tr -d ' "\047')"
+                p_rel="$(grep -E '^[[:space:]]*pkgrel=' "${pkg_dir}/PKGBUILD" | head -n1 | cut -d= -f2 | tr -d ' "\047')"
+                printf "  %-25s %s-%s\n" "${p_name}" "${p_ver}" "${p_rel}"
+            fi
+        done
+        echo ""
+        echo "Upstream Sources:"
+        echo "------------------------------------------------------------------------------"
+        echo "  synapse-core upstream: $(grep -E 'synapse::git\+https' "${REPO_ROOT}/packages/core/palexus-core/PKGBUILD" | tr -d ' "')"
+    } > "${manifest_file}"
+}
+
 # 5. Dry-run check mode (non-root safe)
 if [[ "${DRY_RUN}" -eq 1 ]]; then
     echo "==> [DRY-RUN] Validating profiledef.sh and customize_airootfs.sh syntax..."
     bash -n "${PROFILE_DIR}/profiledef.sh"
     bash -n "${AIROOTFS_DIR}/root/customize_airootfs.sh"
+    generate_build_manifest
     echo "==> [DRY-RUN] Archiso profile, CachyOS mirrorlists & RootFS overlay staged and validated."
     echo "    Would execute: mkarchiso -v -C \"${BUILD_PACMAN_CONF}\" -w \"${WORK_DIR}\" -o \"${OUT_DIR}\" \"${PROFILE_DIR}\""
     exit 0
@@ -270,12 +314,13 @@ fi
 
 prepare_host_build_env
 mkdir -p "${OUT_DIR}"
+generate_build_manifest
 
 if [[ "${EUID}" -ne 0 ]]; then
     echo "==> Elevating privileges via sudo to run mkarchiso..."
-    sudo mkarchiso -v -C "${BUILD_PACMAN_CONF}" -w "${WORK_DIR}" -o "${OUT_DIR}" "${PROFILE_DIR}"
+    sudo env SOURCE_DATE_EPOCH="${SOURCE_DATE_EPOCH}" mkarchiso -v -C "${BUILD_PACMAN_CONF}" -w "${WORK_DIR}" -o "${OUT_DIR}" "${PROFILE_DIR}"
 else
-    mkarchiso -v -C "${BUILD_PACMAN_CONF}" -w "${WORK_DIR}" -o "${OUT_DIR}" "${PROFILE_DIR}"
+    env SOURCE_DATE_EPOCH="${SOURCE_DATE_EPOCH}" mkarchiso -v -C "${BUILD_PACMAN_CONF}" -w "${WORK_DIR}" -o "${OUT_DIR}" "${PROFILE_DIR}"
 fi
 
 echo "==> [PalexusOS ISO Builder] ISO generation complete. Artifacts in ${OUT_DIR}:"
