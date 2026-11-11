@@ -4,13 +4,6 @@ Plan the project here. Each card can start a Parallel Code task.
 
 ## Backlog
 
-- [ ] Rebrand system overlay configs and the AMOLED theme
-  Outside `skel`: in `overlay/etc/pacman.conf` rename the `[synapseos]` repo and server path to `palexusos` (must match `build/archiso/pacman.conf`); update header comments in `overlay/etc/xdg/picom.conf`, `systemd/zram-generator.conf`, `systemd/resolved.conf.d/quad9-dot.conf`, `systemd/system/ollama.service.d/override.conf`, `chromium/default-flags`, and `ananicy.d/00-palexusos/palexusos.rules` (also its process names). Rename `overlay/usr/share/themes/Synapse-AMOLED` and `overlay/etc/skel/.themes/Synapse-AMOLED` to `Palexus-AMOLED` and update every reference (`xfwm4.xml`, `xsettings.xml`, gtk `settings.ini`, theme switcher in `packages/desktop/palexus-themes/palexus-theme`). Do not change any stealth setting values.
-  - [ ] `grep -ri synapse overlay --exclude-dir=skel` returns nothing
-  - [ ] Stealth/DoT/sysctl values are byte-identical apart from comments
-  - [ ] No config references a theme directory that does not exist
-  depends: Commit the in-progress rebrand working tree as the baseline
-  group: rebrand
 - [ ] Rename leftover Synapse assets inside the palexus-* packages
   Package directories were renamed but assets were not. In `packages/desktop/palexus-themes` rename the 14 `synapse-*.jpg` wallpapers to `palexus-*.jpg` and fix `source=`, the install loop, and `sha256sums` (run `updpkgsums`). In `palexus-hud` and `palexus-plymouth` rename `synapse_chrome_*` images, and the four `icons/Synapse-*` themes to `Palexus-*` including `index.theme` names, `synapse-*.svg` app icons, `generate_icons.py`, `generate_spinning_chrome.py`, `Welcome.qml`/`palexus-welcome` defaults and `palexus-settings`. Fix user-visible strings ("Synapse Command HUD", "Synapse Settings", "Synapse Notes", `palexus-governor.service` description, greeter `metadata.desktop`/`theme.conf`). Keep the existing `provides`/`conflicts` and `synapse-*` compatibility symlinks; set `url=` consistently. Bump each `pkgrel`.
   - [ ] `find packages -iname '*synapse*'` returns nothing tracked
@@ -118,6 +111,14 @@ Plan the project here. Each card can start a Parallel Code task.
 ## Review
 
 ## Done
+
+- [x] Rebrand system overlay configs and the AMOLED theme
+  Outside `skel`: in `overlay/etc/pacman.conf` rename the `[synapseos]` repo and server path to `palexusos` (must match `build/archiso/pacman.conf`); update header comments in `overlay/etc/xdg/picom.conf`, `systemd/zram-generator.conf`, `systemd/resolved.conf.d/quad9-dot.conf`, `systemd/system/ollama.service.d/override.conf`, `chromium/default-flags`, and `ananicy.d/00-palexusos/palexusos.rules` (also its process names). Rename `overlay/usr/share/themes/Synapse-AMOLED` and `overlay/etc/skel/.themes/Synapse-AMOLED` to `Palexus-AMOLED` and update every reference (`xfwm4.xml`, `xsettings.xml`, gtk `settings.ini`, theme switcher in `packages/desktop/palexus-themes/palexus-theme`). Do not change any stealth setting values.
+  - [x] `grep -ri synapse overlay --exclude-dir=skel` returns nothing
+  - [x] Stealth/DoT/sysctl values are byte-identical apart from comments
+  - [x] No config references a theme directory that does not exist
+  depends: Commit the in-progress rebrand working tree as the baseline
+  group: rebrand
 
 - [x] Rebrand the user skeleton overlay
   Under `overlay/etc/skel/`: rename `.config/autostart/synapse-setup.desktop` and `synapse-welcome.desktop` to `palexus-*` with `Exec=/usr/bin/palexus-*` and matching `Icon=`; in `.bashrc` point aliases at `palexus`/`palexus-hud`/`palexus-settings`/`palexus-notes`, export `PALEXUS_GATEWAY_URL`/`PALEXUS_CONFIG` while keeping the `SYNAPSE_*` variables as compatibility exports (the upstream daemon may still read them); move `.synapse/config.toml` to `.palexus/config.toml` and update the paths inside it only if the daemon accepts a config path (check `components/synapse-cli`), otherwise keep `.synapse` and document why. Update remaining mentions in `sway/config`, `waybar/config.jsonc`, `waybar/style.css`, `kitty/*.conf`, `quickfire/theme.conf`, `mimeapps.list`, `xfce4-keyboard-shortcuts.xml`, and the gtk/xfwm4/xsettings files.
