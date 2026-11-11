@@ -5,11 +5,11 @@ x-scheme-handler/https=chromium.desktop
 x-scheme-handler/about=chromium.desktop
 x-scheme-handler/unknown=chromium.desktop
 text/plain=mousepad.desktop
-text/markdown=synapse-notes.desktop
+text/markdown=palexus-notes.desktop
 
 [Added Associations]
 text/html=chromium.desktop;
 x-scheme-handler/http=chromium.desktop;
 x-scheme-handler/https=chromium.desktop;
 text/plain=mousepad.desktop;
-text/markdown=synapse-notes.desktop;mousepad.desktop;
+text/markdown=palexus-notes.desktop;mousepad.desktop;

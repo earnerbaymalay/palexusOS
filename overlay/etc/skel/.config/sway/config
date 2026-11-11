@@ -1,5 +1,5 @@
 # ==============================================================================
-# ~/.config/sway/config — SynapseOS Dual-Session Wayland Tiling Configuration
+# ~/.config/sway/config — PalexusOS Dual-Session Wayland Tiling Configuration
 # Aesthetic: Catppuccin Mocha Mauve (#cba6f7), Liquid Silver Chrome (#cdd6f4),
 #            Obsidian Crust (#11111b), Base (#1e1e2e)
 # ==============================================================================
@@ -32,8 +32,8 @@ smart_borders on
 
 # --- Output & Idle Management ---
 output * bg #11111b solid_color
-output * bg /usr/share/backgrounds/palexusos/synapse-monolith-mauve.jpg fill #11111b
-exec swaybg -i /usr/share/backgrounds/palexusos/monolith-mauve.png -m fill 2>/dev/null || swaybg -i /usr/share/backgrounds/palexusos/synapse-monolith-mauve.jpg -m fill 2>/dev/null || true
+output * bg /usr/share/backgrounds/palexusos/palexus-monolith-mauve.jpg fill #11111b
+exec swaybg -i /usr/share/backgrounds/palexusos/palexus-monolith-mauve.jpg -m fill 2>/dev/null || true
 exec palexus-theme --restore
 
 # Screensaver is not a lock: 5 min -> geodesic torus, 10 min -> displays off
@@ -179,16 +179,16 @@ mode "resize" {
 bindsym $mod+r mode "resize"
 
 # --- Comprehensive Floating Window Rules ---
-for_window [app_id="synapse-screensaver"] fullscreen enable
-for_window [app_id="(?i)synapse-hud"] floating enable, border pixel 0
-for_window [class="(?i)synapse-hud"] floating enable, border pixel 0
-for_window [app_id="(?i)synapse-welcome"] floating enable, move position center
-for_window [class="(?i)synapse-welcome"] floating enable, move position center
-for_window [app_id="(?i)synapse-settings"] floating enable, move position center
-for_window [class="(?i)synapse-settings"] floating enable, move position center
-for_window [app_id="(?i)synapse-notes"] floating enable, move position center
-for_window [class="(?i)synapse-notes"] floating enable, move position center
-for_window [app_id="synapse-shortcuts"] floating enable, resize set 860 620, move position center
+for_window [app_id="palexus-screensaver"] fullscreen enable
+for_window [app_id="(?i)palexus-hud"] floating enable, border pixel 0
+for_window [class="(?i)palexus-hud"] floating enable, border pixel 0
+for_window [app_id="(?i)palexus-welcome"] floating enable, move position center
+for_window [class="(?i)palexus-welcome"] floating enable, move position center
+for_window [app_id="(?i)palexus-settings"] floating enable, move position center
+for_window [class="(?i)palexus-settings"] floating enable, move position center
+for_window [app_id="(?i)palexus-notes"] floating enable, move position center
+for_window [class="(?i)palexus-notes"] floating enable, move position center
+for_window [app_id="palexus-shortcuts"] floating enable, resize set 860 620, move position center
 for_window [title=".*Keybindings Cheat Sheet.*"] floating enable, resize set 860 620, move position center
 for_window [app_id="(?i)quickfire"] floating enable, border pixel 2
 for_window [class="(?i)quickfire"] floating enable, border pixel 2
@@ -217,7 +217,7 @@ bar {
 
 # --- Autostart Services & Onboarding ---
 
-# In live sessions or initial login, autostart synapse-welcome centered so user has an immediate cockpit
-exec [ -f /etc/sudoers.d/00-synapse-live ] || [ -x /usr/bin/calamares ] || [ ! -f ~/.config/synapse/.onboarding_complete ] && /usr/bin/synapse-welcome --autostart
+# In live sessions or initial login, autostart palexus-welcome centered so user has an immediate cockpit
+exec [ -f /etc/sudoers.d/00-palexus-live ] || [ -x /usr/bin/calamares ] || [ ! -f ~/.config/palexus/.onboarding_complete ] && /usr/bin/palexus-welcome --autostart
 
 include /etc/sway/config.d/*

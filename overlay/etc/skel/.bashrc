@@ -1,5 +1,5 @@
 # ==============================================================================
-# ~/.bashrc — SynapseOS Cyberdeck Shell Initialization
+# ~/.bashrc — PalexusOS Cyberdeck Shell Initialization
 # ==============================================================================
 
 # If not running interactively, don't do anything
@@ -60,7 +60,7 @@ y() {
 # --- 3. Python uv Virtualenv Helper ---
 venv() {
     if [[ ! -d ".venv" ]]; then
-        echo "[SynapseOS] Creating isolated virtualenv at .venv via uv..."
+        echo "[PalexusOS] Creating isolated virtualenv at .venv via uv..."
         uv venv .venv
     fi
     # shellcheck disable=SC1091
@@ -68,25 +68,28 @@ venv() {
 }
 alias activate='source .venv/bin/activate'
 
-# --- 4. Synapse AI Core & LLM Quickfire Suite ---
-export SYNAPSE_GATEWAY_URL="http://127.0.0.1:8000"
-export SYNAPSE_CONFIG="$HOME/.synapse/config.toml"
+# --- 4. Palexus AI Core & LLM Quickfire Suite ---
+export PALEXUS_GATEWAY_URL="http://127.0.0.1:8000"
+export PALEXUS_CONFIG="$HOME/.palexus/config.toml"
+# Documented compatibility exports for upstream daemon
+export SYNAPSE_GATEWAY_URL="${PALEXUS_GATEWAY_URL}"
+export SYNAPSE_CONFIG="${PALEXUS_CONFIG}"
 export OBSIDIAN_AI_VAULT="$HOME/Obsidian/AI-Knowledge-Base"
 
-alias syn-sync='synapse sync --once'
-alias syn-doc='synapse doctor'
-alias syn-hud='synapse-hud'
-alias syn-settings='synapse-settings'
-alias syn-notes='synapse-notes'
-alias syn-vibe='synapse vibe'
-alias syn-mem='synapse mem'
-alias squash='synapse squash'
+alias pal-sync='palexus sync --once'
+alias pal-doc='palexus doctor'
+alias pal-hud='palexus-hud'
+alias pal-settings='palexus-settings'
+alias pal-notes='palexus-notes'
+alias pal-vibe='palexus vibe'
+alias pal-mem='palexus mem'
+alias squash='palexus squash'
 
 alias quickfire='quickfire'
 alias qf='quickfire'
 alias qf-theme='quickfire-theme'
-alias agy-palette='synapse-hud'
-alias hud='synapse-hud'
+alias agy-palette='palexus-hud'
+alias hud='palexus-hud'
 
 # --- 5. Local LLM (Ollama) Orchestration Helpers ---
 ask-ollama() {
@@ -169,7 +172,7 @@ alias ollama-flush='ollama-stop'
 # --- 6. Security & System Telemetry Shortcuts ---
 alias ananicy-status='systemctl status ananicy-cpp --no-pager'
 alias zram-status='zramctl'
-alias syn-status='systemctl status synapse --no-pager'
+alias pal-status='systemctl status palexus --no-pager'
 alias sec-dns='resolvectl status'
 
 # --- 7. Interactive Shell Enhancements (ble.sh, Starship, Zoxide, FZF) ---

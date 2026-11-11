@@ -1,5 +1,5 @@
 # ==============================================================================
-# ~/.synapse/config.toml — Synapse AI Core & 3-Layer Memory Engine Configuration
+# ~/.palexus/config.toml — Palexus AI Core & 3-Layer Memory Engine Configuration
 # ==============================================================================
 
 [gateway]
@@ -19,7 +19,7 @@ entropy_threshold = 4.6
 redact_private_keys = true
 redact_api_tokens = true
 redact_hardware_mac = true
-audit_log = "~/.synapse/logs/firewall-audit.jsonl"
+audit_log = "~/.palexus/logs/firewall-audit.jsonl"
 blocked_patterns = [
   "-----BEGIN [A-Z ]+ PRIVATE KEY-----",
   "ghp_[A-Za-z0-9_]{36}",
@@ -30,8 +30,8 @@ blocked_patterns = [
 [memory]
 # 3-Layer Persistent Agent Memory Engine
 enabled = true
-storage_dir = "~/.synapse/memory"
-sqlite_db = "~/.synapse/memory/synapse_brain.db"
+storage_dir = "~/.palexus/memory"
+sqlite_db = "~/.palexus/memory/palexus_brain.db"
 auto_distill = true
 sync_interval_minutes = 30
 obsidian_vault_path = "~/Obsidian/AI-Knowledge-Base"

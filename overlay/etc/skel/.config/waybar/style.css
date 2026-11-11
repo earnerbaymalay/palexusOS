@@ -1,5 +1,5 @@
 /* =============================================================================
- * ~/.config/waybar/style.css — SynapseOS Cyberdeck Waybar Stylesheet
+ * ~/.config/waybar/style.css — PalexusOS Cyberdeck Waybar Stylesheet
  * Palette:
  *   Obsidian Crust       : #11111b
  *   Catppuccin Base      : #1e1e2e
@@ -52,7 +52,7 @@ window#waybar {
 #custom-calamares,
 #custom-terminal,
 #custom-ai,
-#custom-synapse,
+#custom-palexus,
 #custom-stealth,
 #custom-help,
 #custom-shortcuts,
@@ -70,7 +70,7 @@ window#waybar {
     border: 1px solid #cba6f7;
 }
 
-/* --- Synapse Cockpit Menu & HUD Button --- */
+/* --- Palexus Cockpit Menu & HUD Button --- */
 #custom-menu,
 #custom-hud {
     background-color: #11111b;
@@ -171,8 +171,8 @@ window#waybar {
     color: #11111b;
 }
 
-/* --- Synapse Daemon Health Status --- */
-#custom-synapse {
+/* --- Palexus Daemon Health Status --- */
+#custom-palexus {
     background-color: #11111b;
     color: #cba6f7;
     font-weight: bold;

@@ -1,5 +1,5 @@
 // =============================================================================
-// ~/.config/waybar/config.jsonc — SynapseOS Waybar Status Bar Configuration
+// ~/.config/waybar/config.jsonc — PalexusOS Waybar Status Bar Configuration
 // Palette: Obsidian Crust (#11111b), Base (#1e1e2e), Mauve (#cba6f7), Silver (#cdd6f4)
 // =============================================================================
 {
@@ -20,7 +20,7 @@
         "clock"
     ],
     "modules-right": [
-        "custom/synapse",
+        "custom/palexus",
         "custom/hardware",
         "custom/stealth",
         "custom/help",
@@ -33,25 +33,25 @@
         "custom/power"
     ],
     "custom/menu": {
-        "format": "󰚩 SYNAPSE",
-        "on-click": "/usr/bin/synapse-hud",
+        "format": "󰚩 PALEXUS",
+        "on-click": "/usr/bin/palexus-hud",
         "on-click-right": "/usr/bin/quickfire",
-        "tooltip-format": "Synapse Cockpit\n[Left-Click] Command HUD\n[Right-Click] Quickfire AI"
+        "tooltip-format": "Palexus Cockpit\n[Left-Click] Command HUD\n[Right-Click] Quickfire AI"
     },
     "custom/hud": {
         "format": "󰚩 HUD",
-        "on-click": "/usr/bin/synapse-hud",
+        "on-click": "/usr/bin/palexus-hud",
         "on-click-right": "/usr/bin/quickfire",
-        "tooltip-format": "Synapse Command HUD (Mod4+Space)\n[Left-Click] Command HUD\n[Right-Click] Quickfire AI"
+        "tooltip-format": "Palexus Command HUD (Mod4+Space)\n[Left-Click] Command HUD\n[Right-Click] Quickfire AI"
     },
     "custom/installer": {
-        "exec": "if [ -x /usr/bin/calamares ] || [ -f /etc/sudoers.d/00-synapse-live ]; then echo '{\"text\":\"󰐥 INSTALL SYNAPSEOS\",\"tooltip\":\"Launch Calamares Live System Installer\",\"class\":\"active\"}'; fi",
+        "exec": "if [ -x /usr/bin/calamares ] || [ -f /etc/sudoers.d/00-palexus-live ]; then echo '{\"text\":\"󰐥 INSTALL PALEXUSOS\",\"tooltip\":\"Launch Calamares Live System Installer\",\"class\":\"active\"}'; fi",
         "return-type": "json",
         "interval": 10,
         "on-click": "/usr/bin/calamares -d"
     },
     "custom/calamares": {
-        "exec": "if [ -x /usr/bin/calamares ] || [ -f /etc/sudoers.d/00-synapse-live ]; then echo '{\"text\":\"󰐥 INSTALL SYNAPSEOS\",\"tooltip\":\"Launch Calamares Live System Installer\",\"class\":\"active\"}'; fi",
+        "exec": "if [ -x /usr/bin/calamares ] || [ -f /etc/sudoers.d/00-palexus-live ]; then echo '{\"text\":\"󰐥 INSTALL PALEXUSOS\",\"tooltip\":\"Launch Calamares Live System Installer\",\"class\":\"active\"}'; fi",
         "return-type": "json",
         "interval": 10,
         "on-click": "/usr/bin/calamares -d"
@@ -87,32 +87,32 @@
         "tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>"
     },
         "custom/hardware": {
-        "exec": "/usr/bin/synapse-hardware bar",
+        "exec": "/usr/bin/palexus-hardware bar",
         "return-type": "json",
         "interval": 5,
-        "on-click": "kitty --class synapse-floating -e /usr/bin/synapse-hardware status",
+        "on-click": "kitty --class palexus-floating -e /usr/bin/palexus-hardware status",
         "tooltip": true
     },
-    "custom/synapse": {
-        "exec": "curl -sf http://127.0.0.1:8000/health >/dev/null 2>&1 && echo 'SYNAPSE: ONLINE' || echo 'SYNAPSE: STANDBY'",
+    "custom/palexus": {
+        "exec": "curl -sf http://127.0.0.1:8000/health >/dev/null 2>&1 && echo 'PALEXUS: ONLINE' || echo 'PALEXUS: STANDBY'",
         "interval": 15,
         "on-click": "/usr/bin/quickfire",
         "tooltip": false
     },
     "custom/stealth": {
-        "exec": "/usr/bin/synapse-stealth 2>/dev/null || ( [ -f /etc/NetworkManager/conf.d/00-palexusos-stealth.conf ] && echo '{\"text\":\"󰒃 STEALTH: OK\",\"tooltip\":\"Prime Directive: MAC Randomization & Quad9 DoT Active\",\"class\":\"secure\"}' || echo '{\"text\":\"󰒃 STEALTH: WARN\",\"class\":\"warning\"}' )",
+        "exec": "/usr/bin/palexus-stealth 2>/dev/null || ( [ -f /etc/NetworkManager/conf.d/00-palexusos-stealth.conf ] && echo '{\"text\":\"󰒃 STEALTH: OK\",\"tooltip\":\"Prime Directive: MAC Randomization & Quad9 DoT Active\",\"class\":\"secure\"}' || echo '{\"text\":\"󰒃 STEALTH: WARN\",\"class\":\"warning\"}' )",
         "return-type": "json",
         "interval": 15,
         "on-click": "/usr/bin/sec-status"
     },
     "custom/help": {
         "format": "󰌌 HELP",
-        "on-click": "/usr/bin/synapse-shortcuts",
+        "on-click": "/usr/bin/palexus-shortcuts",
         "tooltip-format": "Cyberdeck Navigation & Keybinding Guide (Mod4+/)"
     },
     "custom/shortcuts": {
         "format": "󰌌 KEYS",
-        "on-click": "/usr/bin/synapse-shortcuts",
+        "on-click": "/usr/bin/palexus-shortcuts",
         "tooltip-format": "Cyberdeck Navigation & Keybinding Guide (Mod4+/)"
     },
     "cpu": {
@@ -149,7 +149,7 @@
     },
     "custom/power": {
         "format": "󰐥",
-        "on-click": "/usr/bin/synapse-power",
+        "on-click": "/usr/bin/palexus-power",
         "tooltip-format": "Session & Power Management"
     }
 }
