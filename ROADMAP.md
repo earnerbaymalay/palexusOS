@@ -1,4 +1,6 @@
-# SynapseOS Engineering Roadmap
+# PalexusOS Engineering Roadmap
+
+> **Note**: Formerly SynapseOS. Phases 1–8 document historical foundation prior to the PalexusOS rebrand.
 
 ## Phase 1: Native Packaging & Core Daemons (Completed)
 - [x] Establish clean, featherlight Git repository structure.
@@ -81,7 +83,7 @@
   - [x] Tag `v0.1.0-alpha.2` and trigger automated GitHub Actions release CI/CD workflow.
 
 ## Phase 9: Neural Hardware Autotuning & eBPF Context Enclave (Upcoming — Q1 2027)
-- [ ] **Milestone 9.1: Dynamic PL1/PL2 Thermal Governor (`synapse-governor`)**:
+- [ ] **Milestone 9.1: Dynamic PL1/PL2 Thermal Governor (`palexus-governor`)**:
   - Automatically scale CPU package TDP based on real-time Ollama inference vs background compilation state.
 - [ ] **Milestone 9.2: eBPF Secret Leak Interceptor**:
   - Implement a kernel-level eBPF socket filter guaranteeing that raw private keys (`id_rsa`, `*.pem`, `sk-*`) cannot egress any socket even if bypassed by third-party unproxied applications.
@@ -90,7 +92,7 @@
 
 ## Phase 10: Distributed Agent Swarms & P2P Brain Mesh (Upcoming — Q2 2027)
 - [ ] **Milestone 10.1: Peer-to-Peer Brain Synchronization**:
-  - Encrypted WireGuard / Libp2p mesh allowing SynapseOS nodes on the same LAN to share distilled Obsidian memory vector embeddings without internet access.
+  - Encrypted WireGuard / Libp2p mesh allowing PalexusOS nodes on the same LAN to share distilled Obsidian memory vector embeddings without internet access.
 - [ ] **Milestone 10.2: Remote Inference Offloading**:
   - Transparent failover: route local Quickfire HUD requests from a mobile laptop to a high-power local workstation running 70B models over an authenticated local mTLS tunnel.
 

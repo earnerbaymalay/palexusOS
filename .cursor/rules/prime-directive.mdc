@@ -1,5 +1,5 @@
 ---
-description: SynapseOS security, stealth, and clean-repo rules for every session
+description: PalexusOS security, stealth, and clean-repo rules for every session
 alwaysApply: true
 ---
 
@@ -12,7 +12,7 @@ alwaysApply: true
 
 ```bash
 # ❌ BAD
-git add out/synapseos-2026.10.30-x86_64.iso
+git add out/palexusos-2026.11.12-x86_64.iso
 
 # ✅ GOOD
 ./build/verify-gates.sh

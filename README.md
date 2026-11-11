@@ -12,7 +12,7 @@
 ### **The Sovereign Neural Cyberdeck Operating System**  
 *Surgical Precision. Zero Telemetry. One Silicon Brain.*
 
-[![Build & Verification Gates](https://img.shields.io/badge/Gates-261%2F261%20Passing-3fb950?style=flat-square&logo=shield&logoColor=ffffff)](build/verify-gates.sh)
+[![Build & Verification Gates](https://img.shields.io/badge/Gates-269%2F269%20Passing-3fb950?style=flat-square&logo=shield&logoColor=ffffff)](build/verify-gates.sh)
 [![PyQt6 UI/UX Tests](https://img.shields.io/badge/UI%2FUX%20Suite-17%2F17%20Passing-cba6f7?style=flat-square&logo=qt&logoColor=ffffff)](tests/test_ui_ux.py)
 [![Rolling Base](https://img.shields.io/badge/Base-Arch%20Linux%20Rolling-1793d1?style=flat-square&logo=archlinux&logoColor=ffffff)](https://archlinux.org)
 [![Kernel](https://img.shields.io/badge/Kernel-linux--cachyos%20(BORE)-fab387?style=flat-square&logo=linux&logoColor=ffffff)](https://github.com/CachyOS/linux-cachyos)
@@ -162,11 +162,11 @@ PalexusOS guarantees that no telemetry packet leaves your machine without your e
 
 | Subsystem Package | Recipe Location | Binary & Deliverables |
 | :--- | :--- | :--- |
-| `palexus-core` | [`packages/core/synapse-core/PKGBUILD`](packages/core/synapse-core/PKGBUILD) | `palexus`, `palexus.service`, `palexus-sync.timer` |
-| `palexus-hud` | [`packages/desktop/synapse-hud/PKGBUILD`](packages/desktop/synapse-hud/PKGBUILD) | `palexus-hud`, `palexus-welcome`, `palexus-settings`, `palexus-notes` |
-| `palexus-greeter` | [`packages/desktop/synapse-greeter/PKGBUILD`](packages/desktop/synapse-greeter/PKGBUILD) | SDDM Qt6 Greeter theme (`palexus`) |
-| `palexus-plymouth` | [`packages/desktop/synapse-plymouth/PKGBUILD`](packages/desktop/synapse-plymouth/PKGBUILD) | Plymouth DRM/KMS boot splash (`palexus-boot.mp4`) |
-| `palexus-themes` | [`packages/desktop/synapse-themes/PKGBUILD`](packages/desktop/synapse-themes/PKGBUILD) | `palexus-theme`, `palexus-screensaver`, 5 curated wallpapers |
+| `palexus-core` | [`packages/core/palexus-core/PKGBUILD`](packages/core/palexus-core/PKGBUILD) | `palexus`, `palexus.service`, `palexus-sync.timer` |
+| `palexus-hud` | [`packages/desktop/palexus-hud/PKGBUILD`](packages/desktop/palexus-hud/PKGBUILD) | `palexus-hud`, `palexus-welcome`, `palexus-settings`, `palexus-notes` |
+| `palexus-greeter` | [`packages/desktop/palexus-greeter/PKGBUILD`](packages/desktop/palexus-greeter/PKGBUILD) | SDDM Qt6 Greeter theme (`palexusos`) |
+| `palexus-plymouth` | [`packages/desktop/palexus-plymouth/PKGBUILD`](packages/desktop/palexus-plymouth/PKGBUILD) | Plymouth DRM/KMS boot splash (`palexus-boot.mp4`) |
+| `palexus-themes` | [`packages/desktop/palexus-themes/PKGBUILD`](packages/desktop/palexus-themes/PKGBUILD) | `palexus-theme`, `palexus-screensaver`, 14 curated wallpapers |
 
 ---
 

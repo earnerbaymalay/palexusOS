@@ -4,13 +4,6 @@ Plan the project here. Each card can start a Parallel Code task.
 
 ## Backlog
 
-- [ ] Rebrand docs, agent rules and editor config
-  Text-only pass over `ROADMAP.md`, `AGENTS.md`, `GEMINI.md`, `IDE_HANDOVER.md`, `docs/*.md`, `.cursor/**` (rename `.cursor/skills/synapseos-iso-build`), `.vscode/tasks.json`, `synapseos.code-workspace` (rename to `palexusos.code-workspace`), and `.gitignore` comments/paths. Delete the superseded `docs/assets/synapseos-banner.png` and make `generate_banner.py` write `palexus-banner.png`. Leave `docs/RESEARCH_SYNAPSE_INTEGRATION.md` content about the upstream Synapse project intact and keep completed roadmap history readable (add a one-line "formerly SynapseOS" note rather than rewriting history). Leave `.gitmodules` and GitHub URLs unchanged until the repository itself is renamed.
-  - [ ] README, AGENTS.md and docs describe the product as PalexusOS with `palexus-*` commands
-  - [ ] No doc links to a file that no longer exists
-  - [ ] Paths quoted in docs match the renamed files
-  depends: Commit the in-progress rebrand working tree as the baseline
-  group: docs
 - [ ] Rebrand the CI workflow and add release checksums
   In `.github/workflows/build-iso.yml` rename the workflow, step, artifact (`palexusos-live-iso`) and release names. Add `pytest tests/` to the `verify-gates` job (dependencies are already installed there). Generate `SHA512SUMS` alongside `SHA256SUMS` and upload both. Stop publishing a release on every push to `main`; publish only for `v*` tags.
   - [ ] Workflow passes `actionlint`
@@ -96,6 +89,14 @@ Plan the project here. Each card can start a Parallel Code task.
 ## Review
 
 ## Done
+
+- [x] Rebrand docs, agent rules and editor config
+  Text-only pass over `ROADMAP.md`, `AGENTS.md`, `GEMINI.md`, `IDE_HANDOVER.md`, `docs/*.md`, `.cursor/**` (rename `.cursor/skills/synapseos-iso-build`), `.vscode/tasks.json`, `synapseos.code-workspace` (rename to `palexusos.code-workspace`), and `.gitignore` comments/paths. Delete the superseded `docs/assets/synapseos-banner.png` and make `generate_banner.py` write `palexus-banner.png`. Leave `docs/RESEARCH_SYNAPSE_INTEGRATION.md` content about the upstream Synapse project intact and keep completed roadmap history readable (add a one-line "formerly SynapseOS" note rather than rewriting history). Leave `.gitmodules` and GitHub URLs unchanged until the repository itself is renamed.
+  - [x] README, AGENTS.md and docs describe the product as PalexusOS with `palexus-*` commands
+  - [x] No doc links to a file that no longer exists
+  - [x] Paths quoted in docs match the renamed files
+  depends: Commit the in-progress rebrand working tree as the baseline
+  group: docs
 
 - [x] Rebrand the pytest suites
   `tests/test_iso_profile.py` uses either-name fallbacks and old paths (`synapse-greeter`, `10-synapseos.conf`, `iso_name="synapseos"`, live user `synapse`); `tests/test_ui_ux.py` loads `packages/desktop/synapse-hud/synapse-hud` etc. and asserts old titles and icon theme names. Point both at the `palexus-*` paths and names, remove the fallbacks so the tests assert the new brand only, and rename the test classes.

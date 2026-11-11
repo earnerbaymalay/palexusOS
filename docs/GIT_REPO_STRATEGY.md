@@ -36,10 +36,8 @@ synapseOS/
 │   └── scripts/                # Automated chroot & ISO generation scripts
 ├── packages/                   # Native Arch PKGBUILD recipes
 │   ├── core/
-│   │   ├── synapse-core/       # PKGBUILD building Synapse daemon from git
-│   │   ├── synapse-firewall/   # nftables/systemd context firewall rules
-│   │   └── synapse-desktop/    # Theme, icons, and SDDM greeter
-│   └── aur/                    # Custom AUR package recipes
+│   │   └── palexus-core/       # PKGBUILD building Palexus daemon from upstream git
+│   └── desktop/                # Desktop packages (palexus-hud, palexus-greeter, palexus-plymouth, palexus-themes)
 ├── overlay/                    # System root overlay (/etc, /usr/share skeleton)
 │   ├── etc/
 │   │   ├── synapse/

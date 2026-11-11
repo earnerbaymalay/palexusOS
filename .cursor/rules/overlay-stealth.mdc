@@ -1,5 +1,5 @@
 ---
-description: Overlay and NetworkManager stealth posture for SynapseOS
+description: Overlay and NetworkManager stealth posture for PalexusOS
 globs: overlay/**/*
 alwaysApply: false
 ---

@@ -1,4 +1,4 @@
-# SynapseOS — AI-Native Linux Distribution Architecture
+# PalexusOS — AI-Native Linux Distribution Architecture
 
 ## Prime Directive: Security, Stealth & Anonymity First
 - **Core Stance**: All architectural decisions, packages, network configurations, and daemons must prioritize security, zero telemetry, and network anonymity.
@@ -10,11 +10,11 @@
 
 ## AI Governance & Project Mission
 - **Maintainer**: earnerbaymalay
-- **Mission**: Architect, construct, package, and test SynapseOS — an AI-native rolling Linux operating system merging:
+- **Mission**: Architect, construct, package, and test PalexusOS (formerly SynapseOS) — an AI-native rolling Linux operating system merging:
   - **CachyOS Performance**: Kernel schedulers (BORE/EEVDF), x86-64-v3/v4 optimized repos, ZRAM zstd swappiness=180, BBR TCP.
   - **EndeavourOS Foundation**: Clean upstream Arch Linux base, transparent pacman packaging, Calamares installer, zero bloat.
   - **Omarchy Aesthetics**: Cybernetic, monospace terminal environment, unified Catppuccin / liquid chrome theme, keyboard-centric control.
-  - **Synapse Core AI Subsystem**: Native Rust runtime gateway, bidirectional context firewall, 3-layer persistent agent memory, local LLM orchestration.
+  - **Palexus Core AI Subsystem**: Native Rust runtime gateway, bidirectional context firewall, 3-layer persistent agent memory, local LLM orchestration.
 
 ## Architecture Guidelines
 1. **Clean Repository Integrity**: No binary ISO blobs, build artifacts, chroot roots, or credentials in Git.

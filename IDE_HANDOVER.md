@@ -1,27 +1,29 @@
-# Antigravity IDE Handover Brief — SynapseOS
+# Antigravity IDE Handover Brief — PalexusOS
 
-**Project:** SynapseOS (`https://github.com/earnerbaymalay/synapseOS`)  
-**Workspace Root:** `/home/ebaymlay/Desktop/AI CLI WORK/synapseOS`  
+**Project:** PalexusOS (`https://github.com/earnerbaymalay/synapseOS`) *(formerly SynapseOS)*  
+**Workspace Root:** `/home/ebaymlay/Desktop/AI BRAIN/synapseOS`  
 **Maintainer:** earnerbaymalay  
-**Handover Status:** Phases 1–7 Complete (**279/279 Gates Passing** | **17/17 pytest UI/UX Passing**); Laser Monolith Plymouth Splash & Branding Review Ready (see [`docs/BRANDING_LASER_BOOT_REVIEW.md`](file:///home/ebaymlay/Desktop/AI%20CLI%20WORK/synapseOS/docs/BRANDING_LASER_BOOT_REVIEW.md))
+**Handover Status:** Rebrand to PalexusOS in Progress (**269/269 Gates Passing** | **17/17 pytest UI/UX Passing**); Laser Monolith Plymouth Splash & Branding Review Ready (see [`docs/BRANDING_LASER_BOOT_REVIEW.md`](docs/BRANDING_LASER_BOOT_REVIEW.md))
 
 ---
 
 ## 1. Completed Foundation (From CLI Session Handover)
 
-All structural specifications, packaging recipes, system overlays, and live ISO build scripts have been authored, linted, and pushed to `origin/main`:
+All structural specifications, packaging recipes, system overlays, and live ISO build scripts have been authored, linted, and updated for PalexusOS:
 
 | Subsystem | Path | Status |
 | :--- | :--- | :--- |
-| **Core AI Runtime Package** | [`packages/core/synapse-core/PKGBUILD`](file:///home/ebaymlay/Desktop/AI%20CLI%20WORK/synapseOS/packages/core/synapse-core/PKGBUILD) | Ready (`x86-64-v3` Rust build, `synapse.service`, `synapse-sync.timer`) |
-| **LLM Quickfire Panel Package** | [`packages/desktop/llm-quickfire-panel/PKGBUILD`](file:///home/ebaymlay/Desktop/AI%20CLI%20WORK/synapseOS/packages/desktop/llm-quickfire-panel/PKGBUILD) | Ready (`quickfire`, `quickfire-theme`, palettes, XDG autostart) |
-| **SDDM Greeter Package** | [`packages/desktop/synapse-greeter/PKGBUILD`](file:///home/ebaymlay/Desktop/AI%20CLI%20WORK/synapseOS/packages/desktop/synapse-greeter/PKGBUILD) | Ready (`synapseos` Qt6 theme: clock + readout, animated accent trails, variant from `synapse-theme --sync-greeter`) |
-| **Kernel, ZRAM & Stealth Overlay** | [`overlay/etc/`](file:///home/ebaymlay/Desktop/AI%20CLI%20WORK/synapseOS/overlay/etc) | Ready (`99-synapseos.conf`, `zram-generator.conf`, MAC randomization, RFC 4941 IPv6, Quad9 DoT) |
-| **Cyberdeck Desktop & User Skel** | [`overlay/etc/skel/`](file:///home/ebaymlay/Desktop/AI%20CLI%20WORK/synapseOS/overlay/etc/skel) & [`picom.conf`](file:///home/ebaymlay/Desktop/AI%20CLI%20WORK/synapseOS/overlay/etc/xdg/picom.conf) | Ready (`dual_kawase` blur, Kitty transparency, Sway/Waybar dual-session, `.synapse/config.toml`, `.bashrc`) |
-| **Archiso Live Profile** | [`build/archiso/`](file:///home/ebaymlay/Desktop/AI%20CLI%20WORK/synapseOS/build/archiso) & [`build/build-iso.sh`](file:///home/ebaymlay/Desktop/AI%20CLI%20WORK/synapseOS/build/build-iso.sh) | Ready (`linux-cachyos`, UEFI `systemd-boot` + BIOS `syslinux`, `customize_airootfs.sh`) |
-| **Calamares Installer** | [`packages/installer/calamares/`](file:///home/ebaymlay/Desktop/AI%20CLI%20WORK/synapseOS/packages/installer/calamares) | Ready (Catppuccin Mauve + Liquid Silver Chrome + Obsidian Crust branding, Btrfs `@`/`@home`/`@snapshots` zstd layout) |
-| **V4 Theme Pack & Screensaver** | [`packages/desktop/synapse-themes/`](file:///home/ebaymlay/Desktop/AI%20CLI%20WORK/synapseOS/packages/desktop/synapse-themes) | Ready (5 wallpapers, `synapse-theme` switcher on `Super+Ctrl+T`, geodesic torus `synapse-screensaver`) |
-| **Verification Gate Suite** | [`build/verify-gates.sh`](file:///home/ebaymlay/Desktop/AI%20CLI%20WORK/synapseOS/build/verify-gates.sh) | **209/209 Checks Passing** |
+| **Core AI Runtime Package** | [`packages/core/palexus-core/PKGBUILD`](packages/core/palexus-core/PKGBUILD) | Ready (`x86-64-v3` Rust build, `palexus.service`, `palexus-sync.timer`) |
+| **LLM Quickfire Panel Package** | [`packages/desktop/llm-quickfire-panel/PKGBUILD`](packages/desktop/llm-quickfire-panel/PKGBUILD) | Ready (`quickfire`, `quickfire-theme`, palettes, XDG autostart) |
+| **SDDM Greeter Package** | [`packages/desktop/palexus-greeter/PKGBUILD`](packages/desktop/palexus-greeter/PKGBUILD) | Ready (`palexusos` Qt6 theme: clock + readout, animated accent trails, variant from `palexus-theme --sync-greeter`) |
+| **Command HUD & Utilities** | [`packages/desktop/palexus-hud/PKGBUILD`](packages/desktop/palexus-hud/PKGBUILD) | Ready (`palexus-hud`, `palexus-welcome`, `palexus-settings`, `palexus-notes`, metallic icon themes) |
+| **Plymouth Boot Splash** | [`packages/desktop/palexus-plymouth/PKGBUILD`](packages/desktop/palexus-plymouth/PKGBUILD) | Ready (`palexusos` theme, Twin Hook laser engrave animation from `palexus-boot.mp4`) |
+| **Kernel, ZRAM & Stealth Overlay** | [`overlay/etc/`](overlay/etc) | Ready (`99-palexusos.conf`, `zram-generator.conf`, MAC randomization, RFC 4941 IPv6, Quad9 DoT) |
+| **Cyberdeck Desktop & User Skel** | [`overlay/etc/skel/`](overlay/etc/skel) & [`picom.conf`](overlay/etc/xdg/picom.conf) | Ready (`dual_kawase` blur, Kitty transparency, Sway/Waybar dual-session, `.palexus` config compatibility) |
+| **Archiso Live Profile** | [`build/archiso/`](build/archiso) & [`build/build-iso.sh`](build/build-iso.sh) | Ready (`linux-cachyos`, UEFI `systemd-boot` + BIOS `syslinux`, `customize_airootfs.sh`) |
+| **Calamares Installer** | [`packages/installer/calamares/`](packages/installer/calamares) | Ready (Catppuccin Mauve + Liquid Silver Chrome + Obsidian Crust branding, Btrfs `@`/`@home`/`@snapshots` zstd layout) |
+| **V4 Theme Pack & Screensaver** | [`packages/desktop/palexus-themes/`](packages/desktop/palexus-themes) | Ready (14 wallpapers, `palexus-theme` switcher on `Super+Ctrl+T`, geodesic torus `palexus-screensaver`) |
+| **Verification Gate Suite** | [`build/verify-gates.sh`](build/verify-gates.sh) | **269/269 Checks Passing** |
 
 ---
 
@@ -29,20 +31,20 @@ All structural specifications, packaging recipes, system overlays, and live ISO 
 
 Now that the workspace is open in **Antigravity IDE**, the IDE agent should execute the live build & runtime verification stages:
 
-1. **Stage A — Local Custom Repository & Native Package Compilation (`[synapseos]`)**:
-   - Compile `synapse-core`, `llm-quickfire-panel`, `synapse-themes` and `synapse-greeter` using `./build/build-iso.sh --build-pkgs --dry-run` (or `makepkg -sf` in each package dir).
-   - Verify the generated `.pkg.tar.zst` archives and local pacman database `out/repo/synapseos.db.tar.gz` via `repo-add`.
+1. **Stage A — Local Custom Repository & Native Package Compilation (`[palexusos]`)**:
+   - Compile `palexus-core`, `llm-quickfire-panel`, `palexus-themes`, `palexus-greeter`, `palexus-plymouth`, and `palexus-hud` using `./build/build-iso.sh --build-pkgs --dry-run` (or `makepkg -sf` in each package dir).
+   - Verify the generated `.pkg.tar.zst` archives and local pacman database `out/repo/palexusos.db.tar.gz` via `repo-add`.
 2. **Stage B — Sync Overlays & Validate Archiso Staging**:
    - Run `./build/build-iso.sh --dry-run` to populate `build/archiso/airootfs/etc` from `overlay/etc` and `packages/installer/calamares`.
    - Inspect the staged `airootfs` permissions, systemd presets, and CachyOS mirrorlists (`/etc/pacman.d/cachyos-mirrorlist` & `cachyos-v3-mirrorlist`).
 3. **Stage C — Live ISO Compilation & QEMU/KVM Boot Verification**:
-   - Execute `sudo ./build/build-iso.sh` to produce `out/synapseos-YYYY.MM.DD-x86_64.iso`.
-   - Boot the ISO in QEMU/KVM (`SynapseOS: Boot ISO in QEMU/KVM` task in `.vscode/tasks.json`) to verify:
+   - Execute `sudo ./build/build-iso.sh` to produce `out/palexusos-YYYY.MM.DD-x86_64.iso`.
+   - Boot the ISO in QEMU/KVM (`PalexusOS: Boot ISO in QEMU/KVM` task in `.vscode/tasks.json`) to verify:
      * UEFI `systemd-boot` splash $\rightarrow$ `linux-cachyos` kernel boot
-     * `synapseos` SDDM greeter $\rightarrow$ XFCE 4.20 desktop handoff (boot splash: `synapse-plymouth` Twin Hook laser engrave)
-     * `quickfire` HUD auto-launch, `synapse.service` health, and Calamares installer launch.
-4. **Stage D — Release Tagging (`v0.1.0-alpha`)**:
-   - Generate `out/SHA256SUMS`, commit any build refinements, and tag `v0.1.0-alpha` to trigger `.github/workflows/build-iso.yml`.
+     * `palexusos` SDDM greeter $\rightarrow$ XFCE 4.20 desktop handoff (boot splash: `palexus-plymouth` Twin Hook laser engrave)
+     * `palexus-hud` launch, `palexus.service` health, and Calamares installer launch.
+4. **Stage D — Release Tagging (`v0.2.0-alpha`)**:
+   - Generate `out/SHA256SUMS` and `out/SHA512SUMS`, commit any build refinements, and tag `v0.2.0-alpha` to trigger `.github/workflows/build-iso.yml`.
 
 ---
 
@@ -50,4 +52,4 @@ Now that the workspace is open in **Antigravity IDE**, the IDE agent should exec
 
 Paste this into the Antigravity IDE agent panel to begin immediately:
 
-> Read `IDE_HANDOVER.md`, `ROADMAP.md`, and `docs/ARCHITECTURE.md`. Run `./build/verify-gates.sh`, verify the compiled `[synapseos]` repository packages in `out/repo/` (`synapse-core`, `llm-quickfire-panel`, `synapse-themes`, `synapse-greeter`, `synapseos.db.tar.gz`) and staged `airootfs` from Stages A & B, then proceed to Stage C & Stage D: build the bootable Live ISO (`./build/build-iso.sh`), verify QEMU/KVM boot, and prepare the `v0.1.0-alpha` release artifacts (`out/SHA256SUMS`).
+> Read `IDE_HANDOVER.md`, `ROADMAP.md`, and `docs/ARCHITECTURE.md`. Run `./build/verify-gates.sh`, verify the compiled `[palexusos]` repository packages in `out/repo/` (`palexus-core`, `llm-quickfire-panel`, `palexus-themes`, `palexus-greeter`, `palexus-plymouth`, `palexus-hud`, `palexusos.db.tar.gz`) and staged `airootfs` from Stages A & B, then proceed to Stage C & Stage D: build the bootable Live ISO (`./build/build-iso.sh`), verify QEMU/KVM boot, and prepare the `v0.2.0-alpha` release artifacts (`out/SHA256SUMS`).

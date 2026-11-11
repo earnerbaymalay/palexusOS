@@ -33,11 +33,11 @@
 ### Q: Can I run local AI workflows completely disconnected from the Internet?
 > **A:** Yes. SynapseOS is designed as an offline-first cyberdeck:
 > - `ollama.service` runs as a native systemd unit bound to `127.0.0.1:11434` with an extended `24h` memory keep-alive.
-> - The native First-Boot Wizard (`synapse-welcome`) downloads high-performance local coding models (such as `qwen2.5-coder:latest` 7B Q4_K_M).
+> - The native First-Boot Wizard (`palexus-welcome`) downloads high-performance local coding models (such as `qwen2.5-coder:latest` 7B Q4_K_M).
 > - Once downloaded, all model inference runs 100% locally on your CPU/GPU. No prompts, code snippets, or user data ever leave your machine.
 
 ### Q: What is the "Bidirectional Context Firewall"?
-> **A:** When using the Synapse Daemon (`synapse-core` on port 8000), outbound prompts pass through an intelligent entropy scanner implemented in Rust ([`firewall.rs`](file:///home/ebaymlay/work/synapse/packages/core/src/firewall.rs)):
+> **A:** When using the AI Daemon (`palexus-core` on port 8000), outbound prompts pass through an intelligent entropy scanner implemented in Rust (`firewall.rs`):
 > - **Outbound Egress Pseudonymization**: Hardware MAC addresses, RFC 1918 private IPv4 addresses (`192.168.x.x`, `10.x.x.x`), and high-entropy API keys/tokens are automatically detected and replaced with synthetic placeholder tokens (e.g. `[SYNAPSE_IP_1]`, `[SYNAPSE_MAC_1]`).
 > - **Inbound Rehydration**: When model completions or tool calls return, the placeholder tokens are seamlessly swapped back to their real values.
 > - This guarantees that sensitive network credentials are never leaked to external inference endpoints or cached model logs.
@@ -70,9 +70,9 @@
 > 1. **Default: XFCE 4.20 + Picom**: Optimized for stability, multi-monitor docking, and classic workflows. Features `dual_kawase` background glass blur, Catppuccin Mocha Mauve GTK styling, and custom titlebar buttons.
 > 2. **Optional: Sway Wayland**: Configured at `/etc/skel/.config/sway/config` with matching `waybar` statusbars, animations, and zero-tearing Wayland pipewire screensharing.
 > 
-> *To switch*: Log out, select the user avatar in `synapse-greeter`, and toggle between **XFCE Session** and **Sway** in the session dropdown. Both sessions share the exact same keybindings:
-> - `Super+Space`: Open `synapse-hud` Command Center
-> - `Super+Ctrl+T`: Cycle metallic wallpaper & theme palettes (`synapse-theme`)
+> *To switch*: Log out, select the user avatar in `palexus-greeter`, and toggle between **XFCE Session** and **Sway** in the session dropdown. Both sessions share the exact same keybindings:
+> - `Super+Space`: Open `palexus-hud` Command Center
+> - `Super+Ctrl+T`: Cycle metallic wallpaper & theme palettes (`palexus-theme`)
 > - `Super+Enter`: Launch Kitty terminal
 
 ### Q: How do I change the accent colors and theme variants?

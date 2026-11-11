@@ -120,12 +120,12 @@ If your device firmware is locked by institutional policy or requires Secure Boo
 ## 6. Phase 5: Ventoy Boot Mode Selection
 
 Once inside the Ventoy graphical boot menu:
-1. Use arrow keys to select `synapseos-2026.11.01-x86_64.iso` and press `Enter`.
+1. Use arrow keys to select `palexusos-*.iso` and press `Enter`.
 2. A secondary menu will appear asking for the launch mode:
    - **Boot in Normal Mode** *(Default & Recommended)*: Passes direct kernel execution to `systemd-boot`.
    - **Boot in Grub2 Mode**: Fallback mode if your UEFI implementation has quirks with native PE loaders.
-   - **Boot in Memdisk Mode**: Do NOT use (SynapseOS live image is ~3 GB and does not require memdisk loading).
-3. The laser-engraved `synapse-plymouth` boot splash will initialize, followed by the chamfered `synapse-greeter` login screen.
+   - **Boot in Memdisk Mode**: Do NOT use (PalexusOS live image is ~3 GB and does not require memdisk loading).
+3. The laser-engraved `palexus-plymouth` boot splash will initialize, followed by the chamfered `palexus-greeter` login screen.
 
 ---
 
