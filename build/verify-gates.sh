@@ -470,6 +470,7 @@ check_file_contains "${REPO_ROOT}/build/archiso/packages.x86_64" '^cachyos-calam
 check_file_lacks "${REPO_ROOT}/build/archiso/packages.x86_64" '(?m)^calamares$' "ISO does not leave the Calamares provider to chance"
 check_file_contains "${REPO_ROOT}/packages/installer/calamares/modules/shellprocess@removelive.conf" 'pacman -Rns --noconfirm cachyos-calamares' "Installed systems do not keep the installer"
 check_file_contains "${REPO_ROOT}/packages/installer/calamares/settings.conf" '^ *- shellprocess@removelive$' "Calamares runs the live-package removal step"
+check_file_contains "${REPO_ROOT}/.gitattributes" '^\* text=auto eol=lf$' "Checkouts keep LF line endings (scripts and PKGBUILDs break with CRLF)"
 check_file_contains "${REPO_ROOT}/build/build-iso.sh" 'mkarchiso -v -C' "ISO build uses isolated build pacman.conf/keyring"
 
 # Package file-ownership conflicts (pacstrap aborts on these)

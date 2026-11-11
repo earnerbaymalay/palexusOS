@@ -1,0 +1,14 @@
+# Shell scripts, PKGBUILDs, systemd units and configs ship into a Linux ISO: always LF,
+# even in a Windows checkout with core.autocrlf=true.
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.mp4 binary
+*.woff2 binary
+*.ttf binary
+*.otf binary
