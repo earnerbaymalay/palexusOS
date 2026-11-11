@@ -1,4 +1,4 @@
-"""SynapseOS Gate G3 & G4 Validation Suite for the greeter, Calamares installer and Archiso profile."""
+"""PalexusOS Gate G3 & G4 Validation Suite for the greeter, Calamares installer and Archiso profile."""
 
 import os
 from pathlib import Path
@@ -7,7 +7,7 @@ import unittest
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
 
-class TestSynapseOSGates(unittest.TestCase):
+class TestPalexusOSGates(unittest.TestCase):
     """Zero-dependency validation tests compatible with both pytest and unittest."""
 
     def test_archiso_profile_exists(self) -> None:
@@ -15,7 +15,7 @@ class TestSynapseOSGates(unittest.TestCase):
         profiledef = REPO_ROOT / "build" / "archiso" / "profiledef.sh"
         self.assertTrue(profiledef.is_file(), "build/archiso/profiledef.sh must exist")
         content = profiledef.read_text(encoding="utf-8")
-        self.assertIn('iso_name="synapseos"', content)
+        self.assertIn('iso_name="palexusos"', content)
         self.assertIn('arch="x86_64"', content)
         self.assertIn("zstd", content)
 
@@ -23,15 +23,15 @@ class TestSynapseOSGates(unittest.TestCase):
         """Verify Calamares settings, branding, partition, and services configurations."""
         cal_root = REPO_ROOT / "packages" / "installer" / "calamares"
         settings = (cal_root / "settings.conf").read_text(encoding="utf-8")
-        self.assertTrue("branding: palexusos" in settings or "branding: synapseos" in settings)
+        self.assertIn("branding: palexusos", settings)
         self.assertIn("unpackfs", settings)
         self.assertIn("services-systemd", settings)
 
-        branding_dir = cal_root / "branding" / ("palexusos" if (cal_root / "branding" / "palexusos").exists() else "synapseos")
+        branding_dir = cal_root / "branding" / "palexusos"
         branding = (branding_dir / "branding.desc").read_text(
             encoding="utf-8"
         )
-        self.assertTrue("componentName:   palexusos" in branding or "componentName:   synapseos" in branding)
+        self.assertIn("componentName:   palexusos", branding)
         self.assertNotIn("#00a8ff", branding.lower())
         self.assertIn("#11111b", branding.lower())
         self.assertIn("#cdd6f4", branding.lower())
@@ -72,28 +72,28 @@ class TestSynapseOSGates(unittest.TestCase):
             "firewalld",
             "ananicy-cpp",
             "ollama",
-            "synapse",
+            "palexus",
         ):
             self.assertIn(f'"{svc}"', services)
 
         unpackfs = (cal_root / "modules" / "unpackfs.conf").read_text(encoding="utf-8")
-        self.assertIn("/run/archiso/bootmnt/synapseos/x86_64/airootfs.sfs", unpackfs)
+        self.assertIn("/run/archiso/bootmnt/palexusos/x86_64/airootfs.sfs", unpackfs)
         self.assertIn('sourcefs: "squashfs"', unpackfs)
 
     def test_greeter_and_compositor(self) -> None:
-        """Validate the synapseos SDDM greeter, its SDDM config, and Picom configuration."""
-        greeter = REPO_ROOT / "packages" / "desktop" / "synapse-greeter"
+        """Validate the palexusos SDDM greeter, its SDDM config, and Picom configuration."""
+        greeter = REPO_ROOT / "packages" / "desktop" / "palexus-greeter"
         qml = (greeter / "Main.qml").read_text(encoding="utf-8")
         self.assertIn("sddm.login(", qml)
         self.assertIn("model: sessionModel", qml)
         self.assertIn("#cba6f7", qml.lower())
         self.assertIn("variant=monolith-mauve", (greeter / "theme.conf").read_text(encoding="utf-8"))
 
-        sddm_conf = (REPO_ROOT / "overlay" / "etc" / "sddm.conf.d" / "10-synapseos.conf").read_text(
+        sddm_conf = (REPO_ROOT / "overlay" / "etc" / "sddm.conf.d" / "10-palexusos.conf").read_text(
             encoding="utf-8"
         )
-        self.assertTrue("Current=palexusos" in sddm_conf or "Current=synapseos" in sddm_conf)
-        self.assertNotIn("Xsetup-synapseos", sddm_conf)
+        self.assertIn("Current=palexusos", sddm_conf)
+        self.assertNotIn("Xsetup-palexusos", sddm_conf)
 
         picom_text = (REPO_ROOT / "overlay" / "etc" / "xdg" / "picom.conf").read_text(encoding="utf-8")
         self.assertIn("dual_kawase", picom_text)
@@ -102,26 +102,26 @@ class TestSynapseOSGates(unittest.TestCase):
 
     def test_boot_splash(self) -> None:
         """Validate the official boot animation package and its boot wiring."""
-        ply = REPO_ROOT / "packages" / "desktop" / ("palexus-plymouth" if (REPO_ROOT / "packages" / "desktop" / "palexus-plymouth").exists() else "synapse-plymouth")
-        script_file = (ply / "palexusos.script.in") if (ply / "palexusos.script.in").exists() else (ply / "synapseos.script.in")
+        ply = REPO_ROOT / "packages" / "desktop" / "palexus-plymouth"
+        script_file = ply / "palexusos.script.in"
         script = script_file.read_text(encoding="utf-8")
         for hook in ("SetRefreshFunction", "SetDisplayPasswordFunction", "SetDisplayQuestionFunction",
                      "SetDisplayNormalFunction", "SetMessageFunction", "SetQuitFunction"):
             self.assertIn(f"Plymouth.{hook}", script)
         for placeholder in ("@FRAMES@", "@TICKS@", "@WIDTH@", "@HEIGHT@"):
             self.assertIn(placeholder, script)
-        boot_mp4 = (ply / "palexus-boot.mp4") if (ply / "palexus-boot.mp4").exists() else (ply / "synapse-boot.mp4")
+        boot_mp4 = ply / "palexus-boot.mp4"
         self.assertGreater(boot_mp4.stat().st_size, 0)
         pkgbuild = (ply / "PKGBUILD").read_text(encoding="utf-8")
-        self.assertTrue("'palexus-boot.mp4'" in pkgbuild or "'synapse-boot.mp4'" in pkgbuild)
+        self.assertIn("'palexus-boot.mp4'", pkgbuild)
         self.assertIn("-an", pkgbuild)
-        self.assertTrue("/usr/share/plymouth/themes/palexusos" in pkgbuild or "/usr/share/plymouth/themes/synapseos" in pkgbuild)
+        self.assertIn("/usr/share/plymouth/themes/palexusos", pkgbuild)
         hooks = (REPO_ROOT / "build" / "archiso" / "airootfs" / "etc" / "mkinitcpio.conf.d" / "archiso.conf").read_text(
             encoding="utf-8"
         )
         self.assertIn(" kms plymouth ", hooks)
         conf = (REPO_ROOT / "overlay" / "etc" / "plymouth" / "plymouthd.conf").read_text(encoding="utf-8")
-        self.assertTrue("Theme=palexusos\n" in conf or "Theme=palexus\n" in conf or "Theme=synapseos\n" in conf)
+        self.assertIn("Theme=palexusos\n", conf)
 
     def test_sway_and_waybar_session_configs(self) -> None:
         """Validate Sway and Waybar dual-session configs and package list."""
@@ -162,16 +162,16 @@ class TestSynapseOSGates(unittest.TestCase):
         self.assertIn("Mod4+Shift+q", sway_conf)
         self.assertIn("Mod4+Shift+e", sway_conf)
         for rule in (
-            "synapse-hud",
+            "palexus-hud",
             "quickfire",
             "calamares",
             "galculator",
-            "synapse-settings",
-            "synapse-notes",
+            "palexus-settings",
+            "palexus-notes",
             "pavucontrol",
             "nm-connection-editor",
-            "synapse-welcome",
-            "synapse-screensaver",
+            "palexus-welcome",
+            "palexus-screensaver",
         ):
             self.assertIn(rule, sway_conf)
 
@@ -195,7 +195,7 @@ class TestSynapseOSGates(unittest.TestCase):
             self.assertIn(widget, waybar_conf)
 
         # Verify audio-switch exists and is executable
-        audio_switch = REPO_ROOT / "packages" / "desktop" / "synapse-hud" / "audio-switch"
+        audio_switch = REPO_ROOT / "packages" / "desktop" / "palexus-hud" / "audio-switch"
         self.assertTrue(audio_switch.is_file(), "audio-switch script must exist")
         self.assertTrue(os.access(audio_switch, os.X_OK), "audio-switch must be executable")
 
@@ -217,7 +217,7 @@ class TestSynapseOSGates(unittest.TestCase):
             self.assertIn(cls, waybar_style)
 
     def test_sddm_greeter_qml_mock_load(self) -> None:
-        """Validate that synapse-greeter Main.qml parses and instantiates cleanly with zero warnings/errors under mock SDDM context."""
+        """Validate that palexus-greeter Main.qml parses and instantiates cleanly with zero warnings/errors under mock SDDM context."""
         try:
             import os
             os.environ["QT_QPA_PLATFORM"] = "offscreen"
@@ -276,8 +276,8 @@ class TestSynapseOSGates(unittest.TestCase):
 
             def __init__(self):
                 super().__init__()
-                self._users = ["synapse"]
-                self._lastUser = "synapse"
+                self._users = ["palexus"]
+                self._lastUser = "palexus"
 
             def roleNames(self):
                 return {self.NameRole: b"name"}
@@ -331,8 +331,8 @@ class TestSynapseOSGates(unittest.TestCase):
                 return {
                     "variant": "monolith-mauve",
                     "animations": "true",
-                    "backgrounds": "/usr/share/backgrounds/synapseos",
-                    "user": "synapse",
+                    "backgrounds": "/usr/share/backgrounds/palexusos",
+                    "user": "palexus",
                 }.get(key, "")
 
         class MockSddm(QObject):
@@ -344,7 +344,7 @@ class TestSynapseOSGates(unittest.TestCase):
 
             @pyqtProperty(str, constant=True)
             def hostName(self):
-                return "synapse"
+                return "palexusos"
 
             @pyqtProperty(bool, constant=True)
             def canReboot(self):
@@ -379,7 +379,7 @@ class TestSynapseOSGates(unittest.TestCase):
         ctx.setContextProperty("sessionModel", m_session)
         ctx.setContextProperty("userModel", m_user)
 
-        qml_path = REPO_ROOT / "packages" / "desktop" / "synapse-greeter" / "Main.qml"
+        qml_path = REPO_ROOT / "packages" / "desktop" / "palexus-greeter" / "Main.qml"
         comp = QQmlComponent(engine, str(qml_path))
         self.assertEqual(comp.status(), QQmlComponent.Status.Ready, f"Errors: {[e.toString() for e in comp.errors()]}")
         obj = comp.create()

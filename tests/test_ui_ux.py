@@ -1,12 +1,12 @@
-"""SynapseOS Automated UI/UX Test Suite (Qt6 / PyQt6 / QML).
+"""PalexusOS Automated UI/UX Test Suite (Qt6 / PyQt6 / QML).
 
-Executes offscreen automated testing across all SynapseOS desktop user interfaces:
-- synapse-hud: QML engine loading, signal/slot bindings, findFirstMatch command search, search box hotkeys.
-- synapse-welcome: OnboardingWizard initialization, navigation across 4 onboarding steps,
+Executes offscreen automated testing across all PalexusOS desktop user interfaces:
+- palexus-hud: QML engine loading, signal/slot bindings, findFirstMatch command search, search box hotkeys.
+- palexus-welcome: OnboardingWizard initialization, navigation across 4 onboarding steps,
                    page indicator updates, icon/wallpaper/screensaver selection, GTK settings updater.
-- synapse-settings: SynapseSettingsWindow initialization, tab structure, accent buttons, Ollama toggles.
-- synapse-notes: SynapseNotesWindow scratchpad initialization, Markdown highlighter, auto-sync, word counter, hotkeys.
-- synapse-screensaver: Argument parsing, command mode options, and cyberdeck glyph validation.
+- palexus-settings: PalexusSettingsWindow initialization, tab structure, accent buttons, Ollama toggles.
+- palexus-notes: PalexusNotesWindow scratchpad initialization, Markdown highlighter, auto-sync, word counter, hotkeys.
+- palexus-screensaver: Argument parsing, command mode options, and cyberdeck glyph validation.
 """
 
 import os
@@ -27,14 +27,13 @@ from PyQt6.QtWidgets import QApplication, QPushButton, QRadioButton
 from PyQt6.QtQml import QQmlApplicationEngine
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-HUD_DIR = REPO_ROOT / "packages" / "desktop" / "synapse-hud"
-THEMES_DIR = REPO_ROOT / "packages" / "desktop" / "synapse-themes"
+HUD_DIR = REPO_ROOT / "packages" / "desktop" / "palexus-hud"
+THEMES_DIR = REPO_ROOT / "packages" / "desktop" / "palexus-themes"
 
 
 def load_script_module(name: str, path: Path):
     """Load a Python script without .py extension as a module."""
     loader = SourceFileLoader(name, str(path))
-    spec = SourceFileLoader(name, str(path)).load_module if False else None
     import importlib.util
     spec = importlib.util.spec_from_loader(name, loader)
     mod = importlib.util.module_from_spec(spec)
@@ -53,11 +52,11 @@ def qapp():
 
 
 # ============================================================================
-# 1. SYNAPSE-HUD TESTS (QML Engine, Signals, findFirstMatch, AI Search)
+# 1. PALEXUS-HUD TESTS (QML Engine, Signals, findFirstMatch, AI Search)
 # ============================================================================
 
-class TestSynapseHudQml:
-    """Test synapse-hud QML engine, signals, and command search logic."""
+class TestPalexusHudQml:
+    """Test palexus-hud QML engine, signals, and command search logic."""
 
     def test_hud_qml_engine_loading(self, qapp):
         """Verify QML engine successfully loads Main.qml without errors in offscreen mode."""
@@ -70,7 +69,7 @@ class TestSynapseHudQml:
         assert len(root_objects) == 1, "Main.qml must load exactly 1 root object"
 
         root = root_objects[0]
-        assert root.property("title") == "Synapse Command HUD"
+        assert root.property("title") == "Palexus Command HUD"
         assert root.property("width") == 960
         assert root.property("height") == 640
         assert root.property("variant") == "monolith-mauve"
@@ -83,8 +82,8 @@ class TestSynapseHudQml:
         root = engine.rootObjects()[0]
 
         # Test exact/partial label matches
-        assert root.findFirstMatch("notes") == "synapse-notes"
-        assert root.findFirstMatch("settings") == "synapse-settings"
+        assert root.findFirstMatch("notes") == "palexus-notes"
+        assert root.findFirstMatch("settings") == "palexus-settings"
         assert root.findFirstMatch("chromium") == "chromium"
 
         # Test local LLM commands
@@ -93,11 +92,11 @@ class TestSynapseHudQml:
 
         # Test key shortcut matching
         key1_cmd = root.findFirstMatch("1")
-        assert "synapse hud" in key1_cmd
+        assert "palexus hud" in key1_cmd
 
         # Test case-insensitivity
-        assert root.findFirstMatch("NOTES") == "synapse-notes"
-        assert root.findFirstMatch("  SETTINGS  ") == "synapse-settings"
+        assert root.findFirstMatch("NOTES") == "palexus-notes"
+        assert root.findFirstMatch("  SETTINGS  ") == "palexus-settings"
 
         # Test non-matching or empty queries
         assert root.findFirstMatch("nonexistent_unknown_xyz") == ""
@@ -106,17 +105,17 @@ class TestSynapseHudQml:
 
     def test_hud_backend_signals_and_launch(self, qapp):
         """Verify HudBackend receives QML signals and launches commands or AI prompts."""
-        hud_mod = load_script_module("synapse_hud_mod", HUD_DIR / "synapse-hud")
+        hud_mod = load_script_module("palexus_hud_mod", HUD_DIR / "palexus-hud")
         assert hasattr(hud_mod, "HudBackend")
 
         backend = hud_mod.HudBackend(qapp)
 
         with patch("subprocess.Popen") as mock_popen, patch.object(qapp, "quit") as mock_quit:
             # Test direct command launch
-            backend.launch("synapse-notes")
+            backend.launch("palexus-notes")
             mock_quit.assert_called()
             args, kwargs = mock_popen.call_args
-            assert args[0] == ["bash", "-c", "source ~/.bashrc 2>/dev/null; synapse-notes"]
+            assert args[0] == ["bash", "-c", "source ~/.bashrc 2>/dev/null; palexus-notes"]
             assert kwargs.get("start_new_session") is True
             assert "env" in kwargs
 
@@ -151,20 +150,20 @@ class TestSynapseHudQml:
 
 
 # ============================================================================
-# 2. SYNAPSE-WELCOME TESTS (OnboardingWizard, Steps, GTK Settings)
+# 2. PALEXUS-WELCOME TESTS (OnboardingWizard, Steps, GTK Settings)
 # ============================================================================
 
-class TestSynapseWelcome:
-    """Test synapse-welcome onboarding backend, QML loading, and GTK config sync."""
+class TestPalexusWelcome:
+    """Test palexus-welcome onboarding backend, QML loading, and GTK config sync."""
 
     @pytest.fixture
     def welcome_mod(self):
-        return load_script_module("synapse_welcome_mod", HUD_DIR / "synapse-welcome")
+        return load_script_module("palexus_welcome_mod", HUD_DIR / "palexus-welcome")
 
     def test_welcome_backend_initialization(self, qapp, welcome_mod):
         """Verify WelcomeBackend initializes with correct default values and properties."""
         backend = welcome_mod.WelcomeBackend(qapp)
-        assert backend.selectedIconTheme == "Synapse-Liquid-Chrome"
+        assert backend.selectedIconTheme == "Palexus-Liquid-Chrome"
         assert backend.selectedWallpaper == "monolith-mauve"
         assert backend.selectedAiEngine == "claude"
         assert isinstance(backend.combos, dict)
@@ -194,34 +193,34 @@ class TestSynapseWelcome:
         ini_file = str(tmp_path / "gtk-3.0" / "settings.ini")
 
         # Test writing to non-existent file
-        welcome_mod.update_gtk_settings(ini_file, "Synapse-Radial-Tungsten")
+        welcome_mod.update_gtk_settings(ini_file, "Palexus-Radial-Tungsten")
         content = Path(ini_file).read_text(encoding="utf-8")
         assert "[Settings]" in content
-        assert "gtk-icon-theme-name = Synapse-Radial-Tungsten" in content
+        assert "gtk-icon-theme-name = Palexus-Radial-Tungsten" in content
 
         # Test updating existing file
-        welcome_mod.update_gtk_settings(ini_file, "Synapse-Smoked-Obsidian")
+        welcome_mod.update_gtk_settings(ini_file, "Palexus-Smoked-Obsidian")
         content_updated = Path(ini_file).read_text(encoding="utf-8")
-        assert "gtk-icon-theme-name = Synapse-Smoked-Obsidian" in content_updated
-        assert "Synapse-Radial-Tungsten" not in content_updated
+        assert "gtk-icon-theme-name = Palexus-Smoked-Obsidian" in content_updated
+        assert "Palexus-Radial-Tungsten" not in content_updated
         assert content_updated.count("gtk-icon-theme-name") == 1
 
 
 # ============================================================================
-# 3. SYNAPSE-SETTINGS TESTS (SynapseSettingsWindow, Tabs, Accents)
+# 3. PALEXUS-SETTINGS TESTS (PalexusSettingsWindow, Tabs, Accents)
 # ============================================================================
 
-class TestSynapseSettings:
-    """Test synapse-settings control center, tab structure, and accent actions."""
+class TestPalexusSettings:
+    """Test palexus-settings control center, tab structure, and accent actions."""
 
     @pytest.fixture
     def settings_mod(self):
-        return load_script_module("synapse_settings_mod", HUD_DIR / "synapse-settings")
+        return load_script_module("palexus_settings_mod", HUD_DIR / "palexus-settings")
 
     def test_settings_window_and_tabs(self, qapp, settings_mod):
-        """Verify SynapseSettingsWindow initializes with 4 tabs and expected widgets."""
-        win = settings_mod.SynapseSettingsWindow()
-        assert win.windowTitle() == "Synapse Settings"
+        """Verify PalexusSettingsWindow initializes with 4 tabs and expected widgets."""
+        win = settings_mod.PalexusSettingsWindow()
+        assert win.windowTitle() == "Palexus Settings"
         assert win.tabs.count() == 4
 
         tab_names = [win.tabs.tabText(i) for i in range(win.tabs.count())]
@@ -252,28 +251,28 @@ class TestSynapseSettings:
 
 
 # ============================================================================
-# 4. SYNAPSE-NOTES TESTS (SynapseNotesWindow, Scratchpad, Hotkeys)
+# 4. PALEXUS-NOTES TESTS (PalexusNotesWindow, Scratchpad, Hotkeys)
 # ============================================================================
 
-class TestSynapseNotes:
-    """Test synapse-notes scratchpad, Markdown highlighting, and sync logic."""
+class TestPalexusNotes:
+    """Test palexus-notes scratchpad, Markdown highlighting, and sync logic."""
 
     @pytest.fixture
     def notes_mod(self, tmp_path):
-        os.environ["SYNAPSE_BRAIN"] = str(tmp_path / "AIBrain")
-        mod = load_script_module("synapse_notes_mod", HUD_DIR / "synapse-notes")
+        os.environ["PALEXUS_BRAIN"] = str(tmp_path / "AIBrain")
+        mod = load_script_module("palexus_notes_mod", HUD_DIR / "palexus-notes")
         yield mod
 
     def test_notes_window_initialization_and_sync(self, qapp, notes_mod, tmp_path):
-        """Verify SynapseNotesWindow initializes editor and auto-saves to brain."""
-        win = notes_mod.SynapseNotesWindow()
-        assert win.windowTitle() == "Synapse Notes"
+        """Verify PalexusNotesWindow initializes editor and auto-saves to brain."""
+        win = notes_mod.PalexusNotesWindow()
+        assert win.windowTitle() == "Palexus Notes"
         assert win.editor is not None
         assert win.notes_file.is_file()
 
         # Verify initial contents
         text = win.editor.toPlainText()
-        assert "Synapse Scratchpad" in text
+        assert "Palexus Scratchpad" in text
 
         # Test modifying content and saving
         test_content = "# Test Note Header\n- Offline AI context entry\n"
@@ -294,20 +293,20 @@ class TestSynapseNotes:
 
 
 # ============================================================================
-# 5. SYNAPSE-SCREENSAVER TESTS (CLI Options, Glyphs, Geometry)
+# 5. PALEXUS-SCREENSAVER TESTS (CLI Options, Glyphs, Geometry)
 # ============================================================================
 
-class TestSynapseScreensaver:
-    """Test synapse-screensaver CLI flags, brand glyphs, and torus wireframe math."""
+class TestPalexusScreensaver:
+    """Test palexus-screensaver CLI flags, brand glyphs, and torus wireframe math."""
 
     @pytest.fixture
     def screensaver_mod(self):
-        return load_script_module("synapse_screensaver_mod", THEMES_DIR / "synapse-screensaver")
+        return load_script_module("palexus_screensaver_mod", THEMES_DIR / "palexus-screensaver")
 
     def test_screensaver_glyph_definitions(self, screensaver_mod):
-        """Verify brand reveal cipher glyphs spell SYNAPSE with uniform 5x5 dimensions."""
+        """Verify brand reveal cipher glyphs spell PALEXUS with uniform 5x5 dimensions."""
         glyphs = screensaver_mod.GLYPHS
-        for char in "SYNAPE":
+        for char in "PALEXUS":
             assert char in glyphs, f"Glyph {char} must be defined"
             matrix = glyphs[char]
             assert len(matrix) == 5, f"Glyph {char} must have 5 rows"
