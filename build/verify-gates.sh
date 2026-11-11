@@ -464,6 +464,10 @@ check_file_contains "${REPO_ROOT}/packages/installer/calamares/settings.conf" 's
 check_file_contains "${REPO_ROOT}/packages/desktop/synapse-hud/synapse-oobe-arm" 'synapse-oobe-apply ""' "First-boot sudo rule allows only the argument-less helper"
 check_file_contains "${REPO_ROOT}/packages/desktop/synapse-hud/synapse-oobe-apply" 'os\.remove\(MARKER\)' "First-boot helper disarms itself after one use"
 check_file_contains "${REPO_ROOT}/packages/installer/calamares/modules/shellprocess@cleanup.conf" '00-synapse-live.conf' "Calamares cleanup removes live autologin"
+check_file_contains "${REPO_ROOT}/build/archiso/packages.x86_64" '^cachyos-calamares$' "ISO pins one Calamares build (19 CachyOS packages provide 'calamares')"
+check_file_lacks "${REPO_ROOT}/build/archiso/packages.x86_64" '(?m)^calamares$' "ISO does not leave the Calamares provider to chance"
+check_file_contains "${REPO_ROOT}/packages/installer/calamares/modules/shellprocess@removelive.conf" 'pacman -Rns --noconfirm cachyos-calamares' "Installed systems do not keep the installer"
+check_file_contains "${REPO_ROOT}/packages/installer/calamares/settings.conf" '^ *- shellprocess@removelive$' "Calamares runs the live-package removal step"
 check_file_contains "${REPO_ROOT}/build/build-iso.sh" 'mkarchiso -v -C' "ISO build uses isolated build pacman.conf/keyring"
 
 # Package file-ownership conflicts (pacstrap aborts on these)
