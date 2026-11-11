@@ -60,8 +60,11 @@ class TestSynapseOSGates(unittest.TestCase):
 
         partition = (cal_root / "modules" / "partition.conf").read_text(encoding="utf-8")
         self.assertIn('defaultFileSystemType:  "btrfs"', partition)
+        # Calamares 3.3+ reads the subvolume layout from mount.conf only
+        mount = (cal_root / "modules" / "mount.conf").read_text(encoding="utf-8")
         for subvol in ("/@", "/@home", "/@snapshots", "/@var_log"):
-            self.assertIn(subvol, partition)
+            self.assertIn(subvol, mount)
+        self.assertNotIn("btrfsSubvolumes", partition)
 
         services = (cal_root / "modules" / "services-systemd.conf").read_text(
             encoding="utf-8"

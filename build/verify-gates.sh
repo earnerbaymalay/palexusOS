@@ -443,7 +443,7 @@ for fs in $(grep -oP '^availableFileSystemTypes:.*' "${CAL_PARTITION}" | grep -o
         fail "Installer can format ${fs} (${tool:-no known tool} on the ISO)"
     fi
 done
-check_file_contains "${CAL_PARTITION}" "/@snapshots" "Calamares partition.conf defines @snapshots subvolume"
+check_file_lacks "${CAL_PARTITION}" "btrfsSubvolumes" "Subvolume layout lives only in mount.conf (partition.conf copy is ignored by Calamares 3.3+)"
 check_file_contains "${CAL_SERVICES}" "synapse" "Calamares services-systemd.conf enables synapse service"
 check_file_contains "${CAL_SERVICES}" "sddm" "Calamares services-systemd.conf enables sddm service"
 check_file_contains "${CAL_SERVICES}" "firewalld" "Calamares services-systemd.conf enables firewalld service"
