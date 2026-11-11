@@ -44,13 +44,30 @@ Item {
             sddm.login(userName, password.text, sessionIndex)
     }
 
+    // Account names for Up/Down cycling on the login field
+    property var userNames: []
+    // Typing breaks the field's binding, so push programmatic changes (cycling) back into it
+    onUserNameChanged: if (loginField.text !== userName) loginField.text = userName
+
+    function cycleUser(step) {
+        if (userNames.length === 0)
+            return
+        var i = userNames.indexOf(userName)
+        i = i < 0 ? 0 : (i + step + userNames.length) % userNames.length
+        userName = userNames[i]
+    }
+
     // No remembered user (fresh install): fall back to the first account.
     Repeater {
         model: userModel
         delegate: Item {
             required property int index
             required property string name
-            Component.onCompleted: if (root.userName === "" && index === 0) root.userName = name
+            Component.onCompleted: {
+                root.userNames = root.userNames.concat([name])
+                if (root.userName === "" && index === 0)
+                    root.userName = name
+            }
         }
     }
 
@@ -339,11 +356,37 @@ Item {
                 }
             }
             Item { width: 1; height: 6 * root.s }
-            Text {
-                textFormat: Text.StyledText
-                text: "synapseos login: <font color='" + root.accent + "'>" + root.userName + "</font>"
-                color: root.text
-                font { family: root.mono; pixelSize: 12.5 * root.s }
+            // Editable so any account can sign in: type a name, or Up/Down to cycle accounts
+            Row {
+                width: parent.width
+                height: 28 * root.s
+                spacing: 6 * root.s
+                Text {
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: "synapseos login:"
+                    color: root.text
+                    font { family: root.mono; pixelSize: 12.5 * root.s }
+                }
+                TextField {
+                    id: loginField
+                    objectName: "loginField"
+                    width: parent.width - 150 * root.s
+                    height: parent.height
+                    text: root.userName
+                    placeholderText: "username"
+                    placeholderTextColor: "#7f849c"
+                    color: root.accent
+                    selectionColor: root.withAlpha(root.accent, 0.4)
+                    font { family: root.mono; pixelSize: 12.5 * root.s }
+                    enabled: !root.busy
+                    Accessible.name: "Username"
+                    KeyNavigation.tab: password
+                    background: Item {}
+                    onTextEdited: root.userName = text.trim()
+                    onAccepted: password.forceActiveFocus()
+                    Keys.onUpPressed: root.cycleUser(-1)
+                    Keys.onDownPressed: root.cycleUser(1)
+                }
             }
 
             Row {
@@ -358,6 +401,7 @@ Item {
                 }
                 TextField {
                     id: password
+                    objectName: "password"
                     width: parent.width - 10 * root.s * 2 - enter.width - 80 * root.s
                     height: parent.height
                     echoMode: TextInput.Password
@@ -369,6 +413,7 @@ Item {
                     font { family: root.mono; pixelSize: 14 * root.s }
                     enabled: !root.busy
                     focus: true
+                    KeyNavigation.backtab: loginField
                     Accessible.name: "Password for " + root.userName
                     background: Rectangle {
                         color: "transparent"

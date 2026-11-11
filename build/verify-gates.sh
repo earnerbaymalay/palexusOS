@@ -177,6 +177,7 @@ check_file_contains "${SDDM_MAIN_QML}" "#cdd6f4" "SDDM Main.qml uses Liquid Silv
 check_file_contains "${SDDM_MAIN_QML}" "model: sessionModel" "SDDM Main.qml offers session selection (XFCE/Sway)"
 check_file_contains "${SDDM_MAIN_QML}" "sddm\.login\(" "SDDM Main.qml authenticates via sddm.login"
 check_file_contains "${SDDM_MAIN_QML}" "strokeStyle: ShapePath\.DashLine" "SDDM panel border carries animated accent trails"
+check_file_contains "${SDDM_MAIN_QML}" 'objectName: "loginField"' "SDDM login name is editable, so any account can sign in"
 check_file_contains "${REPO_ROOT}/packages/desktop/synapse-greeter/metadata.desktop" "^QtVersion=6$" "SDDM synapseos theme targets the Qt6 greeter"
 if grep -Eq "password\.text\.length[[:space:]]*===[[:space:]]*0" "${SDDM_MAIN_QML}"; then
     fail "SDDM Main.qml blocks passwordless live user login"
