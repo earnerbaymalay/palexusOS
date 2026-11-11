@@ -279,8 +279,8 @@ Window {
                     title: "⚡ LOCAL INFERENCE"
                     accentColor: "#fab387"
                     items: [
-                        { key: "Q", label: "ask-qwen", desc: "Qwen 2.5 Coder", cmd: "kitty bash -c 'read -p \"Code Query: \" q; [[ -n \"$q\" ]] && ask-qwen \"$q\"; echo; read -p \"Press enter to close...\"'" },
-                        { key: "L", label: "ask-llama", desc: "LLaMA 3.2 Chat", cmd: "kitty bash -c 'read -p \"Ask LLaMA: \" q; [[ -n \"$q\" ]] && ask-llama \"$q\"; echo; read -p \"Press enter to close...\"'" },
+                        { key: "Q", label: "ask-qwen", desc: "Qwen 2.5 Coder", cmd: "kitty bash -c 'read -p \"Code Query: \" q; [[ -n \"$q\" ]] && ollama run qwen2.5-coder:latest \"$q\"; echo; read -p \"Press enter to close...\"'" },
+                        { key: "L", label: "ask-llama", desc: "LLaMA 3.2 Chat", cmd: "kitty bash -c 'read -p \"Ask LLaMA: \" q; [[ -n \"$q\" ]] && ollama run llama3.2:latest \"$q\"; echo; read -p \"Press enter to close...\"'" },
                         { key: "W", label: "ai warm", desc: "Pre-warm Model", cmd: "bash -c 'curl -s -X POST http://127.0.0.1:11434/api/generate -d '\''{\"model\": \"qwen2.5-coder:latest\", \"prompt\": \"Ready\"}'\'' >/dev/null 2>&1 && notify-send \"AI Engine\" \"Pre-warmed code model in RAM\"'" },
                         { key: "F", label: "ai flush", desc: "Flush RAM", cmd: "bash -c 'ollama stop $(ollama ps 2>/dev/null | awk \"NR>1 {print \\$1}\") 2>/dev/null; notify-send \"AI Engine\" \"Flushed resident models\"'" },
                         { key: "O", label: "ollama cli", desc: "Interactive Shell", cmd: "kitty bash -c 'ollama run qwen2.5-coder:latest'" }
@@ -326,7 +326,7 @@ Window {
                     items: [
                         { key: "G", label: "lazygit", desc: "Git Client TUI", cmd: "kitty lazygit" },
                         { key: "Y", label: "yazi", desc: "File Manager", cmd: "kitty yazi" },
-                        { key: "K", label: "squash", desc: "Token Squasher", cmd: "kitty bash -c 'read -p \"Command to squash: \" cmd; [[ -n \"$cmd\" ]] && squash $cmd; echo; read -p \"Press enter to close...\"'" },
+                        { key: "K", label: "squash", desc: "Token Squasher", cmd: "kitty bash -c 'read -p \"Command to squash: \" cmd; [[ -n \"$cmd\" ]] && synapse squash $cmd; echo; read -p \"Press enter to close...\"'" },
                         { key: "T", label: "fastfetch", desc: "System Info", cmd: "kitty --hold fastfetch" },
                         { key: "B", label: "btop", desc: "Resource Monitor", cmd: "kitty btop" }
                     ]
