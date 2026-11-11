@@ -160,6 +160,7 @@ SDDM_CONF_FILE="${REPO_ROOT}/overlay/etc/sddm.conf"
 if [[ -d "${SDDM_CONF_DIR}" ]] || [[ -f "${SDDM_CONF_FILE}" ]]; then
     check_file_contains "${REPO_ROOT}/overlay/etc/sddm.conf.d/10-synapseos.conf" "^Current=synapseos$" "SDDM theme set to synapseos (synapse-greeter)"
     check_file_contains "${REPO_ROOT}/overlay/etc/sddm.conf.d/10-synapseos.conf" "HideUsers=git,ollama,synapse-daemon" "SDDM HideUsers excludes live user 'synapse'"
+    check_file_lacks "${REPO_ROOT}/overlay/etc/sddm.conf.d/10-synapseos.conf" "Catppuccin-Mocha-Mauve-Cursors" "SDDM names no cursor theme that isn't shipped"
 else
     warn "Pending Phase 3 deliverable: SDDM configuration in overlay/etc/sddm*"
 fi
