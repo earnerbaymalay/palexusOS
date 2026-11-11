@@ -333,6 +333,9 @@ check_file_contains "${PACMAN_CONF}" "^\[cachyos-extra-v3\]" "pacman.conf includ
 check_file_contains "${PACMAN_CONF}" "^\[cachyos\]" "pacman.conf includes [cachyos] repo"
 check_file_contains "${PACMAN_CONF}" "^\[core\]" "pacman.conf includes [core] repo"
 check_file_contains "${PACMAN_CONF}" "^\[extra\]" "pacman.conf includes [extra] repo"
+check_file_contains "${PACMAN_CONF}" "SigLevel = Optional DatabaseOptional" "archiso pacman.conf sets explicit SigLevel for [palexusos]"
+check_file_contains "${REPO_ROOT}/overlay/etc/pacman.conf" "SigLevel = Optional DatabaseOptional" "overlay pacman.conf sets explicit SigLevel for [palexusos]"
+check_file_contains "${BUILD_ISO_SH}" "PALEXUS_GPG_KEY" "build-iso.sh supports PALEXUS_GPG_KEY signing"
 
 check_file_contains "${REPO_ROOT}/build/archiso/efiboot/loader/loader.conf" "01-palexusos-x86_64-linux\.conf" "UEFI loader.conf points to PalexusOS entry"
 check_file_contains "${REPO_ROOT}/build/archiso/efiboot/loader/entries/01-palexusos-x86_64-linux.conf" "vmlinuz-linux-cachyos" "UEFI entry boots vmlinuz-linux-cachyos"

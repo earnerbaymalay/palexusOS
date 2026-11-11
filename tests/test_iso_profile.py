@@ -101,6 +101,20 @@ class TestPalexusOSGates(unittest.TestCase):
         self.assertIn("corner-radius", picom_text)
         self.assertNotIn("PS2", picom_text)
 
+    def test_pacman_siglevel_and_signing(self) -> None:
+        """Validate explicit SigLevel and signing support in pacman configs and build-iso.sh."""
+        archiso_pacman = (REPO_ROOT / "build" / "archiso" / "pacman.conf").read_text(encoding="utf-8")
+        self.assertIn("[palexusos]", archiso_pacman)
+        self.assertIn("SigLevel = Optional DatabaseOptional", archiso_pacman)
+
+        overlay_pacman = (REPO_ROOT / "overlay" / "etc" / "pacman.conf").read_text(encoding="utf-8")
+        self.assertIn("[palexusos]", overlay_pacman)
+        self.assertIn("SigLevel = Optional DatabaseOptional", overlay_pacman)
+
+        build_sh = (REPO_ROOT / "build" / "build-iso.sh").read_text(encoding="utf-8")
+        self.assertIn("PALEXUS_GPG_KEY", build_sh)
+        self.assertIn("--sign", build_sh)
+
     def test_boot_splash(self) -> None:
         """Validate the official boot animation package and its boot wiring."""
         ply = REPO_ROOT / "packages" / "desktop" / "palexus-plymouth"

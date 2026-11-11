@@ -4,13 +4,6 @@ Plan the project here. Each card can start a Parallel Code task.
 
 ## Backlog
 
-- [ ] Sign the package repository and the ISO
-  The local repo is added with `repo-add` unsigned and the ISO ships without a signature. Add optional signing to `build/build-iso.sh`, driven by a `PALEXUS_GPG_KEY` environment variable: `repo-add --sign`, detached `.sig` for the ISO and checksum files. Set an explicit `SigLevel` for the `[palexusos]` repo in both pacman configs. Never store key material in the repo; document the CI secret in `docs/RELEASE_CHANNELS.md`.
-  - [ ] With the variable set, repo database, ISO and checksums each have a valid signature
-  - [ ] Without it the build still succeeds and prints a clear unsigned warning
-  - [ ] No key or secret is added to Git
-  depends: Make the ISO build reproducible
-  group: release
 - [ ] Add a scripted QEMU boot smoke test
   Create `build/test-iso-boot.sh` that boots the newest `out/palexusos-*.iso` headless under QEMU/KVM with OVMF, watches the serial console for the graphical target and `palexus.service` becoming active, and exits non-zero on timeout. Base the approach on `build/test-plymouth-container.sh` (also rename its old-brand references). Add a matching gate entry that is skipped when no ISO is present.
   - [ ] Script exits 0 against a good ISO and non-zero against a truncated one
@@ -74,6 +67,14 @@ Plan the project here. Each card can start a Parallel Code task.
 ## Review
 
 ## Done
+
+- [x] Sign the package repository and the ISO
+  The local repo is added with `repo-add` unsigned and the ISO ships without a signature. Add optional signing to `build/build-iso.sh`, driven by a `PALEXUS_GPG_KEY` environment variable: `repo-add --sign`, detached `.sig` for the ISO and checksum files. Set an explicit `SigLevel` for the `[palexusos]` repo in both pacman configs. Never store key material in the repo; document the CI secret in `docs/RELEASE_CHANNELS.md`.
+  - [x] With the variable set, repo database, ISO and checksums each have a valid signature
+  - [x] Without it the build still succeeds and prints a clear unsigned warning
+  - [x] No key or secret is added to Git
+  depends: Make the ISO build reproducible
+  group: release
 
 - [x] Make the ISO build reproducible
   Add `SOURCE_DATE_EPOCH` handling to `build/build-iso.sh` (default to the last commit time) and pass it through to `mkarchiso` and `makepkg`, and pin the upstream daemon source in `packages/core/palexus-core/PKGBUILD` to a tag or commit instead of `#branch=main`. Record the resolved commit and package versions in `out/BUILD_MANIFEST.txt`.

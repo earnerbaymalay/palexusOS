@@ -94,8 +94,10 @@ jobs:
           name: palexusos-live-iso
           path: |
             out/*.iso
+            out/*.sig
             out/SHA256SUMS
             out/SHA512SUMS
+            out/BUILD_MANIFEST.txt
           retention-days: 14
 
       - name: Publish GitHub Release
@@ -108,5 +110,7 @@ jobs:
           generate_release_notes: true
           files: |
             out/*.iso
+            out/*.sig
             out/SHA256SUMS
             out/SHA512SUMS
+            out/BUILD_MANIFEST.txt

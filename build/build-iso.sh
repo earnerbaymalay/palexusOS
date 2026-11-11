@@ -210,7 +210,13 @@ build_local_packages() {
     done
 
     if compgen -G "${LOCAL_REPO_DIR}/*.pkg.tar.*" > /dev/null; then
-        repo-add -R "${LOCAL_REPO_DIR}/palexusos.db.tar.gz" "${LOCAL_REPO_DIR}"/*.pkg.tar.*
+        if [[ -n "${PALEXUS_GPG_KEY:-}" ]]; then
+            echo "==> Signing local repository database with GPG key: ${PALEXUS_GPG_KEY}..."
+            repo-add -R --sign --key "${PALEXUS_GPG_KEY}" "${LOCAL_REPO_DIR}/palexusos.db.tar.gz" "${LOCAL_REPO_DIR}"/*.pkg.tar.*
+        else
+            echo "==> [WARN] PALEXUS_GPG_KEY not set; package repository will be unsigned."
+            repo-add -R "${LOCAL_REPO_DIR}/palexusos.db.tar.gz" "${LOCAL_REPO_DIR}"/*.pkg.tar.*
+        fi
     fi
 
 }
@@ -237,6 +243,7 @@ generate_build_manifest() {
         echo "Git Commit:            $(git -C "${REPO_ROOT}" rev-parse HEAD 2>/dev/null || echo 'unknown')"
         echo "Git Branch:            $(git -C "${REPO_ROOT}" rev-parse --abbrev-ref HEAD 2>/dev/null || echo 'unknown')"
         echo "Git Status Clean:      $([[ -z "$(git -C "${REPO_ROOT}" status --porcelain 2>/dev/null)" ]] && echo 'true' || echo 'false')"
+        echo "GPG Signing Key:       ${PALEXUS_GPG_KEY:-none (unsigned)}"
         echo ""
         echo "Native Packages:"
         echo "------------------------------------------------------------------------------"
@@ -268,6 +275,11 @@ if [[ "${DRY_RUN}" -eq 1 ]]; then
     bash -n "${PROFILE_DIR}/profiledef.sh"
     bash -n "${AIROOTFS_DIR}/root/customize_airootfs.sh"
     generate_build_manifest
+    if [[ -n "${PALEXUS_GPG_KEY:-}" ]]; then
+        echo "==> [DRY-RUN] GPG signing key configured: ${PALEXUS_GPG_KEY}"
+    else
+        echo "==> [WARN] PALEXUS_GPG_KEY not set; package repository and ISO will be unsigned."
+    fi
     echo "==> [DRY-RUN] Archiso profile, CachyOS mirrorlists & RootFS overlay staged and validated."
     echo "    Would execute: mkarchiso -v -C \"${BUILD_PACMAN_CONF}\" -w \"${WORK_DIR}\" -o \"${OUT_DIR}\" \"${PROFILE_DIR}\""
     exit 0
@@ -322,6 +334,44 @@ if [[ "${EUID}" -ne 0 ]]; then
 else
     env SOURCE_DATE_EPOCH="${SOURCE_DATE_EPOCH}" mkarchiso -v -C "${BUILD_PACMAN_CONF}" -w "${WORK_DIR}" -o "${OUT_DIR}" "${PROFILE_DIR}"
 fi
+
+sign_release_artifacts() {
+    local iso_files
+    shopt -s nullglob
+    iso_files=("${OUT_DIR}"/palexusos-*.iso)
+    shopt -u nullglob
+
+    if [[ ${#iso_files[@]} -eq 0 ]]; then
+        return 0
+    fi
+
+    echo "==> Generating SHA256 and SHA512 checksums in ${OUT_DIR}..."
+    (
+        cd "${OUT_DIR}"
+        sha256sum ./palexusos-*.iso > SHA256SUMS
+        sha512sum ./palexusos-*.iso > SHA512SUMS
+    )
+
+    if [[ -n "${PALEXUS_GPG_KEY:-}" ]]; then
+        echo "==> Signing ISO images and checksums with GPG key: ${PALEXUS_GPG_KEY}..."
+        for iso in "${iso_files[@]}"; do
+            echo "    -> Signing ${iso}..."
+            gpg --batch --yes --detach-sign --default-key "${PALEXUS_GPG_KEY}" "${iso}"
+        done
+        if [[ -f "${OUT_DIR}/SHA256SUMS" ]]; then
+            echo "    -> Signing SHA256SUMS..."
+            gpg --batch --yes --detach-sign --default-key "${PALEXUS_GPG_KEY}" "${OUT_DIR}/SHA256SUMS"
+        fi
+        if [[ -f "${OUT_DIR}/SHA512SUMS" ]]; then
+            echo "    -> Signing SHA512SUMS..."
+            gpg --batch --yes --detach-sign --default-key "${PALEXUS_GPG_KEY}" "${OUT_DIR}/SHA512SUMS"
+        fi
+    else
+        echo "==> [WARN] PALEXUS_GPG_KEY not set; ISO images and checksums will be unsigned."
+    fi
+}
+
+sign_release_artifacts
 
 echo "==> [PalexusOS ISO Builder] ISO generation complete. Artifacts in ${OUT_DIR}:"
 ls -lh "${OUT_DIR}"
