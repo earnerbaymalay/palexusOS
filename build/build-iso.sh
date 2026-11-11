@@ -22,6 +22,9 @@ BUILD_GPGDIR="${BUILD_STATE_DIR}/gnupg"
 BUILD_PACMAN_CONF="${BUILD_STATE_DIR}/pacman.conf"
 CACHYOS_KEY_FPR="882DCFE48E2051D48E2562ABF3B607488DB35A47"
 
+# Reproducible build timestamp (Card 11)
+export SOURCE_DATE_EPOCH="${SOURCE_DATE_EPOCH:-$(git log -1 --format=%ct 2>/dev/null || date +%s)}"
+
 DRY_RUN=0
 BUILD_PKGS=0
 
@@ -190,12 +193,12 @@ build_local_packages() {
                     mkdir -p "${user_home}/.cargo"
                     chown -R "${build_user}:${build_user}" "${pkg_dir}" "${LOCAL_REPO_DIR}" "${user_home}"
                     if command -v sudo >/dev/null 2>&1; then
-                        sudo -H -u "${build_user}" env HOME="${user_home}" CARGO_HOME="${user_home}/.cargo" makepkg "${makepkg_flags[@]}"
+                        sudo -H -u "${build_user}" env HOME="${user_home}" CARGO_HOME="${user_home}/.cargo" SOURCE_DATE_EPOCH="${SOURCE_DATE_EPOCH}" makepkg "${makepkg_flags[@]}"
                     else
-                        runuser -u "${build_user}" -- env HOME="${user_home}" CARGO_HOME="${user_home}/.cargo" makepkg "${makepkg_flags[@]}"
+                        runuser -u "${build_user}" -- env HOME="${user_home}" CARGO_HOME="${user_home}/.cargo" SOURCE_DATE_EPOCH="${SOURCE_DATE_EPOCH}" makepkg "${makepkg_flags[@]}"
                     fi
                 else
-                    makepkg "${makepkg_flags[@]}"
+                    SOURCE_DATE_EPOCH="${SOURCE_DATE_EPOCH}" makepkg "${makepkg_flags[@]}"
                 fi
                 cp -f ./*.pkg.tar.* "${LOCAL_REPO_DIR}/"
             )
@@ -205,7 +208,13 @@ build_local_packages() {
     done
 
     if compgen -G "${LOCAL_REPO_DIR}/*.pkg.tar.*" > /dev/null; then
-        repo-add -R "${LOCAL_REPO_DIR}/palexusos.db.tar.gz" "${LOCAL_REPO_DIR}"/*.pkg.tar.*
+        if [[ -n "${PALEXUS_GPG_KEY:-}" ]]; then
+            echo "==> Signing [palexusos] repository database with GPG key: ${PALEXUS_GPG_KEY}..."
+            repo-add --sign --key "$PALEXUS_GPG_KEY" -R "${LOCAL_REPO_DIR}/palexusos.db.tar.gz" "${LOCAL_REPO_DIR}"/*.pkg.tar.*
+        else
+            echo "==> [WARN] PALEXUS_GPG_KEY unset: repository and ISO will be unsigned (development mode)"
+            repo-add -R "${LOCAL_REPO_DIR}/palexusos.db.tar.gz" "${LOCAL_REPO_DIR}"/*.pkg.tar.*
+        fi
     fi
 
 }
@@ -222,6 +231,27 @@ fi
 
 # 5. Dry-run check mode (non-root safe)
 if [[ "${DRY_RUN}" -eq 1 ]]; then
+    echo "==> [DRY-RUN] Validating SOURCE_DATE_EPOCH and BUILD_MANIFEST.txt output path..."
+    if [[ -z "${SOURCE_DATE_EPOCH:-}" ]] || [[ ! "${SOURCE_DATE_EPOCH}" =~ ^[0-9]+$ ]]; then
+        echo "[ERROR] Invalid SOURCE_DATE_EPOCH: '${SOURCE_DATE_EPOCH:-}' (must be a valid integer epoch timestamp)" >&2
+        exit 1
+    fi
+    echo "    SOURCE_DATE_EPOCH: ${SOURCE_DATE_EPOCH}"
+
+    MANIFEST_TARGET="${OUT_DIR}/BUILD_MANIFEST.txt"
+    mkdir -p "${OUT_DIR}"
+    if ! touch "${MANIFEST_TARGET}" 2>/dev/null; then
+        echo "[ERROR] Cannot write to BUILD_MANIFEST.txt path: ${MANIFEST_TARGET}" >&2
+        exit 1
+    fi
+    echo "    BUILD_MANIFEST.txt output path validated: ${MANIFEST_TARGET}"
+
+    if [[ -z "${PALEXUS_GPG_KEY:-}" ]]; then
+        echo "==> [WARN] PALEXUS_GPG_KEY unset: repository and ISO will be unsigned (development mode)"
+    else
+        echo "==> [DRY-RUN] PALEXUS_GPG_KEY is set: ${PALEXUS_GPG_KEY}"
+    fi
+
     echo "==> [DRY-RUN] Validating profiledef.sh and customize_airootfs.sh syntax..."
     bash -n "${PROFILE_DIR}/profiledef.sh"
     bash -n "${AIROOTFS_DIR}/root/customize_airootfs.sh"
@@ -263,6 +293,57 @@ prepare_host_build_env() {
     fi
 }
 
+generate_build_manifest() {
+    local manifest_file="${OUT_DIR}/BUILD_MANIFEST.txt"
+    echo "==> Generating build manifest at ${manifest_file}..."
+    mkdir -p "${OUT_DIR}"
+
+    local git_commit git_commit_time build_datetime target_arch target_profile kernel_version mkarchiso_version
+    git_commit="$(git -C "${REPO_ROOT}" rev-parse HEAD 2>/dev/null || echo "unknown")"
+    git_commit_time="$(git -C "${REPO_ROOT}" log -1 --format=%ci 2>/dev/null || echo "unknown")"
+    build_datetime="$(date -u +"%Y-%m-%d %H:%M:%S UTC")"
+    target_arch="$(uname -m)"
+    target_profile="$(basename "${PROFILE_DIR}")"
+    kernel_version="$(uname -r)"
+
+    if command -v mkarchiso >/dev/null 2>&1; then
+        mkarchiso_version="$(mkarchiso --version 2>&1 | head -n 1 || true)"
+        if [[ -z "${mkarchiso_version}" ]] && command -v pacman >/dev/null 2>&1; then
+            mkarchiso_version="$(pacman -Q archiso 2>/dev/null || true)"
+        fi
+    else
+        mkarchiso_version="not installed"
+    fi
+    mkarchiso_version="${mkarchiso_version:-unknown}"
+
+    {
+        echo "PalexusOS Build Manifest"
+        echo "========================"
+        echo "PalexusOS Git Commit: ${git_commit}"
+        echo "Commit Timestamp: ${git_commit_time}"
+        echo "SOURCE_DATE_EPOCH: ${SOURCE_DATE_EPOCH}"
+        echo "Build Timestamp: ${build_datetime}"
+        echo "Target Architecture: ${target_arch}"
+        echo "Target Profile: ${target_profile}"
+        echo "Kernel Version: ${kernel_version}"
+        echo "mkarchiso Version: ${mkarchiso_version}"
+        echo ""
+        echo "Built Repository Packages (${LOCAL_REPO_DIR}):"
+        if compgen -G "${LOCAL_REPO_DIR}/*.pkg.tar.*" > /dev/null; then
+            for pkg in "${LOCAL_REPO_DIR}"/*.pkg.tar.*; do
+                local pkg_name pkg_size
+                pkg_name="$(basename "${pkg}")"
+                pkg_size="$(du -h "${pkg}" | cut -f1)"
+                echo "- ${pkg_name} (${pkg_size})"
+            done
+        else
+            echo "- (no built packages found in local repository)"
+        fi
+    } > "${manifest_file}"
+
+    echo "==> Build manifest successfully written to ${manifest_file}"
+}
+
 # 7. Execute mkarchiso (requires root privileges)
 if ! command -v mkarchiso >/dev/null 2>&1; then
     echo "[ERROR] mkarchiso not found. Install 'archiso' (sudo pacman -S archiso)." >&2
@@ -274,9 +355,43 @@ mkdir -p "${OUT_DIR}"
 
 if [[ "${EUID}" -ne 0 ]]; then
     echo "==> Elevating privileges via sudo to run mkarchiso..."
-    sudo mkarchiso -v -C "${BUILD_PACMAN_CONF}" -w "${WORK_DIR}" -o "${OUT_DIR}" "${PROFILE_DIR}"
+    sudo env SOURCE_DATE_EPOCH="${SOURCE_DATE_EPOCH}" mkarchiso -v -C "${BUILD_PACMAN_CONF}" -w "${WORK_DIR}" -o "${OUT_DIR}" "${PROFILE_DIR}"
 else
-    mkarchiso -v -C "${BUILD_PACMAN_CONF}" -w "${WORK_DIR}" -o "${OUT_DIR}" "${PROFILE_DIR}"
+    SOURCE_DATE_EPOCH="${SOURCE_DATE_EPOCH}" mkarchiso -v -C "${BUILD_PACMAN_CONF}" -w "${WORK_DIR}" -o "${OUT_DIR}" "${PROFILE_DIR}"
+fi
+
+# 8. Post-build manifest generation, checksums, and optional GPG signing
+generate_build_manifest
+
+CHECKSUM_FILE="${OUT_DIR}/SHA256SUMS"
+# shellcheck disable=SC2012
+iso_out="$(ls -t "${OUT_DIR}"/palexusos-*.iso 2>/dev/null | head -n 1 || true)"
+
+if [[ -n "${iso_out}" && -f "${iso_out}" ]]; then
+    echo "==> Generating ISO checksums..."
+    (
+        cd "${OUT_DIR}"
+        sha256sum "$(basename "${iso_out}")" > "$(basename "${CHECKSUM_FILE}")"
+        sha512sum "$(basename "${iso_out}")" > SHA512SUMS
+    )
+fi
+
+if [[ -n "${PALEXUS_GPG_KEY:-}" ]]; then
+    echo "==> Signing release artifacts using GPG key: ${PALEXUS_GPG_KEY}..."
+    if [[ -n "${iso_out}" && -f "${iso_out}" ]]; then
+        echo "    -> Signing ISO detached: ${iso_out}.sig"
+        gpg --batch --yes --detach-sign --default-key "$PALEXUS_GPG_KEY" --output "${iso_out}.sig" "${iso_out}"
+    fi
+    if [[ -f "${CHECKSUM_FILE}" ]]; then
+        echo "    -> Signing checksums detached: ${CHECKSUM_FILE}.sig"
+        gpg --batch --yes --detach-sign --default-key "$PALEXUS_GPG_KEY" --output "${CHECKSUM_FILE}.sig" "${CHECKSUM_FILE}"
+    fi
+    if [[ -f "${OUT_DIR}/SHA512SUMS" ]]; then
+        echo "    -> Signing SHA512SUMS detached: ${OUT_DIR}/SHA512SUMS.sig"
+        gpg --batch --yes --detach-sign --default-key "$PALEXUS_GPG_KEY" --output "${OUT_DIR}/SHA512SUMS.sig" "${OUT_DIR}/SHA512SUMS"
+    fi
+else
+    echo "==> [WARN] PALEXUS_GPG_KEY unset: repository and ISO will be unsigned (development mode)"
 fi
 
 echo "==> [PalexusOS ISO Builder] ISO generation complete. Artifacts in ${OUT_DIR}:"

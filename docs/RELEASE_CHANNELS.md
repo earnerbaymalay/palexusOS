@@ -106,3 +106,139 @@ sudo snapper rollback 14
 # 3. Reboot into restored state:
 sudo reboot
 ```
+
+---
+
+## 5. Artifact Signing & Cryptographic Verification
+
+All production release artifacts (ISO images, package databases, and checksum lists) are cryptographically signed using GPG detached signatures (`.sig`).
+
+### 5.1 Build Pipeline Signing (`PALEXUS_GPG_KEY`)
+
+The ISO build toolchain (`build/build-iso.sh`) supports automated cryptographic signing driven by the `PALEXUS_GPG_KEY` environment variable:
+
+- **When `PALEXUS_GPG_KEY` is set**:
+  - Native package repositories are signed during `repo-add`:
+    ```bash
+    repo-add --sign --key "$PALEXUS_GPG_KEY" -R out/repo/palexusos.db.tar.gz out/repo/*.pkg.tar.*
+    ```
+  - The Live ISO image is signed with a detached signature:
+    ```bash
+    gpg --batch --yes --detach-sign --default-key "$PALEXUS_GPG_KEY" --output out/palexusos-<version>-x86_64.iso.sig out/palexusos-<version>-x86_64.iso
+    ```
+  - Release checksum files (`SHA256SUMS` and `SHA512SUMS`) are signed:
+    ```bash
+    gpg --batch --yes --detach-sign --default-key "$PALEXUS_GPG_KEY" --output out/SHA256SUMS.sig out/SHA256SUMS
+    ```
+- **When `PALEXUS_GPG_KEY` is unset**:
+  - `build/build-iso.sh` proceeds in development mode without `--sign`.
+  - Emits a diagnostic notice: `[WARN] PALEXUS_GPG_KEY unset: repository and ISO will be unsigned (development mode)`.
+
+> [!SECURITY]
+> **Key Security**: Never commit private keys or credentials to Git. In CI/CD pipelines (e.g. GitHub Actions), import the key into the runner's GPG keyring from an encrypted repository secret (`PALEXUS_GPG_KEY_ARMORED`) and export `PALEXUS_GPG_KEY` with the signing key fingerprint.
+
+---
+
+### 5.2 Package Repository Signature Policy (`pacman.conf`)
+
+In `/etc/pacman.conf` and `build/archiso/pacman.conf`, the `[palexusos]` repository directive defaults to:
+```ini
+[palexusos]
+SigLevel = Optional TrustAll
+Server = file:///var/cache/palexusos-repo
+```
+- **Development / Local Builds**: Uses `Optional TrustAll` so that unsigned or self-built packages can be tested immediately without managing keyring trust.
+- **Production Deployment**: Once the PalexusOS official signing key is imported and signed into the pacman keyring (`pacman-key --add ... && pacman-key --lsign-key ...`), enforce strict cryptographic verification by switching to:
+```ini
+[palexusos]
+SigLevel = Required DatabaseOptional
+Server = https://packages.palexusos.org/stable/x86_64
+```
+
+---
+
+### 5.3 Verifying Release Artifacts
+
+Before booting or installing a downloaded ISO, always verify its integrity and authenticity.
+
+#### Step 1: Import PalexusOS Release Signing Key
+Import the official PalexusOS Release Engineering GPG public key:
+```bash
+gpg --keyserver hkps://keyserver.ubuntu.com --recv-keys <PALEXUSOS_RELEASE_KEY_FINGERPRINT>
+```
+
+#### Step 2: Verify the Checksums File Signature
+Verify that `SHA256SUMS` was signed by the official PalexusOS release key:
+```bash
+gpg --verify SHA256SUMS.sig SHA256SUMS
+```
+Expected output:
+```text
+gpg: Signature made ... using RSA key <PALEXUSOS_RELEASE_KEY_FINGERPRINT>
+gpg: Good signature from "PalexusOS Release Engineering <releases@palexusos.org>" [full]
+```
+
+#### Step 3: Validate ISO Checksums
+Check the SHA-256 hash of the downloaded ISO:
+```bash
+sha256sum --check --ignore-missing SHA256SUMS
+```
+Expected output:
+```text
+palexusos-2026.11.12-x86_64.iso: OK
+```
+
+#### Step 4: Verify the ISO Detached Signature Directly
+Alternatively or in addition, verify the detached signature directly against the ISO file:
+```bash
+gpg --verify palexusos-2026.11.12-x86_64.iso.sig palexusos-2026.11.12-x86_64.iso
+```
+Expected output:
+```text
+gpg: Good signature from "PalexusOS Release Engineering <releases@palexusos.org>"
+```
+
+---
+
+## 6. Automated QEMU Boot Smoke Testing
+
+To guarantee that generated ISO images boot reliably on bare metal and hypervisors, PalexusOS includes a dedicated headless virtual machine smoke test harness: `build/test-iso-boot.sh`.
+
+The test runs without root privileges, launches QEMU with UEFI firmware (OVMF), connects to the virtual serial console, and monitors boot milestones until the live user target is reached.
+
+### 6.1 Boot Milestones Monitored
+
+The smoke test observes three progressive boot convergence milestones:
+1. **Milestone 1 — Kernel Initialization**: Detection of Linux kernel banner, EDK II UEFI boot loader, or EFI stub (`vmlinuz-linux-cachyos`).
+2. **Milestone 2 — System Services**: systemd daemon convergence and startup of the core AI runtime (`palexus.service`).
+3. **Milestone 3 — Live Target**: Live login prompt reachability or graphical target convergence (`PalexusOS Live` / `palexus-live`).
+
+### 6.2 Running Locally
+
+```bash
+# 1. Verify host prerequisites (QEMU, OVMF firmware, KVM accessibility):
+./build/test-iso-boot.sh --check
+
+# 2. Dry-run verification (validates tools and outputs planned QEMU command):
+./build/test-iso-boot.sh --dry-run
+
+# 3. Execute live boot test against newest generated ISO in out/:
+./build/test-iso-boot.sh
+
+# 4. Target a specific ISO image with custom timeout and memory allocation:
+./build/test-iso-boot.sh --iso out/palexusos-2026.11.12-x86_64.iso --timeout 90 --memory 4096 --smp 4
+
+# 5. Monitor a custom boot marker:
+./build/test-iso-boot.sh --marker "palexus.service"
+```
+
+### 6.3 Release Pipeline Integration
+
+In continuous integration and release workflows:
+- **Gate G4 Pre-flight**: `./build/verify-gates.sh` automatically runs `./build/test-iso-boot.sh --check` to verify that the build environment satisfies virtualization prerequisites.
+- **Nightly & Canary Packaging**: After `mkarchiso` finishes ISO generation in `build/build-iso.sh`, CI runners invoke:
+  ```bash
+  ./build/test-iso-boot.sh --timeout 150 --iso out/palexusos-*.iso
+  ```
+  Only ISO images that pass the boot smoke test are uploaded to the GitHub Releases portal or promoted to the Stable channel.
+
