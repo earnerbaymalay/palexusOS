@@ -461,7 +461,7 @@ Presentation {
                 Column {
                     spacing: 4
                     Text {
-                        text: "Local AI & Synapse Memory Engine"
+                        text: "Local AI & Palexus Memory Engine"
                         font.family: "DejaVu Sans, Inter, sans-serif"
                         font.pixelSize: 24
                         font.bold: true
@@ -554,7 +554,7 @@ Presentation {
                             anchors.margins: 12
                             spacing: 3
                             Text {
-                                text: "Synapse Memory Engine"
+                                text: "Palexus Memory Engine"
                                 font.family: "DejaVu Sans, Inter, sans-serif"
                                 font.pixelSize: 12
                                 font.bold: true
