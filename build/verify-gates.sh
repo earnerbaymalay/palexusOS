@@ -234,6 +234,9 @@ check_file_contains "${WAYBAR_STYLE}" "#1e1e2e" "Waybar style.css uses Catppucci
 check_file_contains "${WAYBAR_STYLE}" "#cba6f7" "Waybar style.css uses Catppuccin Mocha Mauve (#cba6f7)"
 check_file_contains "${WAYBAR_STYLE}" "#cdd6f4" "Waybar style.css uses Liquid Silver Chrome (#cdd6f4)"
 check_file_contains "${WAYBAR_STYLE}" "#custom-installer" "Waybar style.css styles #custom-installer in mauve"
+check_file_contains "${WAYBAR_STYLE}" '^@import "theme-colors\.css";' "Waybar takes its accent from the theme switcher"
+check_file_contains "${REPO_ROOT}/overlay/etc/skel/.config/waybar/theme-colors.css" '^@define-color accent #cba6f7;$' "New users get a default Waybar accent to import"
+check_file_contains "${REPO_ROOT}/packages/desktop/synapse-themes/synapse-theme" 'client\.focused \$\{accent\}' "Theme switcher recolours Sway window borders"
 
 if grep -Rqs -i "#00a8ff" "${REPO_ROOT}/overlay" "${REPO_ROOT}/packages/installer/calamares"; then
     fail "Legacy #00a8ff color found in overlay/ or Calamares branding"

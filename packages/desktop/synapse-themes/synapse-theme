@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# synapse-theme — SynapseOS system theme switcher (wallpaper + Kitty + Rofi palette)
+# synapse-theme — SynapseOS system theme switcher (wallpaper, Kitty, Rofi, Waybar, Sway borders)
 # Usage: synapse-theme [THEME] | --menu | --restore | --list | --register-shortcut | --sync-greeter [THEME]
 # The boot animation is fixed (synapse-plymouth) and does not follow the accent.
 set -euo pipefail
@@ -10,6 +10,8 @@ STATE_FILE="${CONFIG_DIR}/synapse/theme"
 # Shared with quickfire-theme so Kitty/Rofi pick up whichever switcher ran last
 KITTY_THEME_FILE="${CONFIG_DIR}/kitty/quickfire-colors.conf"
 ROFI_THEME_FILE="${CONFIG_DIR}/rofi/quickfire-theme.rasi"
+# Imported by ~/.config/waybar/style.css
+WAYBAR_THEME_FILE="${CONFIG_DIR}/waybar/theme-colors.css"
 DEFAULT_THEME="monolith-mauve"
 XFCE_SHORTCUT="<Primary><Super>t"
 # Login screen (synapse-greeter) reads its variant from this SDDM theme override
@@ -129,6 +131,24 @@ listview { background-color: transparent; columns: 1; lines: 12; spacing: 4px; }
 element { padding: 8px 12px; background-color: transparent; text-color: @fg-col; border-radius: 6px; }
 element selected { background-color: @selected-col; text-color: @fg-col2; border: 1px; border-color: @border-col; }
 EOF
+
+    mkdir -p "$(dirname "$WAYBAR_THEME_FILE")"
+    cat << EOF > "$WAYBAR_THEME_FILE"
+/* Accent colour for Waybar: rewritten by synapse-theme when you change theme. */
+@define-color accent ${accent};
+EOF
+}
+
+# Sway window borders and Waybar follow the theme in the running session;
+# sway's config runs --restore at login so the choice survives a restart.
+apply_session_colors() {
+    local surface="$1" accent="$2"
+    if [[ -n "${SWAYSOCK:-}" ]] && command -v swaymsg >/dev/null 2>&1; then
+        swaymsg -q "client.focused ${accent} ${surface} #cdd6f4 ${accent} ${accent}" || true
+        swaymsg -q "client.urgent ${accent} ${surface} #cdd6f4 ${accent} ${accent}" || true
+    fi
+    # SIGUSR2 makes Waybar reload its config and stylesheet
+    pkill -USR2 -x waybar 2>/dev/null || true
 }
 
 apply_theme() {
@@ -144,6 +164,7 @@ apply_theme() {
     printf '%s\n' "$id" > "$STATE_FILE"
     write_palettes "$base" "$surface" "$accent" "$secondary"
     set_wallpaper "${WALLPAPER_DIR}/${wallpaper}"
+    apply_session_colors "$surface" "$accent"
 
     # Live reload running Kitty terminals
     pkill -USR1 -x kitty 2>/dev/null || true
