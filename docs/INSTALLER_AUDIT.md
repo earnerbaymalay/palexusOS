@@ -23,9 +23,21 @@
 | I4 | ✅ fixed | `responder` removed. Every other pack package was confirmed to exist in Arch `extra`. |
 | I5 | ✅ fixed | `xfsprogs` and `f2fs-tools` added to the ISO |
 
-- **Gates:** 8 new checks. On a clean Linux clone they pass 286/286. Run against the pre-fix files, all 8 fail as intended.
-- **Pytest:** 38/39; the one failure is the HUD test, same as before.
-- **Still open:** I6 (removing Calamares from the installed system), I7–I15, line endings, and a real VM install.
+| I6 | ✅ fixed | New `shellprocess@removelive` step uninstalls `cachyos-calamares` and `mkinitcpio-archiso` right after the bootloader |
+| I7 | ✅ fixed | ISO pins `cachyos-calamares` (3.4.2, the build these configs were checked against) |
+| I8 | ✅ fixed | Text-mode fallback on tty2 (`synapse-oobe-recovery` + service). It runs only while setup is pending, sends the request on stdin to the same validated helper, and is disabled by `--finalize`. Documented in the README (Ctrl+Alt+F2). |
+| I9 | ✅ fixed | Pack renamed "Python Scripting Libraries" with only the 2 packages it adds. The packs page says packs need internet. |
+| I10 | ✅ fixed | Six unbacked slideshow claims reworded |
+| I11 | ✅ fixed | Duplicate subvolume/mount config removed from `partition.conf`; the test and gate now check `mount.conf` |
+| I12 | ✅ fixed | Unused `users.conf` removed |
+| I13 | ✅ documented | Note in `mount.conf` on how a future snapper setup must treat `/.snapshots` |
+| I14 | not changed | Calamares shrinks its window to fit the screen, so 960×620 shouldn't overflow. Confirm in a VM at 800×600. |
+| I15 | ✅ fixed | Version strings agree |
+| Line endings | ✅ fixed | `.gitattributes` forces LF. Proven: a clone made with `core.autocrlf=true` gets LF scripts on this branch and CRLF on `onboarding-redesign`. |
+
+- **Gates:** 293/293 on a clean Linux clone (8 checks added for I1–I5, and more since). Run against the pre-fix files, the I1–I5 checks fail as intended.
+- **Pytest:** 45/46; 7 new tests for the tty2 fallback. The one failure is the old HUD test (`test_hud_backend_signals_and_launch`), not the installer.
+- **Still open:** a real install in a VM, especially for I2 (root launch under Wayland), the encrypted-install path of I1, I8 on real hardware, and I14.
 
 ---
 
