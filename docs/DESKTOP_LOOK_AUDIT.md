@@ -40,6 +40,16 @@
 - **L8:** start picom (prettier, but its GLX backend can show a black screen in some VMs), or remove `picom.conf` and the blur claim?
 - **L9:** ship `orca` (screen reader, ~10 MB with deps), or unbind the shortcut?
 
-## Fix plan (this branch)
+## Progress
 
-L1 → L2 → L3 → L4 → L5 → L6, one commit each, each with a gate check or test that fails on the old code.
+| # | Status | Proven by |
+|---|---|---|
+| L1 | ✅ second swaybg removed. VM check: confirm the wallpaper changes on Sway. | gate "Sway runs no second swaybg", `test_iso_profile.py` |
+| L2 | ✅ Waybar imports `theme-colors.css` written by `synapse-theme`; Sway borders follow via `swaymsg` | `tests/test_synapse_theme.py` (5 tests), 3 gates |
+| L3 | ✅ editable login name; Up/Down cycles accounts | `tests/test_greeter.py` (3 offscreen QML tests; they fail on the old greeter), gate |
+| L4 | ✅ phantom cursor theme removed | gate |
+| L5 | ✅ Alt+F1 opens the applications menu; `xorg-xkill` added to the ISO | 2 gates |
+| L6 | ✅ fake and security-weakening Chromium flags removed from both flag files; FAQ corrected | 2 gates |
+| L7–L9 | open: decisions for you (above) | — |
+
+On a clean Linux clone this branch passes 302/302 gates. Merged with `boot-firstboot-fixes`, the result passes 309/309 gates, 63/63 pytest and ShellCheck.
