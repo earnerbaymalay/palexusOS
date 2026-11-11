@@ -1,0 +1,26 @@
+# Maintainer: PalexusOS Engineering Team <maintainers@palexusos.org>
+pkgname=palexus-ebpf-guard
+pkgver=0.1.0
+pkgrel=1
+pkgdesc="Kernel eBPF and userspace DLP secret leak interceptor for PalexusOS"
+arch=('any')
+url="https://github.com/earnerbaymalay/synapseOS"
+license=('MIT' 'Apache-2.0')
+depends=('python')
+backup=('etc/palexus/ebpf-guard.toml')
+source=(
+  "palexus-ebpf-guard"
+  "palexus-ebpf-guard.service"
+  "ebpf-guard.toml"
+)
+sha256sums=(
+  'SKIP'
+  'SKIP'
+  'SKIP'
+)
+
+package() {
+  install -Dm755 "${srcdir}/palexus-ebpf-guard" "${pkgdir}/usr/bin/palexus-ebpf-guard"
+  install -Dm644 "${srcdir}/palexus-ebpf-guard.service" "${pkgdir}/usr/lib/systemd/system/palexus-ebpf-guard.service"
+  install -Dm644 "${srcdir}/ebpf-guard.toml" "${pkgdir}/etc/palexus/ebpf-guard.toml"
+}

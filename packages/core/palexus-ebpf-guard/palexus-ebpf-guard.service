@@ -1,0 +1,17 @@
+[Unit]
+Description=PalexusOS eBPF & DLP Secret Leak Interceptor Guard
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/palexus-ebpf-guard run
+Restart=on-failure
+RestartSec=3
+ProtectSystem=strict
+ProtectHome=read-only
+NoNewPrivileges=true
+CapabilityBoundingSet=CAP_BPF CAP_NET_ADMIN CAP_SYS_PTRACE
+AmbientCapabilities=CAP_BPF CAP_NET_ADMIN CAP_SYS_PTRACE
+
+[Install]
+WantedBy=multi-user.target

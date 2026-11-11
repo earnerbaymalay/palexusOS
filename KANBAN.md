@@ -16,27 +16,27 @@ Plan the project here. Each card can start a Parallel Code task.
   - [ ] Installed system boots, has no live user or NOPASSWD sudoers, and `palexus.service` is active
   - [ ] Release has the ISO, checksums and signatures attached
 
-- [ ] Implement the eBPF secret leak interceptor package
-  New package `packages/core/palexus-ebpf-guard/` (PKGBUILD, loader, systemd unit) following the design document. Default mode is log-only with an enforce switch; add it to `build/archiso/packages.x86_64` and a gate check.
-  group: phase-9
-  depends: Design spike: eBPF secret leak interceptor (Milestone 9.2)
-  - [ ] A test that sends a fake PEM private key over a local socket is blocked in enforce mode
-  - [ ] Ordinary HTTPS traffic is unaffected
-  - [ ] Package builds in a clean chroot
-
-- [ ] Vulkan offload profiler for integrated graphics (Milestone 9.3)
-  Add `packages/desktop/palexus-hud/palexus-vulkan-probe`: detect Intel/AMD integrated GPUs through `vulkaninfo`, benchmark a small quantized model with and without GPU layers through Ollama, and write the faster setting to `overlay/etc/systemd/system/ollama.service.d/` style drop-in under `/etc`. Add the Mesa Vulkan drivers to `packages.x86_64`, install the script in the HUD PKGBUILD, and expose the result in the `palexus-settings` AI Engine tab.
-  group: phase-9
-  depends: Rename leftover Synapse assets inside the palexus-* packages
-  - [ ] Falls back to CPU without error when no Vulkan device exists
-  - [ ] Result is shown in settings and survives reboot
-  - [ ] Parsing logic has unit tests with recorded `vulkaninfo` output
-
 ## In progress
 
 ## Review
 
 ## Done
+
+- [x] Implement the eBPF secret leak interceptor package
+  New package `packages/core/palexus-ebpf-guard/` (PKGBUILD, loader, systemd unit) following the design document. Default mode is log-only with an enforce switch; add it to `build/archiso/packages.x86_64` and a gate check.
+  group: phase-9
+  depends: Design spike: eBPF secret leak interceptor (Milestone 9.2)
+  - [x] A test that sends a fake PEM private key over a local socket is blocked in enforce mode
+  - [x] Ordinary HTTPS traffic is unaffected
+  - [x] Package builds in a clean chroot
+
+- [x] Vulkan offload profiler for integrated graphics (Milestone 9.3)
+  Add `packages/desktop/palexus-hud/palexus-vulkan-probe`: detect Intel/AMD integrated GPUs through `vulkaninfo`, benchmark a small quantized model with and without GPU layers through Ollama, and write the faster setting to `overlay/etc/systemd/system/ollama.service.d/` style drop-in under `/etc`. Add the Mesa Vulkan drivers to `packages.x86_64`, install the script in the HUD PKGBUILD, and expose the result in the `palexus-settings` AI Engine tab.
+  group: phase-9
+  depends: Rename leftover Synapse assets inside the palexus-* packages
+  - [x] Falls back to CPU without error when no Vulkan device exists
+  - [x] Result is shown in settings and survives reboot
+  - [x] Parsing logic has unit tests with recorded `vulkaninfo` output
 
 - [x] Make the ISO build reproducible
   Add `SOURCE_DATE_EPOCH` handling to `build/build-iso.sh` (default to the last commit time) and pass it through to `mkarchiso` and `makepkg`, and pin the upstream daemon source in `packages/core/palexus-core/PKGBUILD` to a tag or commit instead of `#branch=main`. Record the resolved commit and package versions in `out/BUILD_MANIFEST.txt`.

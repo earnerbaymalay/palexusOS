@@ -1,0 +1,492 @@
+#!/usr/bin/env python3
+"""palexus-vulkan-probe — Vulkan Offload Profiler for PalexusOS.
+
+Detects Intel and AMD integrated and discrete GPUs, parses Vulkan capability
+profiles, calculates optimal Ollama / llama.cpp offload layer counts and
+environment variables, and provisions systemd service overrides.
+"""
+
+import os
+import sys
+import re
+import json
+import shutil
+import argparse
+import subprocess
+from pathlib import Path
+
+# Vendor ID constants
+VENDOR_INTEL = "0x8086"
+VENDOR_AMD = "0x1002"
+VENDOR_NVIDIA = "0x10de"
+VENDOR_MESA_CPU = "0x10005"
+
+VENDOR_NAMES = {
+    VENDOR_INTEL: "Intel",
+    VENDOR_AMD: "AMD",
+    VENDOR_NVIDIA: "NVIDIA",
+    VENDOR_MESA_CPU: "Mesa/LLVM (CPU)",
+}
+
+
+def get_meminfo_total_kb() -> int:
+    """Read total system RAM in kilobytes from /proc/meminfo or mock path."""
+    meminfo_path = Path(os.environ.get("PALEXUS_MEMINFO_PATH", "/proc/meminfo"))
+    if meminfo_path.is_file():
+        try:
+            content = meminfo_path.read_text(encoding="utf-8", errors="replace")
+            for line in content.splitlines():
+                if line.startswith("MemTotal:"):
+                    parts = line.split()
+                    if len(parts) >= 2 and parts[1].isdigit():
+                        return int(parts[1])
+        except Exception:
+            pass
+    # Fallback: 16 GB default
+    return 16 * 1024 * 1024
+
+
+def inspect_drm_sysfs(drm_dir_path: str = None) -> list:
+    """Inspect /sys/class/drm/ (or mock directory) for GPU cards and render nodes."""
+    target_dir = Path(drm_dir_path or os.environ.get("PALEXUS_DRM_DIR", "/sys/class/drm"))
+    cards = []
+    if not target_dir.is_dir():
+        return cards
+
+    # Locate render nodes
+    render_nodes = []
+    render_dev_override = os.environ.get("PALEXUS_RENDER_DEV")
+    if render_dev_override:
+        render_nodes.append(render_dev_override)
+    else:
+        for node in sorted(target_dir.glob("renderD*")):
+            render_nodes.append(f"/dev/dri/{node.name}")
+        if not render_nodes and Path("/dev/dri").is_dir():
+            for node in sorted(Path("/dev/dri").glob("renderD*")):
+                render_nodes.append(str(node))
+
+    primary_render_node = render_nodes[0] if render_nodes else None
+
+    # Inspect card entries
+    for card_dir in sorted(target_dir.glob("card*")):
+        # Only direct card directories like card0, card1 (skip card0-DP-1, etc.)
+        if "-" in card_dir.name:
+            continue
+        vendor_file = card_dir / "device" / "vendor"
+        device_file = card_dir / "device" / "device"
+
+        vendor_id = None
+        device_id = None
+        if vendor_file.is_file():
+            try:
+                vendor_id = vendor_file.read_text(encoding="utf-8").strip().lower()
+            except Exception:
+                pass
+        if device_file.is_file():
+            try:
+                device_id = device_file.read_text(encoding="utf-8").strip().lower()
+            except Exception:
+                pass
+
+        if vendor_id:
+            vendor_name = VENDOR_NAMES.get(vendor_id, "Unknown Vendor")
+            cards.append({
+                "card": card_dir.name,
+                "vendor_id": vendor_id,
+                "vendor": vendor_name,
+                "device_id": device_id,
+                "render_node": primary_render_node,
+            })
+
+    return cards
+
+
+def parse_vulkaninfo_output(raw_text: str) -> list:
+    """Parse vulkaninfo --summary or vulkaninfo output into structured device list."""
+    devices = []
+    current_device = None
+
+    # Split by GPU header: 'GPU0:', 'GPU1:', etc.
+    gpu_split = re.split(r'(?m)^(?=[ \t]*GPU\d+:\s*$)', raw_text)
+
+    # If devices split into sections
+    for section in gpu_split:
+        if not re.search(r'GPU\d+:', section):
+            continue
+
+        dev = {
+            "index": len(devices),
+            "apiVersion": None,
+            "driverVersion": None,
+            "vendorID": None,
+            "deviceID": None,
+            "deviceType": None,
+            "deviceName": None,
+            "driverID": None,
+            "driverName": None,
+            "driverInfo": None,
+        }
+
+        match_idx = re.search(r'GPU(\d+):', section)
+        if match_idx:
+            dev["index"] = int(match_idx.group(1))
+
+        for line in section.splitlines():
+            line = line.strip()
+            if "=" in line:
+                key, val = [p.strip() for p in line.split("=", 1)]
+                if key in dev:
+                    dev[key] = val
+
+        # Normalize vendor ID
+        if dev["vendorID"]:
+            vid = dev["vendorID"].lower()
+            if not vid.startswith("0x"):
+                vid = f"0x{vid}"
+            dev["vendorID"] = vid
+            dev["vendor"] = VENDOR_NAMES.get(vid, "Unknown")
+        else:
+            dev["vendor"] = "Unknown"
+
+        # Normalize device ID
+        if dev["deviceID"]:
+            did = dev["deviceID"].lower()
+            if not did.startswith("0x"):
+                did = f"0x{did}"
+            dev["deviceID"] = did
+
+        # Normalize deviceType
+        dtype = dev.get("deviceType") or ""
+        if "INTEGRATED_GPU" in dtype:
+            dev["normalized_type"] = "INTEGRATED_GPU"
+        elif "DISCRETE_GPU" in dtype:
+            dev["normalized_type"] = "DISCRETE_GPU"
+        elif "CPU" in dtype:
+            dev["normalized_type"] = "CPU"
+        else:
+            dev["normalized_type"] = "OTHER"
+
+        devices.append(dev)
+
+    return devices
+
+
+def run_vulkaninfo() -> str:
+    """Run vulkaninfo --summary or read PALEXUS_VULKANINFO_PATH mock."""
+    mock_path = os.environ.get("PALEXUS_VULKANINFO_PATH")
+    if mock_path:
+        p = Path(mock_path)
+        if p.is_file():
+            return p.read_text(encoding="utf-8", errors="replace")
+        return ""
+
+    if not shutil.which("vulkaninfo"):
+        return ""
+
+    try:
+        proc = subprocess.run(
+            ["vulkaninfo", "--summary"],
+            capture_output=True,
+            text=True,
+            timeout=5,
+            check=False,
+        )
+        if proc.returncode == 0 and "GPU" in proc.stdout:
+            return proc.stdout
+    except Exception:
+        pass
+
+    try:
+        proc = subprocess.run(
+            ["vulkaninfo"],
+            capture_output=True,
+            text=True,
+            timeout=8,
+            check=False,
+        )
+        if proc.returncode == 0:
+            return proc.stdout
+    except Exception:
+        pass
+
+    return ""
+
+
+def get_dropin_target() -> Path:
+    """Return path to 10-vulkan.conf systemd drop-in override."""
+    override_dir = os.environ.get("PALEXUS_OLLAMA_OVERRIDE_DIR")
+    if override_dir:
+        return Path(override_dir) / "10-vulkan.conf"
+    return Path("/etc/systemd/system/ollama.service.d/10-vulkan.conf")
+
+
+def probe_vulkan() -> dict:
+    """Analyze Vulkan and DRM GPU capabilities and generate optimal acceleration profile."""
+    raw_vulkan = run_vulkaninfo()
+    devices = parse_vulkaninfo_output(raw_vulkan) if raw_vulkan else []
+    drm_cards = inspect_drm_sysfs()
+    total_mem_kb = get_meminfo_total_kb()
+    total_mem_gb = round(total_mem_kb / (1024 * 1024), 1)
+
+    # Determine render node
+    render_node = None
+    for card in drm_cards:
+        if card.get("render_node"):
+            render_node = card["render_node"]
+            break
+    if not render_node:
+        render_dev_override = os.environ.get("PALEXUS_RENDER_DEV")
+        if render_dev_override:
+            render_node = render_dev_override
+        elif Path("/dev/dri/renderD128").exists():
+            render_node = "/dev/dri/renderD128"
+
+    # Select best hardware GPU
+    hardware_gpus = [
+        d for d in devices if d.get("normalized_type") in ("INTEGRATED_GPU", "DISCRETE_GPU")
+    ]
+
+    selected_dev = None
+    if hardware_gpus:
+        # Prefer DISCRETE_GPU over INTEGRATED_GPU
+        discrete = [d for d in hardware_gpus if d.get("normalized_type") == "DISCRETE_GPU"]
+        selected_dev = discrete[0] if discrete else hardware_gpus[0]
+    elif devices:
+        # Only CPU or other devices in vulkaninfo
+        cpu_devs = [d for d in devices if d.get("normalized_type") == "CPU"]
+        selected_dev = cpu_devs[0] if cpu_devs else devices[0]
+    elif drm_cards:
+        # Vulkaninfo not available, but sysfs DRM found cards
+        c = drm_cards[0]
+        selected_dev = {
+            "index": 0,
+            "vendorID": c["vendor_id"],
+            "vendor": c["vendor"],
+            "deviceID": c["device_id"],
+            "deviceName": f"{c['vendor']} Graphics ({c['device_id'] or 'DRM'})",
+            "deviceType": "PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU",
+            "normalized_type": "INTEGRATED_GPU",
+            "driverName": "Mesa DRM",
+            "driverVersion": "Unknown",
+            "apiVersion": "Unknown",
+        }
+
+    dropin_path = get_dropin_target()
+    dropin_applied = False
+    if dropin_path.is_file():
+        try:
+            content = dropin_path.read_text(encoding="utf-8")
+            if "OLLAMA_NUM_GPU" in content:
+                dropin_applied = True
+        except Exception:
+            pass
+
+    # Build profile
+    if selected_dev and selected_dev.get("normalized_type") != "CPU":
+        vendor = selected_dev.get("vendor", "Unknown")
+        vendor_id = selected_dev.get("vendorID", "")
+        dev_name = selected_dev.get("deviceName", "Unknown GPU")
+        dev_type = selected_dev.get("normalized_type", "INTEGRATED_GPU")
+        dev_idx = selected_dev.get("index", 0)
+
+        # Layers calculation:
+        # If total RAM >= 8GB, 99 layers (full offload)
+        # If total RAM < 8GB, recommend 24 layers to prevent OOM
+        layers = 99 if total_mem_gb >= 7.5 else 24
+
+        env_vars = {
+            "OLLAMA_NUM_PARALLEL": "1",
+            "OLLAMA_NUM_GPU": str(layers),
+            "LLAMA_VULKAN_DEVICE": str(dev_idx),
+        }
+
+        # Check AMD Vega / HSA override
+        if vendor == "AMD" or vendor_id == VENDOR_AMD:
+            name_lower = dev_name.lower()
+            if any(k in name_lower for k in ("vega", "gfx900", "gfx902", "gfx90c", "raven", "picasso", "renoir")):
+                env_vars["HSA_OVERRIDE_GFX_VERSION"] = "9.0.0"
+
+        # Reachability: if render node or mock vulkaninfo exists
+        compute_reachable = bool(raw_vulkan or render_node)
+
+        return {
+            "detected": True,
+            "vendor": vendor,
+            "vendor_id": vendor_id,
+            "device_id": selected_dev.get("deviceID"),
+            "device_name": dev_name,
+            "device_type": dev_type,
+            "driver_name": selected_dev.get("driverName") or selected_dev.get("driverInfo") or "Mesa",
+            "driver_version": selected_dev.get("driverVersion") or "Unknown",
+            "api_version": selected_dev.get("apiVersion") or "Unknown",
+            "vulkan_supported": True,
+            "compute_reachable": compute_reachable,
+            "render_node": render_node,
+            "system_ram_gb": total_mem_gb,
+            "recommended_profile": {
+                "device_index": dev_idx,
+                "ollama_num_gpu": layers,
+                "ollama_num_parallel": 1,
+                "llama_vulkan_device": dev_idx,
+                "env": env_vars,
+            },
+            "dropin_applied": dropin_applied,
+            "dropin_path": str(dropin_path),
+        }
+
+    # CPU Fallback mode (No hardware Vulkan GPU)
+    cpu_name = "CPU Fallback (llvmpipe)" if (selected_dev and selected_dev.get("normalized_type") == "CPU") else "CPU Fallback (No Vulkan GPU)"
+    return {
+        "detected": False,
+        "vendor": "None",
+        "vendor_id": None,
+        "device_id": None,
+        "device_name": cpu_name,
+        "device_type": "CPU",
+        "driver_name": "None",
+        "driver_version": "None",
+        "api_version": "None",
+        "vulkan_supported": False,
+        "compute_reachable": False,
+        "render_node": None,
+        "system_ram_gb": total_mem_gb,
+        "recommended_profile": {
+            "device_index": -1,
+            "ollama_num_gpu": 0,
+            "ollama_num_parallel": 1,
+            "llama_vulkan_device": 0,
+            "env": {
+                "OLLAMA_NUM_PARALLEL": "1",
+                "OLLAMA_NUM_GPU": "0",
+            },
+        },
+        "dropin_applied": dropin_applied,
+        "dropin_path": str(dropin_path),
+    }
+
+
+def cmd_status() -> int:
+    """Print human-readable GPU hardware summary and acceleration recommendations."""
+    info = probe_vulkan()
+    rec = info["recommended_profile"]
+    env = rec["env"]
+
+    print("======================================================================")
+    print(" PalexusOS Vulkan AI Offload Profiler (`palexus-vulkan-probe`)")
+    print("======================================================================")
+    print("GPU Hardware:")
+    print(f"  Vendor:            {info['vendor']} ({info['vendor_id'] or 'N/A'})")
+    print(f"  Device Name:       {info['device_name']} ({info['device_id'] or 'N/A'})")
+    print(f"  Device Type:       {info['device_type']}")
+    print(f"  Vulkan Driver:     {info['driver_name']} ({info['driver_version']})")
+    print(f"  API Version:       {info['api_version']}")
+    print(f"  DRI Render Node:   {info['render_node'] or 'None'}")
+    print(f"  System Memory:     ~{info['system_ram_gb']} GB total RAM")
+    print("")
+    print("Vulkan AI Acceleration:")
+    if info["vulkan_supported"] and info["compute_reachable"]:
+        print("  Status:            SUPPORTED & REACHABLE ✔")
+    elif info["vulkan_supported"]:
+        print("  Status:            SUPPORTED (Render node unreachable) ⚠")
+    else:
+        print("  Status:            CPU Fallback Mode (No hardware Vulkan GPU)")
+    print("")
+    print("Recommended Ollama / llama.cpp Profile:")
+    for k, v in env.items():
+        print(f"  {k}={v}")
+    print("")
+    print("Systemd Drop-in Service Override:")
+    print(f"  Path:              {info['dropin_path']}")
+    print(f"  Applied:           {'Yes ✔' if info['dropin_applied'] else 'No (run palexus-vulkan-probe apply)'}")
+    print("======================================================================")
+    return 0
+
+
+def cmd_json() -> int:
+    """Output JSON-formatted summary for consumption by palexus-settings and HUD."""
+    info = probe_vulkan()
+    print(json.dumps(info, indent=2))
+    return 0
+
+
+def cmd_apply() -> int:
+    """Write optimal environment variables to systemd drop-in configuration."""
+    info = probe_vulkan()
+    target_path = Path(info["dropin_path"])
+    rec = info["recommended_profile"]
+    env_vars = rec["env"]
+
+    lines = [
+        "# Generated by palexus-vulkan-probe for PalexusOS AI Acceleration",
+        "[Service]",
+    ]
+    for k, v in sorted(env_vars.items()):
+        lines.append(f'Environment="{k}={v}"')
+    lines.append("")
+    content = "\n".join(lines)
+
+    target_dir = target_path.parent
+    try:
+        target_dir.mkdir(parents=True, exist_ok=True)
+        target_path.write_text(content, encoding="utf-8")
+        print(f"[OK] Wrote Ollama systemd Vulkan override to {target_path}")
+        print("[NOTE] Run 'systemctl daemon-reload && systemctl restart ollama' to activate.")
+        return 0
+    except PermissionError:
+        # Fall back to pkexec / sudo
+        cmd = ["pkexec", "sh", "-c", f"mkdir -p '{target_dir}' && cat > '{target_path}'"]
+        try:
+            proc = subprocess.run(cmd, input=content, text=True, check=True)
+            if proc.returncode == 0:
+                print(f"[OK] Wrote Ollama systemd Vulkan override to {target_path} (via pkexec)")
+                print("[NOTE] Run 'systemctl daemon-reload && systemctl restart ollama' to activate.")
+                return 0
+        except Exception as e:
+            print(f"[ERROR] Permission denied writing to {target_path}: {e}", file=sys.stderr)
+            return 1
+    except Exception as e:
+        print(f"[ERROR] Failed to write {target_path}: {e}", file=sys.stderr)
+        return 1
+    return 1
+
+
+def cmd_test() -> int:
+    """Validate Vulkan compute reachability."""
+    info = probe_vulkan()
+    if info["vulkan_supported"] and info["compute_reachable"]:
+        print(f"[PASS] Vulkan compute reachability verified: {info['device_name']} ({info['device_type']})")
+        return 0
+    else:
+        print(f"[WARN] No hardware Vulkan compute device found ({info['device_name']})")
+        return 1
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(
+        prog="palexus-vulkan-probe",
+        description="PalexusOS Vulkan Offload Profiler for Ollama and llama.cpp",
+    )
+    subparsers = parser.add_subparsers(dest="subcommand", help="Subcommand to execute")
+
+    subparsers.add_parser("status", help="Print human-readable GPU summary & recommended profile")
+    subparsers.add_parser("json", help="Output JSON-formatted summary for UI/HUD consumption")
+    subparsers.add_parser("apply", help="Write /etc/systemd/system/ollama.service.d/10-vulkan.conf")
+    subparsers.add_parser("test", help="Validate Vulkan compute reachability")
+
+    args = parser.parse_args()
+
+    if args.subcommand == "status" or not args.subcommand:
+        return cmd_status()
+    elif args.subcommand == "json":
+        return cmd_json()
+    elif args.subcommand == "apply":
+        return cmd_apply()
+    elif args.subcommand == "test":
+        return cmd_test()
+    else:
+        parser.print_help()
+        return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

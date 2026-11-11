@@ -68,6 +68,7 @@ echo ""
 echo "---> Gate G1: Native Package Verification (PKGBUILDs)"
 EXPECTED_PKGBUILDS=(
     "${REPO_ROOT}/packages/core/palexus-core/PKGBUILD"
+    "${REPO_ROOT}/packages/core/palexus-ebpf-guard/PKGBUILD"
     "${REPO_ROOT}/packages/desktop/llm-quickfire-panel/PKGBUILD"
     "${REPO_ROOT}/packages/desktop/palexus-themes/PKGBUILD"
     "${REPO_ROOT}/packages/desktop/palexus-greeter/PKGBUILD"
@@ -249,6 +250,38 @@ if [[ -f "${REPO_ROOT}/tests/test_iso_profile.py" ]]; then
     fi
 fi
 
+if [[ -f "${REPO_ROOT}/tests/test_ebpf_guard.py" ]]; then
+    if command -v pytest >/dev/null 2>&1; then
+        if pytest -q "${REPO_ROOT}/tests/test_ebpf_guard.py"; then
+            pass "Pytest eBPF guard test suite (tests/test_ebpf_guard.py)"
+        else
+            fail "Pytest suite failed (tests/test_ebpf_guard.py)"
+        fi
+    elif command -v python3 >/dev/null 2>&1; then
+        if python3 "${REPO_ROOT}/tests/test_ebpf_guard.py" >/dev/null 2>&1; then
+            pass "Python unittest eBPF guard test suite (tests/test_ebpf_guard.py)"
+        else
+            fail "Python unittest suite failed (tests/test_ebpf_guard.py)"
+        fi
+    fi
+fi
+
+if [[ -f "${REPO_ROOT}/tests/test_vulkan_probe.py" ]]; then
+    if command -v pytest >/dev/null 2>&1; then
+        if pytest -q "${REPO_ROOT}/tests/test_vulkan_probe.py"; then
+            pass "Pytest Vulkan probe test suite (tests/test_vulkan_probe.py)"
+        else
+            fail "Pytest suite failed (tests/test_vulkan_probe.py)"
+        fi
+    elif command -v python3 >/dev/null 2>&1; then
+        if python3 "${REPO_ROOT}/tests/test_vulkan_probe.py" >/dev/null 2>&1; then
+            pass "Python unittest Vulkan probe test suite (tests/test_vulkan_probe.py)"
+        else
+            fail "Python unittest suite failed (tests/test_vulkan_probe.py)"
+        fi
+    fi
+fi
+
 # ------------------------------------------------------------------------------
 # Gate G4: Archiso Profile & Calamares Installer Integrity
 # ------------------------------------------------------------------------------
@@ -310,6 +343,7 @@ REQUIRED_PKGS=(
     "nmap"
     "macchanger"
     "palexus-core"
+    "palexus-ebpf-guard"
     "llm-quickfire-panel"
     "palexus-themes"
     "palexus-greeter"
@@ -326,6 +360,36 @@ if grep -Eq "^(nohang|tshark)$" "${PACKAGES_FILE}"; then
 else
     pass "packages.x86_64 excludes AUR/alias blockers (nohang, tshark)"
 fi
+
+# Gate G4: palexus-ebpf-guard binary and configuration integrity
+EBPF_GUARD_BIN="${REPO_ROOT}/packages/core/palexus-ebpf-guard/palexus-ebpf-guard"
+EBPF_GUARD_CONF="${REPO_ROOT}/packages/core/palexus-ebpf-guard/ebpf-guard.toml"
+EBPF_GUARD_OVERLAY_CONF="${REPO_ROOT}/overlay/etc/palexus/ebpf-guard.toml"
+EBPF_GUARD_SERVICE="${REPO_ROOT}/packages/core/palexus-ebpf-guard/palexus-ebpf-guard.service"
+EBPF_GUARD_OVERLAY_SERVICE="${REPO_ROOT}/overlay/usr/lib/systemd/system/palexus-ebpf-guard.service"
+
+if [[ -x "${EBPF_GUARD_BIN}" ]]; then
+    pass "palexus-ebpf-guard binary is present and executable"
+else
+    fail "palexus-ebpf-guard binary missing or not executable"
+fi
+
+if [[ -f "${EBPF_GUARD_CONF}" ]] && [[ -f "${EBPF_GUARD_OVERLAY_CONF}" ]]; then
+    pass "ebpf-guard.toml configuration present in package and overlay"
+else
+    fail "ebpf-guard.toml configuration missing from package or overlay"
+fi
+
+if [[ -f "${EBPF_GUARD_SERVICE}" ]] && [[ -f "${EBPF_GUARD_OVERLAY_SERVICE}" ]]; then
+    pass "palexus-ebpf-guard.service unit present in package and overlay"
+else
+    fail "palexus-ebpf-guard.service unit missing from package or overlay"
+fi
+
+check_file_contains "${EBPF_GUARD_CONF}" 'entropy_threshold = 4\.65' "ebpf-guard.toml configures 4.65 bits/char entropy threshold"
+check_file_contains "${EBPF_GUARD_SERVICE}" 'ProtectSystem=strict' "palexus-ebpf-guard.service enables ProtectSystem=strict"
+check_file_contains "${EBPF_GUARD_SERVICE}" 'NoNewPrivileges=true' "palexus-ebpf-guard.service enables NoNewPrivileges=true"
+check_file_contains "${EBPF_GUARD_SERVICE}" 'ProtectHome=read-only' "palexus-ebpf-guard.service enables ProtectHome=read-only"
 
 check_file_contains "${PACMAN_CONF}" "^\[palexusos\]" "pacman.conf includes [palexusos] repo"
 check_file_contains "${PACMAN_CONF}" "^\[cachyos-v3\]" "pacman.conf includes [cachyos-v3] repo"
@@ -390,7 +454,7 @@ if [[ -d "${REPO_ROOT}/out/repo" ]]; then
         fi
     done
 
-    for built_pkg in "palexus-core" "llm-quickfire-panel" "palexus-themes" "palexus-greeter" "palexus-plymouth" "palexus-hud"; do
+    for built_pkg in "palexus-core" "palexus-ebpf-guard" "llm-quickfire-panel" "palexus-themes" "palexus-greeter" "palexus-plymouth" "palexus-hud"; do
         if compgen -G "${REPO_ROOT}/out/repo/${built_pkg}-*.pkg.tar.*" >/dev/null; then
             pass "Compiled package archive in out/repo/: ${built_pkg}"
         else
@@ -502,12 +566,25 @@ check_file_contains "${REPO_ROOT}/build/archiso/packages.x86_64" '^chromium$' "p
 check_file_contains "${REPO_ROOT}/build/archiso/packages.x86_64" '^galculator$' "packages.x86_64 ships galculator"
 check_file_contains "${REPO_ROOT}/build/archiso/packages.x86_64" '^mousepad$' "packages.x86_64 ships mousepad editor"
 check_file_contains "${REPO_ROOT}/build/archiso/packages.x86_64" '^palexus-hud$' "packages.x86_64 ships palexus-hud package"
+check_file_contains "${REPO_ROOT}/build/archiso/packages.x86_64" '^vulkan-intel$' "packages.x86_64 ships vulkan-intel"
+check_file_contains "${REPO_ROOT}/build/archiso/packages.x86_64" '^vulkan-radeon$' "packages.x86_64 ships vulkan-radeon"
+check_file_contains "${REPO_ROOT}/build/archiso/packages.x86_64" '^vulkan-mesa-layers$' "packages.x86_64 ships vulkan-mesa-layers"
+check_file_contains "${REPO_ROOT}/build/archiso/packages.x86_64" '^vulkan-tools$' "packages.x86_64 ships vulkan-tools"
 check_file_contains "${REPO_ROOT}/overlay/etc/chromium/default-flags" '--disable-telemetry' "Chromium flags disable telemetry"
 check_file_contains "${REPO_ROOT}/overlay/etc/chromium/default-flags" '--disable-sync' "Chromium flags disable cloud sync"
 check_file_contains "${REPO_ROOT}/packages/desktop/palexus-hud/PKGBUILD" 'palexus-setup' "palexus-hud package includes palexus-setup"
 check_file_contains "${REPO_ROOT}/packages/desktop/palexus-hud/PKGBUILD" 'palexus-notes' "palexus-hud package includes palexus-notes"
 check_file_contains "${REPO_ROOT}/packages/desktop/palexus-hud/PKGBUILD" 'palexus-settings' "palexus-hud package includes palexus-settings"
 check_file_contains "${REPO_ROOT}/packages/desktop/palexus-hud/PKGBUILD" 'palexus-welcome' "palexus-hud package includes palexus-welcome"
+check_file_contains "${REPO_ROOT}/packages/desktop/palexus-hud/PKGBUILD" 'palexus-vulkan-probe' "palexus-hud package includes palexus-vulkan-probe"
+
+VULKAN_PROBE_BIN="${REPO_ROOT}/packages/desktop/palexus-hud/palexus-vulkan-probe"
+if [[ -x "${VULKAN_PROBE_BIN}" ]] && python3 -m py_compile "${VULKAN_PROBE_BIN}" >/dev/null 2>&1; then
+    pass "palexus-vulkan-probe exists, is executable and syntactically valid Python 3"
+else
+    fail "palexus-vulkan-probe is not executable or has Python syntax errors"
+fi
+
 check_file_contains "${REPO_ROOT}/overlay/etc/skel/.config/autostart/palexus-welcome.desktop" 'palexus-welcome' "Autostart launches palexus-welcome on first session"
 
 # Metallic Icon Themes

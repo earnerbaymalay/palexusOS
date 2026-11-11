@@ -1,7 +1,7 @@
 # Maintainer: PalexusOS Engineering Team <maintainers@palexusos.org>
 pkgname=palexus-hud
 pkgver=0.1.0
-pkgrel=9
+pkgrel=10
 pkgdesc="Native Qt6/QML Material You Command HUD, Palexus Settings Control Center, Brain Notes, Metallic Icon Suites, and Neural Governor"
 arch=('any')
 url="https://github.com/earnerbaymalay/synapseOS"
@@ -23,6 +23,7 @@ source=(
   "palexus-hardware"
   "palexus-governor"
   "palexus-governor.service"
+  "palexus-vulkan-probe"
   "Main.qml"
   "CommandCategoryCard.qml"
   "palexus-hud.desktop"
@@ -66,12 +67,13 @@ sha256sums=(
   'SKIP'
   'SKIP'
   'SKIP'
+  'SKIP'
 )
 
 package() {
   # Primary Palexus binaries & backwards-compatible Synapse symlinks
-  # Provides: synapse-setup, synapse-notes, synapse-settings, synapse-welcome, palexus-setup, palexus-notes, palexus-settings, palexus-welcome
-  local tools=("hud" "settings" "notes" "setup" "welcome" "shortcuts" "power" "stealth" "hardware" "governor")
+  # Provides: synapse-setup, synapse-notes, synapse-settings, synapse-welcome, palexus-setup, palexus-notes, palexus-settings, palexus-welcome, palexus-vulkan-probe
+  local tools=("hud" "settings" "notes" "setup" "welcome" "shortcuts" "power" "stealth" "hardware" "governor" "vulkan-probe")
   for t in "${tools[@]}"; do
     install -Dm755 "${srcdir}/palexus-${t}" "${pkgdir}/usr/bin/palexus-${t}"
     ln -sf "palexus-${t}" "${pkgdir}/usr/bin/synapse-${t}"

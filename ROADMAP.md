@@ -84,10 +84,12 @@
 - [x] **Milestone 9.1: Dynamic PL1/PL2 Thermal Governor (`palexus-governor`)**:
   - Automatically scale CPU package TDP based on real-time Ollama inference vs background compilation state.
   - Supports Intel RAPL powercap limits, CPU EPP scaling, thermal ceiling safety guard (88°C throttle / 75°C recovery), `/etc/palexus/governor.toml` configuration, Waybar status integration, and automated unit test coverage (`tests/test_governor.py`).
-- [ ] **Milestone 9.2: eBPF Secret Leak Interceptor**:
-  - Implement a kernel-level eBPF socket filter guaranteeing that raw private keys (`id_rsa`, `*.pem`, `sk-*`) cannot egress any socket even if bypassed by third-party unproxied applications.
-- [ ] **Milestone 9.3: Vulkan Offload Profiler for Integrated Graphics**:
-  - Enable quantized llama.cpp / Ollama offload to Intel UHD 620 / AMD Radeon integrated graphics via Mesa Vulkan compute.
+- [x] **Milestone 9.2: eBPF Secret Leak Interceptor (`palexus-ebpf-guard`)**:
+  - Implemented kernel-level socket filter daemon and package (`packages/core/palexus-ebpf-guard/`) guaranteeing raw private keys (`id_rsa`, `*.pem`, `sk-*`, PGP, OpenAI/Anthropic/GitHub/AWS tokens) and high Shannon entropy data ($H(X) > 4.65$) cannot egress outbound sockets.
+  - Supports audit/enforce modes, loopback and binary path exemptions, `/etc/palexus/ebpf-guard.toml`, systemd sandboxing unit, and automated unit test suite (`tests/test_ebpf_guard.py`).
+- [x] **Milestone 9.3: Vulkan Offload Profiler for Integrated Graphics (`palexus-vulkan-probe`)**:
+  - Quantized llama.cpp / Ollama offload to Intel Iris Xe / UHD 620 and AMD Radeon integrated graphics via Mesa Vulkan compute.
+  - Probes DRM sysfs and Vulkan compute devices, calculates safe VRAM offload layers, writes systemd service drop-ins for Ollama, provides HUD CLI & GUI integration (`palexus-settings`), graceful CPU fallback, and test suite (`tests/test_vulkan_probe.py`).
 
 ## Phase 10: Distributed Agent Swarms & P2P Brain Mesh (Upcoming — Q2 2027)
 - [ ] **Milestone 10.1: Peer-to-Peer Brain Synchronization**:

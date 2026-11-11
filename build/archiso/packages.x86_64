@@ -54,6 +54,8 @@ ffmpeg
 mesa
 vulkan-intel
 vulkan-radeon
+vulkan-mesa-layers
+vulkan-tools
 xorg-server
 xorg-xinit
 xorg-xrandr
@@ -162,6 +164,7 @@ bluez-utils
 
 # --- PalexusOS Native Packages ([palexusos] Repo) ---
 palexus-core
+palexus-ebpf-guard
 palexus-hud
 llm-quickfire-panel
 palexus-themes

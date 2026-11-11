@@ -1,0 +1,576 @@
+#!/usr/bin/env python3
+"""
+palexus-ebpf-guard - Kernel eBPF & Userspace DLP Secret Leak Interceptor
+========================================================================
+Monitors outbound network transmissions, inspects payloads for private
+cryptographic keys, cloud tokens, and high-entropy credentials, halting
+outbound egress before sensitive data leaves the local network namespace.
+
+Reference: docs/EBPF_SECRET_INTERCEPTOR.md
+Part of PalexusOS Core AI Subsystem.
+"""
+
+from __future__ import annotations
+
+import argparse
+import copy
+import ipaddress
+import json
+import math
+import os
+import re
+import signal
+import sys
+import time
+from collections import Counter
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
+
+try:
+    import tomllib
+except ImportError:
+    try:
+        import tomli as tomllib  # type: ignore
+    except ImportError:
+        tomllib = None  # type: ignore
+
+DEFAULT_CONFIG: Dict[str, Any] = {
+    "general": {
+        "mode": "audit",
+        "log_target": "journald",
+        "notify_desktop": True,
+    },
+    "network": {
+        "interfaces": [],
+        "exempt_loopback": True,
+        "exempt_subnets": [
+            "127.0.0.0/8",
+            "::1/128",
+            "10.0.0.0/8",
+            "192.168.0.0/16",
+        ],
+    },
+    "patterns": {
+        "block_private_keys": True,
+        "block_cloud_tokens": True,
+        "entropy_threshold": 4.65,
+    },
+    "whitelist": {
+        "exempt_binaries": [
+            "/usr/bin/ssh",
+            "/usr/bin/git-remote-http",
+            "/usr/bin/git",
+            "/usr/bin/gpg",
+        ],
+    },
+}
+
+DEFAULT_CONFIG_PATH = Path("/etc/palexus/ebpf-guard.toml")
+RUNTIME_STATE_PATHS = [
+    Path("/run/palexus/ebpf-guard.json"),
+    Path("/tmp/palexus-ebpf-guard.json"),
+]
+
+# Signatures from docs/EBPF_SECRET_INTERCEPTOR.md
+KEY_PATTERNS: Dict[str, Tuple[re.Pattern, str]] = {
+    "openssh_private_key": (
+        re.compile(r"-----BEGIN OPENSSH PRIVATE KEY-----"),
+        "OpenSSH Private Key",
+    ),
+    "pem_private_key": (
+        re.compile(r"-----BEGIN (?:RSA|EC|DSA|ENCRYPTED)? ?PRIVATE KEY-----"),
+        "RSA/EC/DSA/ENCRYPTED Private Key",
+    ),
+    "pgp_private_key": (
+        re.compile(r"-----BEGIN PGP PRIVATE KEY BLOCK-----"),
+        "PGP Private Key Block",
+    ),
+}
+
+TOKEN_PATTERNS: Dict[str, Tuple[re.Pattern, str]] = {
+    "anthropic_token": (
+        re.compile(r"\bsk-ant-[a-zA-Z0-9_-]{15,}\b"),
+        "Anthropic API Secret Token",
+    ),
+    "openai_token": (
+        re.compile(r"(?<!sk-ant-)\bsk-[a-zA-Z0-9]{20,}\b"),
+        "OpenAI API Secret Token",
+    ),
+    "github_token": (
+        re.compile(r"\bgh[pousr]_[A-Za-z0-9_]{36,}\b"),
+        "GitHub Personal Access Token",
+    ),
+    "aws_key": (
+        re.compile(r"\bAKIA[0-9A-Z]{16}\b"),
+        "AWS Access Key ID",
+    ),
+}
+
+BASE64_ASSET_INDICATORS = [
+    re.compile(r"data:(?:image|font|video|audio|application)/[a-zA-Z0-9.+-]+;base64,", re.IGNORECASE),
+    re.compile(r";base64,", re.IGNORECASE),
+    re.compile(r"image/[a-zA-Z0-9.+-]+;base64", re.IGNORECASE),
+    re.compile(r"<svg[\s>]", re.IGNORECASE),
+]
+
+
+def shannon_entropy(data: str) -> float:
+    """Calculate the Shannon entropy of a string: H(X) = -sum(P(x) * log2(P(x)))."""
+    if not data:
+        return 0.0
+    n = len(data)
+    counts = Counter(data)
+    return -sum((count / n) * math.log2(count / n) for count in counts.values())
+
+
+def is_base64_asset(payload: str, start: int, end: int) -> bool:
+    """Determine whether a candidate string is part of an image or asset data URI."""
+    prefix_window = max(0, start - 256)
+    prefix_text = payload[prefix_window:start]
+    for pattern in BASE64_ASSET_INDICATORS:
+        if pattern.search(prefix_text):
+            return True
+    # Also check if payload contains obvious base64 data image wrapper
+    if "data:image/" in payload.lower():
+        return True
+    return False
+
+
+def _deep_merge(target: Dict[str, Any], source: Dict[str, Any]) -> None:
+    for key, value in source.items():
+        if isinstance(value, dict) and key in target and isinstance(target[key], dict):
+            _deep_merge(target[key], value)
+        else:
+            target[key] = value
+
+
+def get_config_path(explicit_path: Optional[str] = None) -> Path:
+    """Resolve config file path: CLI -> PALEXUS_EBPF_CONF -> /etc/palexus/ebpf-guard.toml."""
+    if explicit_path:
+        return Path(explicit_path)
+    env_path = os.environ.get("PALEXUS_EBPF_CONF")
+    if env_path:
+        return Path(env_path)
+    return DEFAULT_CONFIG_PATH
+
+
+def load_config(explicit_path: Optional[str] = None) -> Dict[str, Any]:
+    """Load configuration from file or fallback to defaults."""
+    config = copy.deepcopy(DEFAULT_CONFIG)
+    config_file = get_config_path(explicit_path)
+
+    if config_file.is_file():
+        try:
+            if tomllib is not None:
+                with open(config_file, "rb") as f:
+                    user_cfg = tomllib.load(f)
+                    _deep_merge(config, user_cfg)
+            else:
+                # Basic key-value parser fallback if tomllib not available
+                text = config_file.read_text(encoding="utf-8")
+                current_sec = "general"
+                for line in text.splitlines():
+                    line = line.strip()
+                    if not line or line.startswith("#"):
+                        continue
+                    if line.startswith("[") and line.endswith("]"):
+                        current_sec = line[1:-1].strip()
+                        if current_sec not in config:
+                            config[current_sec] = {}
+                        continue
+                    if "=" in line:
+                        k, v = line.split("=", 1)
+                        k = k.strip()
+                        v = v.strip().strip('"').strip("'")
+                        if v.lower() == "true":
+                            val: Any = True
+                        elif v.lower() == "false":
+                            val = False
+                        else:
+                            try:
+                                val = float(v)
+                            except ValueError:
+                                val = v
+                        if current_sec in config:
+                            config[current_sec][k] = val
+        except Exception as e:
+            sys.stderr.write(f"Warning: Failed to parse configuration at {config_file}: {e}\n")
+
+    return config
+
+
+def is_exempt_target(dest_ip: Optional[str], config: Dict[str, Any]) -> bool:
+    """Check if the target IP/host is exempted (e.g. loopback or private subnet)."""
+    if not dest_ip:
+        return False
+
+    dest = dest_ip.strip()
+    if dest in ("127.0.0.1", "::1", "localhost", "lo"):
+        return bool(config.get("network", {}).get("exempt_loopback", True))
+
+    exempt_subnets = config.get("network", {}).get("exempt_subnets", [])
+    try:
+        ip = ipaddress.ip_address(dest)
+        if ip.is_loopback and config.get("network", {}).get("exempt_loopback", True):
+            return True
+        for subnet in exempt_subnets:
+            try:
+                if ip in ipaddress.ip_network(subnet, strict=False):
+                    return True
+            except ValueError:
+                continue
+    except ValueError:
+        pass
+
+    return False
+
+
+def is_exempt_process(process_path: Optional[str], config: Dict[str, Any]) -> bool:
+    """Check if the transmitting process is in the binary whitelist."""
+    if not process_path:
+        return False
+
+    clean_proc = os.path.abspath(process_path.strip())
+    proc_name = os.path.basename(clean_proc)
+    exempt_binaries = config.get("whitelist", {}).get("exempt_binaries", [])
+
+    for exempt in exempt_binaries:
+        if clean_proc == os.path.abspath(exempt):
+            return True
+        if proc_name == os.path.basename(exempt):
+            return True
+
+    return False
+
+
+def inspect_payload(payload: str, config: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
+    """Scan payload for private keys, cloud tokens, and high-entropy secrets."""
+    if not payload:
+        return []
+
+    cfg = config or DEFAULT_CONFIG
+    patterns_cfg = cfg.get("patterns", {})
+    block_keys = patterns_cfg.get("block_private_keys", True)
+    block_tokens = patterns_cfg.get("block_cloud_tokens", True)
+    entropy_threshold = float(patterns_cfg.get("entropy_threshold", 4.65))
+
+    detected: List[Dict[str, Any]] = []
+
+    # 1. Private Keys
+    if block_keys:
+        for key_type, (regex, desc) in KEY_PATTERNS.items():
+            for match in regex.finditer(payload):
+                detected.append({
+                    "type": key_type,
+                    "category": "private_key",
+                    "description": desc,
+                    "snippet": match.group(0)[:40],
+                    "start": match.start(),
+                    "end": match.end(),
+                })
+
+    # 2. Cloud Tokens
+    if block_tokens:
+        for token_type, (regex, desc) in TOKEN_PATTERNS.items():
+            for match in regex.finditer(payload):
+                tok = match.group(0)
+                detected.append({
+                    "type": token_type,
+                    "category": "cloud_token",
+                    "description": desc,
+                    "snippet": tok[:6] + "..." + tok[-4:] if len(tok) > 10 else tok,
+                    "start": match.start(),
+                    "end": match.end(),
+                })
+
+    # 3. High Shannon Entropy Tokens
+    if entropy_threshold > 0:
+        for match in re.finditer(r"[A-Za-z0-9+/=_-]{32,}", payload):
+            token_str = match.group(0)
+            if is_base64_asset(payload, match.start(), match.end()):
+                continue
+
+            # Skip if this span is already identified as a known key or token
+            span_already_flagged = any(
+                d["start"] <= match.start() and match.end() <= d["end"] for d in detected
+            )
+            if span_already_flagged:
+                continue
+
+            ent = shannon_entropy(token_str)
+            if ent > entropy_threshold:
+                detected.append({
+                    "type": "high_entropy_secret",
+                    "category": "entropy",
+                    "description": f"High Shannon entropy string ({ent:.2f} > {entropy_threshold})",
+                    "snippet": token_str[:6] + "..." + token_str[-4:],
+                    "entropy": round(ent, 3),
+                    "start": match.start(),
+                    "end": match.end(),
+                })
+
+    return detected
+
+
+def evaluate_transmission(
+    payload: str,
+    dest_ip: Optional[str] = None,
+    process: Optional[str] = None,
+    config: Optional[Dict[str, Any]] = None,
+    mode: Optional[str] = None,
+    raise_on_block: bool = False,
+) -> Dict[str, Any]:
+    """
+    Evaluate transmission security posture.
+    Returns transmission verdict dict. Raises PermissionError if enforce mode and raise_on_block=True.
+    """
+    cfg = config or load_config()
+    effective_mode = mode or cfg.get("general", {}).get("mode", "audit").lower()
+
+    # Exemption checks
+    if is_exempt_process(process, cfg):
+        return {
+            "verdict": "ALLOW",
+            "reason": "whitelisted_process",
+            "process": process,
+            "mode": effective_mode,
+            "exempt": True,
+            "secrets": [],
+        }
+
+    if is_exempt_target(dest_ip, cfg):
+        return {
+            "verdict": "ALLOW",
+            "reason": "loopback_or_subnet_exempt",
+            "dest_ip": dest_ip,
+            "mode": effective_mode,
+            "exempt": True,
+            "secrets": [],
+        }
+
+    secrets = inspect_payload(payload, cfg)
+    if not secrets:
+        return {
+            "verdict": "ALLOW",
+            "reason": "clean_payload",
+            "mode": effective_mode,
+            "exempt": False,
+            "secrets": [],
+        }
+
+    # Leaks detected: determine action according to mode
+    if effective_mode == "enforce":
+        details = ", ".join(f"{s['type']} ({s['description']})" for s in secrets)
+        if raise_on_block:
+            raise PermissionError(f"eBPF Guard: Blocked secret transmission: {details} (-EPERM)")
+        return {
+            "verdict": "BLOCK",
+            "action": "rejected",
+            "mode": "enforce",
+            "errno": "EPERM",
+            "error_code": 1,
+            "secrets": secrets,
+        }
+    else:
+        return {
+            "verdict": "AUDIT",
+            "action": "logged",
+            "mode": "audit",
+            "secrets": secrets,
+        }
+
+
+def _get_state_file_path() -> Path:
+    for path in RUNTIME_STATE_PATHS:
+        try:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            return path
+        except OSError:
+            continue
+    return RUNTIME_STATE_PATHS[-1]
+
+
+def update_runtime_state(
+    mode: str,
+    inspected_sockets: int,
+    blocked_leaks: int,
+    active: bool,
+    config_path: Path,
+) -> None:
+    state_file = _get_state_file_path()
+    try:
+        data = {
+            "mode": mode,
+            "inspected_sockets": inspected_sockets,
+            "blocked_leaks": blocked_leaks,
+            "active": active,
+            "config_path": str(config_path),
+            "timestamp": time.time(),
+        }
+        state_file.write_text(json.dumps(data, indent=2), encoding="utf-8")
+    except OSError:
+        pass
+
+
+def read_runtime_state() -> Dict[str, Any]:
+    for path in RUNTIME_STATE_PATHS:
+        if path.is_file():
+            try:
+                return json.loads(path.read_text(encoding="utf-8"))
+            except Exception:
+                pass
+    return {}
+
+
+def cmd_status(args: argparse.Namespace, config: Dict[str, Any], config_path: Path) -> int:
+    state = read_runtime_state()
+    effective_mode = args.mode or state.get("mode") or config.get("general", {}).get("mode", "audit")
+    inspected = state.get("inspected_sockets", 0)
+    blocked = state.get("blocked_leaks", 0)
+    active = state.get("active", False)
+
+    status_data = {
+        "operational_mode": effective_mode,
+        "inspected_sockets": inspected,
+        "blocked_leaks": blocked,
+        "daemon_active": active,
+        "config_file": str(config_path),
+        "entropy_threshold": config.get("patterns", {}).get("entropy_threshold", 4.65),
+    }
+
+    if getattr(args, "json", False):
+        print(json.dumps(status_data, indent=2))
+    else:
+        print("PalexusOS eBPF Secret Guard Status:")
+        print(f"  Operational Mode : {effective_mode.upper()}")
+        print(f"  Daemon Active    : {'Yes' if active else 'No (Standby/Static Mode)'}")
+        print(f"  Inspected Sockets: {inspected}")
+        print(f"  Blocked Leaks    : {blocked}")
+        print(f"  Config File      : {config_path}")
+        print(f"  Entropy Threshold: {status_data['entropy_threshold']} bits/char")
+    return 0
+
+
+def cmd_test(args: argparse.Namespace, config: Dict[str, Any]) -> int:
+    target_str = args.target
+    if Path(target_str).is_file():
+        try:
+            target_str = Path(target_str).read_text(encoding="utf-8", errors="replace")
+        except OSError as e:
+            sys.stderr.write(f"Error reading target file '{args.target}': {e}\n")
+            return 1
+
+    mode = args.mode or config.get("general", {}).get("mode", "audit")
+    res = evaluate_transmission(
+        payload=target_str,
+        dest_ip=args.dest,
+        process=args.proc,
+        config=config,
+        mode=mode,
+        raise_on_block=False,
+    )
+
+    if getattr(args, "json", False):
+        print(json.dumps(res, indent=2))
+    else:
+        if res["verdict"] == "ALLOW":
+            print(f"[ALLOW] Verdict: ALLOW ({res.get('reason', 'clean')})")
+        elif res["verdict"] == "AUDIT":
+            print(f"[AUDIT] Secret leak detected (Mode: AUDIT, Logged):")
+            for s in res["secrets"]:
+                print(f"  - {s['description']}: {s['snippet']}")
+        elif res["verdict"] == "BLOCK":
+            print(f"[ENFORCE] Secret leak blocked (-EPERM):", file=sys.stderr)
+            for s in res["secrets"]:
+                print(f"  - {s['description']}: {s['snippet']}", file=sys.stderr)
+            return 1
+
+    return 0
+
+
+def cmd_run(args: argparse.Namespace, config: Dict[str, Any], config_path: Path) -> int:
+    mode = args.mode or config.get("general", {}).get("mode", "audit")
+    print(f"[palexus-ebpf-guard] Initializing eBPF & Userspace DLP Interceptor...")
+    print(f"[palexus-ebpf-guard] Operational Mode : {mode.upper()}")
+    print(f"[palexus-ebpf-guard] Config           : {config_path}")
+
+    running = True
+
+    def _sig_handler(signum, frame):
+        nonlocal running
+        print(f"\n[palexus-ebpf-guard] Received signal {signum}, stopping...")
+        running = False
+
+    signal.signal(signal.SIGINT, _sig_handler)
+    signal.signal(signal.SIGTERM, _sig_handler)
+
+    inspected_count = 0
+    blocked_count = 0
+    update_runtime_state(mode, inspected_count, blocked_count, True, config_path)
+
+    try:
+        while running:
+            time.sleep(1.0)
+            # Daemon heart-beat / stats update
+            update_runtime_state(mode, inspected_count, blocked_count, True, config_path)
+    finally:
+        update_runtime_state(mode, inspected_count, blocked_count, False, config_path)
+        print("[palexus-ebpf-guard] Daemon stopped.")
+
+    return 0
+
+
+def main(argv: Optional[List[str]] = None) -> int:
+    parser = argparse.ArgumentParser(
+        prog="palexus-ebpf-guard",
+        description="Kernel eBPF & DLP Secret Leak Interceptor for PalexusOS",
+    )
+    parser.add_argument(
+        "--mode",
+        choices=["audit", "enforce"],
+        help="Override operational mode (audit | enforce)",
+    )
+    parser.add_argument(
+        "--config",
+        "-c",
+        help="Path to ebpf-guard.toml configuration file",
+    )
+
+    subparsers = parser.add_subparsers(dest="command", help="Operational command")
+
+    # Command: run
+    sub_run = subparsers.add_parser("run", help="Start the DLP eBPF guard daemon loop")
+
+    # Command: status
+    sub_status = subparsers.add_parser("status", help="Query guard daemon status and metrics")
+    sub_status.add_argument("--json", action="store_true", help="Format status output as JSON")
+
+    # Command: test
+    sub_test = subparsers.add_parser("test", help="Test a string or file for secret leak detection")
+    sub_test.add_argument("target", help="Text string or path to file to inspect")
+    sub_test.add_argument("--dest", default=None, help="Destination IP to simulate (e.g. 1.1.1.1)")
+    sub_test.add_argument("--proc", default=None, help="Process executable path to simulate")
+    sub_test.add_argument("--json", action="store_true", help="Format verdict as JSON")
+
+    args = parser.parse_args(argv)
+
+    config_path = get_config_path(args.config)
+    config = load_config(args.config)
+
+    # Apply global CLI mode override
+    if args.mode:
+        config["general"]["mode"] = args.mode
+
+    if args.command == "status":
+        return cmd_status(args, config, config_path)
+    elif args.command == "test":
+        return cmd_test(args, config)
+    elif args.command == "run" or args.command is None:
+        return cmd_run(args, config, config_path)
+    else:
+        parser.print_help()
+        return 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

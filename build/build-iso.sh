@@ -158,6 +158,7 @@ build_local_packages() {
 
     local pkg_dirs=(
         "${REPO_ROOT}/packages/core/palexus-core"
+        "${REPO_ROOT}/packages/core/palexus-ebpf-guard"
         "${REPO_ROOT}/packages/desktop/llm-quickfire-panel"
         "${REPO_ROOT}/packages/desktop/palexus-themes"
         "${REPO_ROOT}/packages/desktop/palexus-greeter"
