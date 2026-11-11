@@ -536,6 +536,11 @@ if [[ "${CAL_EXEC_ORDER}" == *" grubcfg bootloader "* ]]; then
 else
     fail "Calamares runs grubcfg right before bootloader (splash + LUKS on installed systems)"
 fi
+if [[ "${CAL_EXEC_ORDER}" =~ bootloader\ .*packages ]]; then
+    pass "Calamares installs optional packs after the bootloader (a failed pack leaves a bootable disk)"
+else
+    fail "Calamares installs optional packs after the bootloader (a failed pack leaves a bootable disk)"
+fi
 check_file_contains "${REPO_ROOT}/packages/installer/calamares/modules/grubcfg.conf" '^ *- "quiet"$' "grubcfg.conf sets the installed kernel command line"
 check_file_lacks "${REPO_ROOT}/packages/installer/calamares/modules/grubcfg.conf" 'themes/cachyos' "grubcfg.conf carries no CachyOS GRUB theme"
 check_file_contains "${PLY_DIR}/synapseos.script.in" 'Plymouth\.SetDisplayPasswordFunction' "Splash handles the LUKS passphrase prompt"
