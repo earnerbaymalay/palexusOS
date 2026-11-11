@@ -1,5 +1,5 @@
 [Unit]
-Description=SynapseOS Neural Hardware & Thermal Performance Governor
+Description=PalexusOS Neural Hardware & Thermal Performance Governor
 After=multi-user.target throttled.service ollama.service
 Wants=throttled.service
 

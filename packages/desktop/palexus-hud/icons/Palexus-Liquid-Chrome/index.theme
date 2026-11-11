@@ -1,6 +1,6 @@
 [Icon Theme]
-Name=Synapse-Aerospace-Billet
-Comment=SynapseOS Aerospace Billet — Brushed titanium slab, satin mauve & micro-bolts
+Name=Palexus-Liquid-Chrome
+Comment=PalexusOS Liquid Mauve Chrome — High-gloss mirror finish & diamond chamfers
 Inherits=Hatter-Purple,Papirus-Dark,hicolor
 Directories=scalable/apps,scalable/places
 

@@ -43,7 +43,7 @@
   <!-- Glowing Neon Conduit Glyph Group -->
   <g filter="url(#neon-glow)">
     
-        <!-- Synapse AI Core / Orbital HUD Glyph -->
+        <!-- Palexus AI Core / Orbital HUD Glyph -->
         <circle cx="64" cy="64" r="26" fill="none" stroke="#cba6f7" stroke-width="3.5" stroke-dasharray="32 10 16 10"/>
         <circle cx="64" cy="64" r="16" fill="none" stroke="#cdd6f4" stroke-width="2.5"/>
         <circle cx="64" cy="64" r="6" fill="#cba6f7"/>

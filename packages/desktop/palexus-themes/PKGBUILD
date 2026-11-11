@@ -1,7 +1,7 @@
 # Maintainer: PalexusOS Engineering Team <maintainers@palexusos.org>
 pkgname=palexus-themes
 pkgver=0.1.0
-pkgrel=4
+pkgrel=5
 pkgdesc="PalexusOS wallpapers (3 designs x accent variants), system theme switcher (Super+Ctrl+T) and geodesic torus screensaver"
 arch=('any')
 url="https://github.com/earnerbaymalay/synapseOS"
@@ -20,41 +20,43 @@ source=(
   'palexus-theme-restore.desktop'
   'palexus-idle.desktop'
   'palexus-screensaver.desktop'
-  'synapse-carbon-crimson.jpg'
-  'synapse-carbon-emerald.jpg'
-  'synapse-carbon-mauve.jpg'
-  'synapse-carbon-sapphire.jpg'
-  'synapse-carbon-tungsten.jpg'
-  'synapse-monolith-emerald.jpg'
-  'synapse-monolith-mauve.jpg'
-  'synapse-monolith-sapphire.jpg'
-  'synapse-monolith-tungsten.jpg'
-  'synapse-tower-crimson.jpg'
-  'synapse-tower-emerald.jpg'
-  'synapse-tower-mauve.jpg'
-  'synapse-tower-sapphire.jpg'
-  'synapse-tower-tungsten.jpg'
+  'palexus-carbon-crimson.jpg'
+  'palexus-carbon-emerald.jpg'
+  'palexus-carbon-mauve.jpg'
+  'palexus-carbon-sapphire.jpg'
+  'palexus-carbon-tungsten.jpg'
+  'palexus-monolith-emerald.jpg'
+  'palexus-monolith-mauve.jpg'
+  'palexus-monolith-sapphire.jpg'
+  'palexus-monolith-tungsten.jpg'
+  'palexus-tower-crimson.jpg'
+  'palexus-tower-emerald.jpg'
+  'palexus-tower-mauve.jpg'
+  'palexus-tower-sapphire.jpg'
+  'palexus-tower-tungsten.jpg'
 )
-sha256sums=('SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP')
+sha256sums=(
+  'a701c4463454d10e39fbf81c359d9597135ab5a1dc19c8ef96e0e14237d0cb92'
+  '4f87882d22c62cf6bbba356882cc31f9166c3446d842ab13e0600b38a8aa946a'
+  '23a9d2960afead31f14059da99631f0485bdffbd30f50f40c1ff2971e9ea7bc8'
+  '85cddd56836b6fce2d074789c9a3bfabfe1599e0cca63f8a6a2dea5153bdb4a9'
+  '49c612df50d0571b2ad20086dd0932ad4fa4027cac0ed2dc10e3b12094e09170'
+  '548dced6b44f6652ad0f5d403f7ad914ccfda46745ac754964250ad8397a220c'
+  '352f4974596a8e0e991a669a304fa3bcf3d0a53c2139bffd2191fdd46509c922'
+  '33f8b663429bb4000cc5db1227674399a7a4ce2c1aecd6207e1c23338c71351f'
+  '5f91e1ccf68e9783f3cd318961cb942735d0532c02a197df64ce067cc1f06e82'
+  '0d16eab84e6207c5f182c144afa4b8dce9cbf52b7f63cfad4565fd45a97e428d'
+  '333d1728457782505c02dabaa5e7e25c5011cd949ffd44564284c3ec1549c681'
+  'fceda6896beb42b343ff380c9cb6cd6090ab83fcdcdbd137c0de04293c325f4b'
+  '1b4e7a8d9729107e1b39dd23dc22f71f08c0bdbe4d0760af678a080b865a642c'
+  '6fb3ff0b0d34e65f98fa827c99828a418befa13227911283f4d95bdeefa9b04b'
+  'caa75a0a4ee86761d2bebfcd72c2945bcfbf38934e106a66f319ab676aec20cc'
+  '19d959293c0fc7a78d84a96b2c610d7feab0a06dbc1166c2867fcc9e325bbd6d'
+  '60dcd5bd60d0f9c34f8064266471acf7be34a6afdadca9c43f4ec9b74f59c3dd'
+  'e4be5200f690e1fbbb112c181696c6dafd4234fea6db6f5659a4539feeb481a9'
+  'd42742c8adad72dc86f0b34f1729439f6239d7b014ff7cb5fee205eee8ad8274'
+  '533bb437930015ca71c4941dd889d184a81212400453796b7d828e32e9aab77e'
+)
 
 package() {
   install -Dm755 palexus-theme "$pkgdir/usr/bin/palexus-theme"
@@ -77,11 +79,11 @@ package() {
 
   install -dm755 "$pkgdir/usr/share/backgrounds/palexusos"
   local wp
-  for wp in synapse-*.jpg; do
-    local base="${wp#synapse-}"
+  for wp in palexus-*.jpg; do
+    local base="${wp#palexus-}"
     install -Dm644 "$wp" "$pkgdir/usr/share/backgrounds/palexusos/$wp"
-    ln -sf "$wp" "$pkgdir/usr/share/backgrounds/palexusos/palexus-$base"
+    ln -sf "$wp" "$pkgdir/usr/share/backgrounds/palexusos/synapse-$base"
   done
-  ln -sf "/usr/share/backgrounds/palexusos/synapse-monolith-mauve.jpg" "$pkgdir/usr/share/backgrounds/palexusos/monolith-mauve.png"
+  ln -sf "/usr/share/backgrounds/palexusos/palexus-monolith-mauve.jpg" "$pkgdir/usr/share/backgrounds/palexusos/monolith-mauve.png"
   ln -sf "palexusos" "$pkgdir/usr/share/backgrounds/synapseos"
 }

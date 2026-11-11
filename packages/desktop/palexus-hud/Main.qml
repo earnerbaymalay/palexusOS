@@ -1,4 +1,4 @@
-// SynapseOS — Command HUD & Quickfire Cockpit (Qt6 / Material You)
+// PalexusOS — Command HUD & Quickfire Cockpit (Qt6 / Material You)
 import QtQuick
 import QtQuick.Controls.Basic
 import QtQuick.Shapes
@@ -9,7 +9,7 @@ Window {
     width: 960
     height: 640
     visible: true
-    title: "Synapse Command HUD"
+    title: "Palexus Command HUD"
     flags: Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.Dialog
     color: "transparent"
 
@@ -132,7 +132,7 @@ Window {
                     id: headerTitle
                     anchors.left: parent.left
                     anchors.verticalCenter: parent.verticalCenter
-                    text: "󰚩 SYNAPSE COMMAND HUD"
+                    text: "󰚩 PALEXUS COMMAND HUD"
                     color: root.accent
                     font { family: root.mono; pixelSize: 13; bold: true; letterSpacing: 1.2 }
                 }
@@ -264,11 +264,11 @@ Window {
                     title: "🧠 AI AGENTS & BRAIN"
                     accentColor: root.accent
                     items: [
-                        { key: "1", label: "synapse hud", desc: "Cockpit TUI", cmd: "kitty --title 'Synapse HUD' synapse hud" },
-                        { key: "2", label: "synapse sync", desc: "Sync Brain", cmd: "kitty --hold synapse sync --once" },
-                        { key: "3", label: "synapse vibe", desc: "Line Stats", cmd: "kitty --hold synapse vibe --hours 24" },
-                        { key: "4", label: "synapse mem", desc: "Memory Search", cmd: "kitty bash -c 'read -p \"Search Memory: \" q; [[ -n \"$q\" ]] && synapse mem search \"$q\"; echo; read -p \"Press enter to close...\"'" },
-                        { key: "5", label: "synapse doctor", desc: "System Health", cmd: "kitty --hold synapse doctor" }
+                        { key: "1", label: "pal-hud", desc: "Cockpit TUI", cmd: "kitty --title 'Palexus HUD' palexus hud" },
+                        { key: "2", label: "pal-sync", desc: "Sync Brain", cmd: "kitty --hold palexus sync --once" },
+                        { key: "3", label: "pal-vibe", desc: "Line Stats", cmd: "kitty --hold palexus vibe --hours 24" },
+                        { key: "4", label: "pal-mem", desc: "Memory Search", cmd: "kitty bash -c 'read -p \"Search Memory: \" q; [[ -n \"$q\" ]] && palexus mem search \"$q\"; echo; read -p \"Press enter to close...\"'" },
+                        { key: "5", label: "pal-doctor", desc: "System Health", cmd: "kitty --hold palexus doctor" }
                     ]
                     filterText: searchBox.text
                     onItemTriggered: function(c) { root.launchCommand(c) }
@@ -295,7 +295,7 @@ Window {
                     accentColor: "#a6e3a1"
                     items: [
                         { key: "A", label: "sec-status", desc: "Security Audit", cmd: "kitty --hold sec-status" },
-                        { key: "S", label: "synapse-stealth", desc: "Shield Status", cmd: "kitty --hold synapse-stealth" },
+                        { key: "S", label: "palexus-stealth", desc: "Shield Status", cmd: "kitty --hold palexus-stealth" },
                         { key: "N", label: "nmtui", desc: "Network Manager", cmd: "kitty nmtui" },
                         { key: "F", label: "firewall", desc: "Firewall State", cmd: "kitty --hold sudo firewall-cmd --state" },
                         { key: "D", label: "dns-dot", desc: "Quad9 DoT Status", cmd: "kitty --hold resolvectl status" }
@@ -310,10 +310,10 @@ Window {
                     accentColor: "#74c7ec"
                     items: [
                         { key: "Z", label: "audio-switch", desc: "Output Picker", cmd: "audio-switch" },
-                        { key: "H", label: "hw-status", desc: "Hardware Status", cmd: "kitty --hold synapse-hardware status" },
+                        { key: "H", label: "hw-status", desc: "Hardware Status", cmd: "kitty --hold palexus-hardware status" },
                         { key: "P", label: "pipewire", desc: "Restart Audio", cmd: "bash -c 'systemctl --user restart pipewire wireplumber && notify-send \"Audio\" \"Restarted audio services\"'" },
-                        { key: "V", label: "boost 25W", desc: "Thermal Max", cmd: "bash -c 'synapse-hardware boost && notify-send \"Hardware\" \"25W PL1 Performance Mode Active\"'" },
-                        { key: "E", label: "eco 15W", desc: "Battery Eco", cmd: "bash -c 'synapse-hardware eco && notify-send \"Hardware\" \"15W Eco Mode Active\"'" }
+                        { key: "V", label: "boost 25W", desc: "Thermal Max", cmd: "bash -c 'palexus-hardware boost && notify-send \"Hardware\" \"25W PL1 Performance Mode Active\"'" },
+                        { key: "E", label: "eco 15W", desc: "Battery Eco", cmd: "bash -c 'palexus-hardware eco && notify-send \"Hardware\" \"15W Eco Mode Active\"'" }
                     ]
                     filterText: searchBox.text
                     onItemTriggered: function(c) { root.launchCommand(c) }
@@ -339,11 +339,11 @@ Window {
                     title: "🎨 APPS & SETTINGS"
                     accentColor: root.accent
                     items: [
-                        { key: "N", label: "synapse-notes", desc: "Scratchpad Notes", cmd: "synapse-notes" },
-                        { key: "C", label: "synapse-settings", desc: "Control Center", cmd: "synapse-settings" },
+                        { key: "N", label: "palexus-notes", desc: "Scratchpad Notes", cmd: "palexus-notes" },
+                        { key: "C", label: "palexus-settings", desc: "Control Center", cmd: "palexus-settings" },
                         { key: "W", label: "chromium", desc: "Web Browser", cmd: "chromium" },
                         { key: "J", label: "galculator", desc: "Calculator", cmd: "galculator" },
-                        { key: "U", label: "screensaver", desc: "Unified Matrix", cmd: "synapse-screensaver --launch" }
+                        { key: "U", label: "screensaver", desc: "Unified Matrix", cmd: "palexus-screensaver --launch" }
                     ]
                     filterText: searchBox.text
                     onItemTriggered: function(c) { root.launchCommand(c) }

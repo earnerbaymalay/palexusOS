@@ -59,7 +59,7 @@ class PalexusSettingsWindow(QMainWindow):
 
         # Header
         header = QHBoxLayout()
-        title = QLabel("⚙ SYNAPSE CONTROL CENTER")
+        title = QLabel("⚙ PALEXUS CONTROL CENTER")
         title.setStyleSheet(f"""
             font-family: 'JetBrainsMono Nerd Font', monospace;
             font-size: 15px;

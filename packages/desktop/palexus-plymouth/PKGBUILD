@@ -1,7 +1,7 @@
 # Maintainer: PalexusOS Engineering Team <maintainers@palexusos.org>
 pkgname=palexus-plymouth
 pkgver=0.2.0
-pkgrel=2
+pkgrel=3
 pkgdesc="PalexusOS Plymouth boot splash: the official PalexusOS boot animation"
 arch=('any')
 url="https://github.com/earnerbaymalay/synapseOS"
@@ -11,7 +11,7 @@ conflicts=('synapse-plymouth')
 depends=('plymouth')
 makedepends=('ffmpeg')
 source=('palexus-boot.mp4' 'palexusos.script.in')
-# Official boot video alias: source=('synapse-boot.mp4')
+# Official boot video source: palexus-boot.mp4
 sha256sums=('SKIP' 'SKIP')
 
 _width=720

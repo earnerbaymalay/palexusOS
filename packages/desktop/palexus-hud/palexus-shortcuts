@@ -5,7 +5,7 @@ set -euo pipefail
 show_cheatsheet() {
     cat << 'EOF'
 ══════════════════════════════════════════════════════════════════════════════
- 󰚩 SYNAPSEOS CYBERDECK SHORTCUTS & NAVIGATION CHEAT SHEET
+ 󰚩 PALEXUSOS CYBERDECK SHORTCUTS & NAVIGATION CHEAT SHEET
 ══════════════════════════════════════════════════════════════════════════════
 
  [Core Navigation & AI Cockpit]

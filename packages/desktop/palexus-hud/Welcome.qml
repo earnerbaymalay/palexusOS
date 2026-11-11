@@ -542,7 +542,7 @@ Window {
                             Column {
                                 spacing: 4
                                 Text {
-                                    text: "Welcome to SynapseOS"
+                                    text: "Welcome to PalexusOS"
                                     color: "#ffffff"
                                     font.family: root.mono; font.pixelSize: 20; font.bold: true
                                 }
@@ -645,7 +645,7 @@ Window {
                                     }
                                     MouseArea {
                                         anchors.fill: parent; cursorShape: Qt.PointingHandCursor
-                                        onClicked: if (typeof backend !== "undefined" && backend) backend.launchCmd("synapse-hud")
+                                        onClicked: if (typeof backend !== "undefined" && backend) backend.launchCmd("palexus-hud")
                                     }
                                 }
 
@@ -1039,7 +1039,7 @@ Window {
                                 { mod: "Super", key: "T", label: "Kitty GPU Terminal",    desc: "Hardware-accelerated terminal with fish shell" },
                                 { mod: "Super", key: "B", label: "Hardened Chromium",     desc: "Zero-telemetry privacy-hardened web browser" },
                                 { mod: "Super", key: "F", label: "Thunar File Manager",   desc: "Fast native desktop file manager" },
-                                { mod: "Super", key: "I", label: "Calamares Installer",   desc: "Install SynapseOS permanently to NVMe/SSD" },
+                                { mod: "Super", key: "I", label: "Calamares Installer",   desc: "Install PalexusOS permanently to NVMe/SSD" },
                                 { mod: "Super", key: "K", label: "Cheat Sheet HUD",       desc: "Floating keyboard shortcut reference overlay" }
                             ]
 

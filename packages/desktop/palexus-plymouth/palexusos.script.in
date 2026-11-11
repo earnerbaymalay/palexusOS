@@ -1,5 +1,5 @@
 # PalexusOS — official boot animation (Plymouth script plugin)
-# Plays the frames extracted from synapse-boot.mp4 once at the video's real speed,
+# Plays the frames extracted from palexus-boot.mp4 once at the video's real speed,
 # then holds the final frame until the login screen takes over.
 
 Window.SetBackgroundTopColor(0, 0, 0);

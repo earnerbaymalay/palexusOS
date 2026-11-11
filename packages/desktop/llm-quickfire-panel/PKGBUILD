@@ -1,15 +1,15 @@
-# Maintainer: SynapseOS Engineering Team <maintainers@synapseos.org>
+# Maintainer: PalexusOS Engineering Team <maintainers@palexusos.org>
 pkgname=llm-quickfire-panel
 pkgver=0.1.0
-pkgrel=3
-pkgdesc="Instant Rofi/GTK Cyberdeck HUD & Live Theme Switcher for Local LLMs and SynapseOS"
+pkgrel=4
+pkgdesc="Instant Rofi/GTK Cyberdeck HUD & Live Theme Switcher for Local LLMs and PalexusOS"
 arch=('any')
 url="https://github.com/earnerbaymalay/llm-quickfire-panel"
 license=('MIT')
 depends=('bash' 'rofi' 'curl' 'jq' 'libnotify' 'kitty')
 optdepends=(
   'ollama: Local LLM token generation backend'
-  'synapse-core: Context firewall and memory gateway integration'
+  'palexus-core: Context firewall and memory gateway integration'
   'xclip: Clipboard integration for prompt outputs'
 )
 makedepends=('git')
@@ -40,7 +40,7 @@ package() {
 [Desktop Entry]
 Type=Application
 Name=LLM Quickfire Panel
-Comment=SynapseOS Cyberdeck Command Palette & Local LLM HUD
+Comment=PalexusOS Cyberdeck Command Palette & Local LLM HUD
 Exec=/usr/bin/quickfire
 Icon=utilities-terminal
 Terminal=false

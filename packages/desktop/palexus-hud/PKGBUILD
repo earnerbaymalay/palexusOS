@@ -1,7 +1,7 @@
 # Maintainer: PalexusOS Engineering Team <maintainers@palexusos.org>
 pkgname=palexus-hud
 pkgver=0.1.0
-pkgrel=8
+pkgrel=9
 pkgdesc="Native Qt6/QML Material You Command HUD, Palexus Settings Control Center, Brain Notes, Metallic Icon Suites, and Neural Governor"
 arch=('any')
 url="https://github.com/earnerbaymalay/synapseOS"
@@ -31,11 +31,11 @@ source=(
   "palexus-welcome.desktop"
   "master_plate_960.png"
   "Welcome.qml"
-  "synapse_chrome_logo.png"
-  "synapse_chrome_spin_360.gif"
-  "synapse_chrome_spin_360.webp"
-  "synapse_chrome_plate_4d.png"
-  "synapse_chrome_plate_spin_360.webp"
+  "palexus_chrome_logo.png"
+  "palexus_chrome_spin_360.gif"
+  "palexus_chrome_spin_360.webp"
+  "palexus_chrome_plate_4d.png"
+  "palexus_chrome_plate_spin_360.webp"
   "generate_spinning_chrome.py"
 )
 sha256sums=(
@@ -91,11 +91,16 @@ package() {
   install -Dm644 "${srcdir}/CommandCategoryCard.qml" "${pkgdir}/usr/share/palexus-hud/CommandCategoryCard.qml"
   install -Dm644 "${srcdir}/Welcome.qml" "${pkgdir}/usr/share/palexus-hud/Welcome.qml"
   install -Dm644 "${srcdir}/master_plate_960.png" "${pkgdir}/usr/share/palexus-hud/master_plate_960.png"
-  install -Dm644 "${srcdir}/synapse_chrome_logo.png" "${pkgdir}/usr/share/palexus-hud/synapse_chrome_logo.png"
-  install -Dm644 "${srcdir}/synapse_chrome_spin_360.gif" "${pkgdir}/usr/share/palexus-hud/synapse_chrome_spin_360.gif"
-  install -Dm644 "${srcdir}/synapse_chrome_spin_360.webp" "${pkgdir}/usr/share/palexus-hud/synapse_chrome_spin_360.webp"
-  install -Dm644 "${srcdir}/synapse_chrome_plate_4d.png" "${pkgdir}/usr/share/palexus-hud/synapse_chrome_plate_4d.png"
-  install -Dm644 "${srcdir}/synapse_chrome_plate_spin_360.webp" "${pkgdir}/usr/share/palexus-hud/synapse_chrome_plate_spin_360.webp"
+  install -Dm644 "${srcdir}/palexus_chrome_logo.png" "${pkgdir}/usr/share/palexus-hud/palexus_chrome_logo.png"
+  install -Dm644 "${srcdir}/palexus_chrome_spin_360.gif" "${pkgdir}/usr/share/palexus-hud/palexus_chrome_spin_360.gif"
+  install -Dm644 "${srcdir}/palexus_chrome_spin_360.webp" "${pkgdir}/usr/share/palexus-hud/palexus_chrome_spin_360.webp"
+  install -Dm644 "${srcdir}/palexus_chrome_plate_4d.png" "${pkgdir}/usr/share/palexus-hud/palexus_chrome_plate_4d.png"
+  install -Dm644 "${srcdir}/palexus_chrome_plate_spin_360.webp" "${pkgdir}/usr/share/palexus-hud/palexus_chrome_plate_spin_360.webp"
+  ln -sf "palexus_chrome_logo.png" "${pkgdir}/usr/share/palexus-hud/synapse_chrome_logo.png"
+  ln -sf "palexus_chrome_spin_360.gif" "${pkgdir}/usr/share/palexus-hud/synapse_chrome_spin_360.gif"
+  ln -sf "palexus_chrome_spin_360.webp" "${pkgdir}/usr/share/palexus-hud/synapse_chrome_spin_360.webp"
+  ln -sf "palexus_chrome_plate_4d.png" "${pkgdir}/usr/share/palexus-hud/synapse_chrome_plate_4d.png"
+  ln -sf "palexus_chrome_plate_spin_360.webp" "${pkgdir}/usr/share/palexus-hud/synapse_chrome_plate_spin_360.webp"
   install -Dm755 "${srcdir}/generate_spinning_chrome.py" "${pkgdir}/usr/share/palexus-hud/generate_spinning_chrome.py"
 
   # Symlink for legacy synapse-hud directory

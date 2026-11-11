@@ -3,7 +3,7 @@
 
 Default mode is "unified": a seamless looping sequence —
   geodesic torus (braille wireframe) → static noise burst →
-  matrix rain + SYNAPSE brand reveal → logo encrypt (reverse) →
+  matrix rain + PALEXUS brand reveal → logo encrypt (reverse) →
   rain fades → crossfade back to torus … and repeats indefinitely.
 
 Legacy modes (torus, brand, cycle) are preserved for backward compat.
@@ -47,12 +47,13 @@ BRAND_SECONDS = 14
 DOTS = ((0x01, 0x08), (0x02, 0x10), (0x04, 0x20), (0x40, 0x80))
 
 GLYPHS = {
-    "S": ["█████", "█    ", "█████", "    █", "█████"],
-    "Y": ["█   █", " █ █ ", "  █  ", "  █  ", "  █  "],
-    "N": ["█   █", "██  █", "█ █ █", "█  ██", "█   █"],
-    "A": [" ███ ", "█   █", "█████", "█   █", "█   █"],
     "P": ["████ ", "█   █", "████ ", "█    ", "█    "],
+    "A": [" ███ ", "█   █", "█████", "█   █", "█   █"],
+    "L": ["█    ", "█    ", "█    ", "█    ", "█████"],
     "E": ["█████", "█    ", "████ ", "█    ", "█████"],
+    "X": ["█   █", " █ █ ", "  █  ", " █ █ ", "█   █"],
+    "U": ["█   █", "█   █", "█   █", "█   █", " ███ "],
+    "S": ["█████", "█    ", "█████", "    █", "█████"],
 }
 NOISE = "!@#$%&*+=?<>/\\|01░▒▓"
 
@@ -307,7 +308,7 @@ def logo_lines(cols):
     lines = []
     for r in range(5):
         parts = []
-        for ch in "SYNAPSE":
+        for ch in "PALEXUS":
             row = GLYPHS[ch][r]
             parts.append("".join(c * 2 for c in row) if wide else row)
         lines.append(("  " if wide else " ").join(parts))
@@ -331,13 +332,13 @@ def logo_targets(cols, rows):
 
 def brand_builtin(term, accent, seconds, rain=None, reverse=False):
     """
-    Decrypt (or re-encrypt when reverse=True) the SYNAPSE logo over `seconds`.
+    Decrypt (or re-encrypt when reverse=True) the PALEXUS logo over `seconds`.
     If `rain` is a MatrixRain instance, renders it in the background each frame.
     Returns True on normal completion, False if a key was pressed.
     """
     cols, rows = term.size()
     targets, top, left, lines = logo_targets(cols, rows)
-    subtitle = "S Y N A P S E   O S"
+    subtitle = "P A L E X U S   O S"
     bright = fg(accent)
     dim    = fg(scale_rgb(accent, 0.35))
     glint  = fg((255, 255, 255))
