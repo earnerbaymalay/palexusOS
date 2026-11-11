@@ -4,30 +4,6 @@ Plan the project here. Each card can start a Parallel Code task.
 
 ## Backlog
 
-- [ ] Make the ISO build reproducible
-  Add `SOURCE_DATE_EPOCH` handling to `build/build-iso.sh` (default to the last commit time) and pass it through to `mkarchiso` and `makepkg`, and pin the upstream daemon source in `packages/core/palexus-core/PKGBUILD` to a tag or commit instead of `#branch=main`. Record the resolved commit and package versions in `out/BUILD_MANIFEST.txt`.
-  group: iso-release
-  depends: Rebrand build-iso.sh and remove the host-specific path
-  - [ ] Two builds from the same commit produce the same package list and manifest
-  - [ ] `palexus-core` no longer tracks a moving branch
-  - [ ] Manifest is written next to the ISO and not committed
-
-- [ ] Sign the package repository and the ISO
-  The local repo is added with `repo-add` unsigned and the ISO ships without a signature. Add optional signing to `build/build-iso.sh`, driven by a `PALEXUS_GPG_KEY` environment variable: `repo-add --sign`, detached `.sig` for the ISO and checksum files. Set an explicit `SigLevel` for the `[palexusos]` repo in both pacman configs. Never store key material in the repo; document the CI secret in `docs/RELEASE_CHANNELS.md`.
-  group: iso-release
-  depends: Make the ISO build reproducible
-  - [ ] With the variable set, repo database, ISO and checksums each have a valid signature
-  - [ ] Without it the build still succeeds and prints a clear unsigned warning
-  - [ ] No key or secret is added to Git
-
-- [ ] Add a scripted QEMU boot smoke test
-  Create `build/test-iso-boot.sh` that boots the newest `out/palexusos-*.iso` headless under QEMU/KVM with OVMF, watches the serial console for the graphical target and `palexus.service` becoming active, and exits non-zero on timeout. Base the approach on `build/test-plymouth-container.sh` (also rename its old-brand references). Add a matching gate entry that is skipped when no ISO is present.
-  group: iso-release
-  depends: Rebrand the verification gate harness
-  - [ ] Script exits 0 against a good ISO and non-zero against a truncated one
-  - [ ] Runs without a display and without root
-  - [ ] Documented in `docs/RELEASE_CHANNELS.md`
-
 - [ ] Build, verify and tag the first PalexusOS ISO
   Run `./build/build-iso.sh --build-pkgs`, the gate harness, pytest and the QEMU smoke test, walk through a Calamares install in a VM, then update `ROADMAP.md` and tag `v0.2.0-alpha`. Remove stale `out/repo/synapse-*` packages and the old `synapseos` database first.
   group: iso-release
@@ -61,6 +37,30 @@ Plan the project here. Each card can start a Parallel Code task.
 ## Review
 
 ## Done
+
+- [x] Make the ISO build reproducible
+  Add `SOURCE_DATE_EPOCH` handling to `build/build-iso.sh` (default to the last commit time) and pass it through to `mkarchiso` and `makepkg`, and pin the upstream daemon source in `packages/core/palexus-core/PKGBUILD` to a tag or commit instead of `#branch=main`. Record the resolved commit and package versions in `out/BUILD_MANIFEST.txt`.
+  group: iso-release
+  depends: Rebrand build-iso.sh and remove the host-specific path
+  - [x] Two builds from the same commit produce the same package list and manifest
+  - [x] `palexus-core` no longer tracks a moving branch
+  - [x] Manifest is written next to the ISO and not committed
+
+- [x] Sign the package repository and the ISO
+  The local repo is added with `repo-add` unsigned and the ISO ships without a signature. Add optional signing to `build/build-iso.sh`, driven by a `PALEXUS_GPG_KEY` environment variable: `repo-add --sign`, detached `.sig` for the ISO and checksum files. Set an explicit `SigLevel` for the `[palexusos]` repo in both pacman configs. Never store key material in the repo; document the CI secret in `docs/RELEASE_CHANNELS.md`.
+  group: iso-release
+  depends: Make the ISO build reproducible
+  - [x] With the variable set, repo database, ISO and checksums each have a valid signature
+  - [x] Without it the build still succeeds and prints a clear unsigned warning
+  - [x] No key or secret is added to Git
+
+- [x] Add a scripted QEMU boot smoke test
+  Create `build/test-iso-boot.sh` that boots the newest `out/palexusos-*.iso` headless under QEMU/KVM with OVMF, watches the serial console for the graphical target and `palexus.service` becoming active, and exits non-zero on timeout. Base the approach on `build/test-plymouth-container.sh` (also rename its old-brand references). Add a matching gate entry that is skipped when no ISO is present.
+  group: iso-release
+  depends: Rebrand the verification gate harness
+  - [x] Script exits 0 against a good ISO and non-zero against a truncated one
+  - [x] Runs without a display and without root
+  - [x] Documented in `docs/RELEASE_CHANNELS.md`
 
 - [x] Design spike: eBPF secret leak interceptor (Milestone 9.2)
   Write `docs/EBPF_SECRET_INTERCEPTOR.md` only. Decide the hook point (cgroup/skb egress, sock_ops, or LSM), how plaintext is inspected given TLS (uprobes on OpenSSL/GnuTLS versus pre-encryption only), pattern set (`sk-*`, PEM headers, OpenSSH private keys), false-positive handling, kernel config requirements on `linux-cachyos`, and how it reuses the patterns in the upstream daemon's `firewall.rs`.
