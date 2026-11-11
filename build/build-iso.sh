@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# SynapseOS Live ISO Builder (build/build-iso.sh)
+# PalexusOS Live ISO Builder (build/build-iso.sh)
 # Synchronizes overlays, optionally builds local PKGBUILDs, and invokes mkarchiso.
 # ==============================================================================
 set -euo pipefail
@@ -12,12 +12,12 @@ AIROOTFS_DIR="${PROFILE_DIR}/airootfs"
 OVERLAY_DIR="${REPO_ROOT}/overlay"
 CALAMARES_SRC="${REPO_ROOT}/packages/installer/calamares"
 # Disk-backed: /tmp is a RAM tmpfs and too small for a full airootfs
-WORK_DIR="${WORK_DIR:-/var/tmp/synapseos-archiso-work}"
+WORK_DIR="${WORK_DIR:-/var/tmp/palexusos-archiso-work}"
 OUT_DIR="${OUT_DIR:-${REPO_ROOT}/out}"
 LOCAL_REPO_DIR="${LOCAL_REPO_DIR:-${OUT_DIR}/repo}"
-SYSTEM_REPO_DIR="/var/cache/synapseos-repo"
+SYSTEM_REPO_DIR="/var/cache/palexusos-repo"
 # Isolated build keyring + pacman.conf: mkarchiso never touches the host keyring or /etc/pacman.d
-BUILD_STATE_DIR="/var/lib/synapseos-build"
+BUILD_STATE_DIR="/var/lib/palexusos-build"
 BUILD_GPGDIR="${BUILD_STATE_DIR}/gnupg"
 BUILD_PACMAN_CONF="${BUILD_STATE_DIR}/pacman.conf"
 CACHYOS_KEY_FPR="882DCFE48E2051D48E2562ABF3B607488DB35A47"
@@ -31,8 +31,8 @@ Usage: ./build/build-iso.sh [OPTIONS]
 
 Options:
   --dry-run, --check   Validate profile, stage overlays, and verify readiness without root/mkarchiso
-  --build-pkgs         Build native PKGBUILDs under packages/ and populate local [synapseos] repo
-  -w, --work-dir DIR   Set archiso working directory (default: /var/tmp/synapseos-archiso-work)
+  --build-pkgs         Build native PKGBUILDs under packages/ and populate local [palexusos] repo
+  -w, --work-dir DIR   Set archiso working directory (default: /var/tmp/palexusos-archiso-work)
   -o, --out-dir DIR    Set ISO output directory (default: ./out)
   -h, --help           Show this help message
 EOF
@@ -68,7 +68,7 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-echo "==> [SynapseOS ISO Builder] Initializing build pipeline..."
+echo "==> [PalexusOS ISO Builder] Initializing build pipeline..."
 echo "    Repository Root : ${REPO_ROOT}"
 echo "    Archiso Profile : ${PROFILE_DIR}"
 echo "    Output Directory: ${OUT_DIR}"
@@ -79,7 +79,7 @@ REQUIRED_PROFILE_FILES=(
     "${PROFILE_DIR}/packages.x86_64"
     "${PROFILE_DIR}/pacman.conf"
     "${PROFILE_DIR}/efiboot/loader/loader.conf"
-    "${PROFILE_DIR}/efiboot/loader/entries/01-synapseos-x86_64-linux.conf"
+    "${PROFILE_DIR}/efiboot/loader/entries/01-palexusos-x86_64-linux.conf"
     "${PROFILE_DIR}/syslinux/syslinux.cfg"
     "${AIROOTFS_DIR}/root/customize_airootfs.sh"
 )
@@ -125,22 +125,23 @@ fi
 if [[ -d "${CALAMARES_SRC}" ]]; then
     # Staged aside: cachyos-calamares owns /etc/calamares/*, so pacstrap would hit file
     # conflicts. customize_airootfs.sh copies this over /etc/calamares after packages install.
-    echo "==> Staging Calamares configuration into ${AIROOTFS_DIR}/etc/synapseos/calamares ..."
+    echo "==> Staging Calamares configuration into ${AIROOTFS_DIR}/etc/palexusos/calamares ..."
     rm -rf "${AIROOTFS_DIR}/etc/calamares"
-    mkdir -p "${AIROOTFS_DIR}/etc/synapseos/calamares"
-    cp -af "${CALAMARES_SRC}/." "${AIROOTFS_DIR}/etc/synapseos/calamares/"
+    mkdir -p "${AIROOTFS_DIR}/etc/palexusos/calamares"
+    cp -af "${CALAMARES_SRC}/." "${AIROOTFS_DIR}/etc/palexusos/calamares/"
 fi
 
-# 4. Optionally build local SynapseOS PKGBUILDs
+# 4. Optionally build local PalexusOS PKGBUILDs
 build_local_packages() {
-    echo "==> Building local SynapseOS native packages into ${LOCAL_REPO_DIR}..."
+    echo "==> Building local PalexusOS native packages into ${LOCAL_REPO_DIR}..."
     mkdir -p "${LOCAL_REPO_DIR}"
 
     # Pre-seed local sources only when not already staged in packages/.../src/
     local sc_dir="${REPO_ROOT}/packages/core/palexus-core"
-    if [[ ! -d "${sc_dir}/src/synapse" ]] && [[ -d "/home/ebaymlay/work/synapse" ]]; then
+    local core_src="${PALEXUS_CORE_SRC:-}"
+    if [[ ! -d "${sc_dir}/src/synapse" ]] && [[ -n "${core_src}" ]] && [[ -d "${core_src}" ]]; then
         mkdir -p "${sc_dir}/src"
-        cp -al "/home/ebaymlay/work/synapse" "${sc_dir}/src/synapse"
+        cp -al "${core_src}" "${sc_dir}/src/synapse"
     fi
     if [[ -d "${sc_dir}/src" ]]; then
         cp -f "${sc_dir}/palexus.service" "${sc_dir}/palexus-sync.service" "${sc_dir}/palexus-sync.timer" "${sc_dir}/src/"
@@ -204,7 +205,7 @@ build_local_packages() {
     done
 
     if compgen -G "${LOCAL_REPO_DIR}/*.pkg.tar.*" > /dev/null; then
-        repo-add -R "${LOCAL_REPO_DIR}/synapseos.db.tar.gz" "${LOCAL_REPO_DIR}"/*.pkg.tar.*
+        repo-add -R "${LOCAL_REPO_DIR}/palexusos.db.tar.gz" "${LOCAL_REPO_DIR}"/*.pkg.tar.*
     fi
 
 }
@@ -229,7 +230,7 @@ if [[ "${DRY_RUN}" -eq 1 ]]; then
     exit 0
 fi
 
-# 6. Prepare isolated build keyring, build pacman.conf & [synapseos] repo for mkarchiso
+# 6. Prepare isolated build keyring, build pacman.conf & [palexusos] repo for mkarchiso
 prepare_host_build_env() {
     local priv_cmd=()
     if [[ "${EUID}" -ne 0 ]]; then
@@ -256,7 +257,7 @@ prepare_host_build_env() {
         "${PROFILE_DIR}/pacman.conf" | "${priv_cmd[@]}" tee "${BUILD_PACMAN_CONF}" >/dev/null
 
     if [[ -d "${LOCAL_REPO_DIR}" ]]; then
-        echo "==> Syncing local [synapseos] repository to ${SYSTEM_REPO_DIR}..."
+        echo "==> Syncing local [palexusos] repository to ${SYSTEM_REPO_DIR}..."
         "${priv_cmd[@]}" mkdir -p "${SYSTEM_REPO_DIR}"
         "${priv_cmd[@]}" cp -af "${LOCAL_REPO_DIR}/." "${SYSTEM_REPO_DIR}/"
     fi
@@ -278,5 +279,5 @@ else
     mkarchiso -v -C "${BUILD_PACMAN_CONF}" -w "${WORK_DIR}" -o "${OUT_DIR}" "${PROFILE_DIR}"
 fi
 
-echo "==> [SynapseOS ISO Builder] ISO generation complete. Artifacts in ${OUT_DIR}:"
+echo "==> [PalexusOS ISO Builder] ISO generation complete. Artifacts in ${OUT_DIR}:"
 ls -lh "${OUT_DIR}"

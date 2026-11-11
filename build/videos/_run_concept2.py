@@ -1,11 +1,15 @@
 
 import sys
-sys.path.append('/home/ebaymlay/Desktop/AI BRAIN/synapseOS/build/videos')
+from pathlib import Path
+
+script_dir = Path(__file__).resolve().parent
+repo_root = script_dir.parents[1]
+sys.path.append(str(script_dir))
 import concept2_sovereign_cipher as mod
 mod.build_concept_2('PALEXUS')
 
 import bpy
-bpy.ops.wm.save_as_mainfile(filepath='/home/ebaymlay/Desktop/AI BRAIN/synapseOS/docs/assets/videos/palexus_concept2.blend')
+bpy.ops.wm.save_as_mainfile(filepath=str(repo_root / 'docs/assets/videos/palexus_concept2.blend'))
 
 
 import bpy

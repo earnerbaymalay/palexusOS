@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 set -e
 
-DIR="/home/ebaymlay/Desktop/AI BRAIN/synapseOS/build/blender"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
+DIR="${SCRIPT_DIR}"
 cd "$DIR"
 
 echo "Waiting for Concept 2 background render to complete..."
@@ -29,11 +31,11 @@ blender -b "$DIR/palexus_concept4_prism.blend" -o "$DIR/renders/concept4/frame_#
 ffmpeg -y -framerate 30 -i "$DIR/renders/concept4/frame_%04d.png" -c:v libx264 -pix_fmt yuv420p "$DIR/palexus_boot_concept4.mp4"
 
 echo "Copying MP4 and WebM assets to docs/assets/videos/..."
-mkdir -p "/home/ebaymlay/Desktop/AI BRAIN/synapseOS/docs/assets/videos"
+mkdir -p "${REPO_ROOT}/docs/assets/videos"
 for c in concept2 concept3 concept4; do
     if [[ -f "$DIR/palexus_boot_${c}.mp4" ]]; then
-        cp -af "$DIR/palexus_boot_${c}.mp4" "/home/ebaymlay/Desktop/AI BRAIN/synapseOS/docs/assets/videos/${c}.mp4"
-        ffmpeg -y -v error -i "$DIR/palexus_boot_${c}.mp4" -c:v libvpx-vp9 -b:v 0 -crf 30 -an "/home/ebaymlay/Desktop/AI BRAIN/synapseOS/docs/assets/videos/${c}.webm"
+        cp -af "$DIR/palexus_boot_${c}.mp4" "${REPO_ROOT}/docs/assets/videos/${c}.mp4"
+        ffmpeg -y -v error -i "$DIR/palexus_boot_${c}.mp4" -c:v libvpx-vp9 -b:v 0 -crf 30 -an "${REPO_ROOT}/docs/assets/videos/${c}.webm"
     fi
 done
 
