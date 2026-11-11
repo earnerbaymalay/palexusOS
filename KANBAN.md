@@ -4,13 +4,6 @@ Plan the project here. Each card can start a Parallel Code task.
 
 ## Backlog
 
-- [ ] Rebrand the user skeleton overlay
-  Under `overlay/etc/skel/`: rename `.config/autostart/synapse-setup.desktop` and `synapse-welcome.desktop` to `palexus-*` with `Exec=/usr/bin/palexus-*` and matching `Icon=`; in `.bashrc` point aliases at `palexus`/`palexus-hud`/`palexus-settings`/`palexus-notes`, export `PALEXUS_GATEWAY_URL`/`PALEXUS_CONFIG` while keeping the `SYNAPSE_*` variables as compatibility exports (the upstream daemon may still read them); move `.synapse/config.toml` to `.palexus/config.toml` and update the paths inside it only if the daemon accepts a config path (check `components/synapse-cli`), otherwise keep `.synapse` and document why. Update remaining mentions in `sway/config`, `waybar/config.jsonc`, `waybar/style.css`, `kitty/*.conf`, `quickfire/theme.conf`, `mimeapps.list`, `xfce4-keyboard-shortcuts.xml`, and the gtk/xfwm4/xsettings files.
-  - [ ] Every `Exec=` and keybinding target exists as a binary installed by a `palexus-*` PKGBUILD
-  - [ ] `grep -ri synapse overlay/etc/skel` shows only the documented compatibility exports
-  - [ ] Sway config still binds `Mod4+space` and `Mod4+d` to the HUD
-  depends: Commit the in-progress rebrand working tree as the baseline
-  group: rebrand
 - [ ] Rebrand system overlay configs and the AMOLED theme
   Outside `skel`: in `overlay/etc/pacman.conf` rename the `[synapseos]` repo and server path to `palexusos` (must match `build/archiso/pacman.conf`); update header comments in `overlay/etc/xdg/picom.conf`, `systemd/zram-generator.conf`, `systemd/resolved.conf.d/quad9-dot.conf`, `systemd/system/ollama.service.d/override.conf`, `chromium/default-flags`, and `ananicy.d/00-palexusos/palexusos.rules` (also its process names). Rename `overlay/usr/share/themes/Synapse-AMOLED` and `overlay/etc/skel/.themes/Synapse-AMOLED` to `Palexus-AMOLED` and update every reference (`xfwm4.xml`, `xsettings.xml`, gtk `settings.ini`, theme switcher in `packages/desktop/palexus-themes/palexus-theme`). Do not change any stealth setting values.
   - [ ] `grep -ri synapse overlay --exclude-dir=skel` returns nothing
@@ -126,6 +119,14 @@ Plan the project here. Each card can start a Parallel Code task.
 
 ## Done
 
+- [x] Rebrand the user skeleton overlay
+  Under `overlay/etc/skel/`: rename `.config/autostart/synapse-setup.desktop` and `synapse-welcome.desktop` to `palexus-*` with `Exec=/usr/bin/palexus-*` and matching `Icon=`; in `.bashrc` point aliases at `palexus`/`palexus-hud`/`palexus-settings`/`palexus-notes`, export `PALEXUS_GATEWAY_URL`/`PALEXUS_CONFIG` while keeping the `SYNAPSE_*` variables as compatibility exports (the upstream daemon may still read them); move `.synapse/config.toml` to `.palexus/config.toml` and update the paths inside it only if the daemon accepts a config path (check `components/synapse-cli`), otherwise keep `.synapse` and document why. Update remaining mentions in `sway/config`, `waybar/config.jsonc`, `waybar/style.css`, `kitty/*.conf`, `quickfire/theme.conf`, `mimeapps.list`, `xfce4-keyboard-shortcuts.xml`, and the gtk/xfwm4/xsettings files.
+  - [x] Every `Exec=` and keybinding target exists as a binary installed by a `palexus-*` PKGBUILD
+  - [x] `grep -ri synapse overlay/etc/skel` shows only the documented compatibility exports
+  - [x] Sway config still binds `Mod4+space` and `Mod4+d` to the HUD
+  depends: Commit the in-progress rebrand working tree as the baseline
+  group: rebrand
+
 - [x] Rebrand the live-image customize hook and the Calamares modules together
   `build/archiso/airootfs/root/customize_airootfs.sh` and `packages/installer/calamares/modules/*.conf` share names and must change in one card: the live user `synapse` -> `palexus` (useradd, `/home/...`, `/etc/sudoers.d/00-palexus-live`), hostname `palexusos`, enabled unit `palexus.service`, and the staged config path `/etc/palexusos/calamares`. In the modules update `shellprocess@cleanup.conf` (sudoers file, `userdel -r`, `/home/<live user>` copy logic), `services-systemd.conf` (`name: "palexus"`), `unpackfs.conf` (`/run/archiso/bootmnt/palexusos/x86_64/airootfs.sfs`), `netinstall.yaml` pack names, and SPDX/header comments in every module plus `settings.conf`. Also check `overlay/etc/sddm.conf.d/10-palexusos.conf` `HideUsers` against the new daemon/live user names.
   - [x] `grep -ri synapse packages/installer/calamares/modules build/archiso/airootfs/root` returns nothing
@@ -133,7 +134,6 @@ Plan the project here. Each card can start a Parallel Code task.
   - [x] `unpackfs.conf` source path matches `install_dir` in `profiledef.sh`
   depends: Rebrand the archiso profile and bootloader entries
   group: rebrand
-
 - [x] Rebrand build-iso.sh and remove the host-specific path
   In `build/build-iso.sh` rename the work/state/repo paths (`/var/tmp/synapseos-archiso-work`, `/var/cache/synapseos-repo`, `/var/lib/synapseos-build`), the `synapseos.db.tar.gz` repo database, the staged `etc/synapseos/calamares` directory, the boot-entry filename check on line ~82, and all banner/usage text to `palexusos`. Lines ~141-143 hard-link `/home/ebaymlay/work/synapse` into the core package `src/`; replace that with an optional `PALEXUS_CORE_SRC` environment variable so the script is reproducible on other machines and in CI. The upstream daemon checkout directory stays named `synapse` (it is the upstream repo name used by `packages/core/palexus-core/PKGBUILD`).
   - [x] `./build/build-iso.sh --dry-run` exits 0
@@ -141,7 +141,6 @@ Plan the project here. Each card can start a Parallel Code task.
   - [x] `shellcheck build/build-iso.sh` is clean
   depends: Rebrand the archiso profile and bootloader entries
   group: rebrand
-
 - [x] Rebrand the archiso profile and bootloader entries
   `build/archiso/` still carries the old identity. In `profiledef.sh` set `iso_name="palexusos"`, `iso_label="PALEXUSOS_..."`, publisher/application strings and `install_dir="palexusos"`. Rename `efiboot/loader/entries/01-synapseos-x86_64-linux.conf` to `01-palexusos-x86_64-linux.conf` and update `efiboot/loader/loader.conf`, the entry title, and `syslinux/syslinux.cfg` menu text; any `archisobasedir=`/`archisolabel=` parameters must match the new `install_dir` and label. In `build/archiso/pacman.conf` rename the repo section to `[palexusos]` with `Server = file:///var/cache/palexusos-repo`, and update header comments in `packages.x86_64`. Only touch files under `build/archiso/` except `airootfs/root/customize_airootfs.sh` (separate card).
   - [x] `grep -ri synapse build/archiso --exclude-dir=airootfs` returns nothing

@@ -1,9 +1,9 @@
 [Desktop Entry]
 Type=Application
-Name=SynapseOS Onboarding Wizard
+Name=PalexusOS Onboarding Wizard
 Comment=First-boot personalization of icons, wallpapers and screensavers
-Exec=/usr/bin/synapse-welcome --autostart
-Icon=synapse-welcome
+Exec=/usr/bin/palexus-welcome --autostart
+Icon=palexus-welcome
 Terminal=false
 Categories=System;
 X-GNOME-Autostart-enabled=true
