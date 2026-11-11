@@ -442,7 +442,7 @@ if command -v shellcheck >/dev/null 2>&1; then
 fi
 
 # Stage A & B: Local [palexusos] repo, CachyOS mirrorlists, keyring & staged airootfs checks
-if [[ -d "${REPO_ROOT}/out/repo" ]]; then
+if [[ -f "${REPO_ROOT}/out/repo/palexusos.db.tar.gz" ]] || compgen -G "${REPO_ROOT}/out/repo/*.pkg.tar.*" >/dev/null 2>&1; then
     for repo_artifact in \
         "${REPO_ROOT}/out/repo/palexusos.db.tar.gz" \
         "${REPO_ROOT}/build/archiso/airootfs/var/cache/palexusos-repo/palexusos.db.tar.gz"; do
