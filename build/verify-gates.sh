@@ -529,7 +529,15 @@ PLY_DIR="${REPO_ROOT}/packages/desktop/synapse-plymouth"
 check_file_contains "${REPO_ROOT}/build/archiso/airootfs/etc/mkinitcpio.conf.d/archiso.conf" '^HOOKS=\(.* kms plymouth .*\)$' "Live initramfs runs the plymouth hook"
 check_file_contains "${REPO_ROOT}/overlay/etc/plymouth/plymouthd.conf" '^Theme=synapseos$' "Plymouth uses the single synapseos theme"
 check_file_contains "${REPO_ROOT}/build/archiso/efiboot/loader/entries/01-synapseos-x86_64-linux.conf" '^options .* splash' "Live boot entry passes splash"
-check_file_contains "${REPO_ROOT}/packages/installer/calamares/modules/bootloader.conf" '"splash"' "Installed systems boot with splash"
+# GRUB takes its kernel line, splash and LUKS unlock from grubcfg, not bootloader.conf
+CAL_EXEC_ORDER="$(sed -n '/^  - exec:/,/^  - show:/p' "${REPO_ROOT}/packages/installer/calamares/settings.conf" | sed -n 's/^ *- //p' | tr '\n' ' ')"
+if [[ "${CAL_EXEC_ORDER}" == *" grubcfg bootloader "* ]]; then
+    pass "Calamares runs grubcfg right before bootloader (splash + LUKS on installed systems)"
+else
+    fail "Calamares runs grubcfg right before bootloader (splash + LUKS on installed systems)"
+fi
+check_file_contains "${REPO_ROOT}/packages/installer/calamares/modules/grubcfg.conf" '^ *- "quiet"$' "grubcfg.conf sets the installed kernel command line"
+check_file_lacks "${REPO_ROOT}/packages/installer/calamares/modules/grubcfg.conf" 'themes/cachyos' "grubcfg.conf carries no CachyOS GRUB theme"
 check_file_contains "${PLY_DIR}/synapseos.script.in" 'Plymouth\.SetDisplayPasswordFunction' "Splash handles the LUKS passphrase prompt"
 check_file_contains "${PLY_DIR}/synapseos.script.in" 'Plymouth\.SetRefreshFunction' "Splash script drives frame playback"
 check_file_contains "${PLY_DIR}/synapseos.script.in" 'Plymouth\.SetQuitFunction' "Splash holds the final frame for the login hand-off"
