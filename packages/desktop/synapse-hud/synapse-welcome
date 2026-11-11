@@ -65,7 +65,7 @@ MODEL_TIERS = {
 
 # Tools the wizard may open; QML never passes a raw command line
 TOOLS = {
-    "installer": ["calamares", "-d"],
+    "installer": ["sudo", "-E", "calamares"],
     "audit": ["sec-status"],
     "shortcuts": ["synapse-shortcuts"],
     "settings": ["synapse-settings"],

@@ -205,7 +205,14 @@ WAYBAR_STYLE="${REPO_ROOT}/overlay/etc/skel/.config/waybar/style.css"
 check_file_contains "${SWAY_CONF}" "Mod4\+space.*(/usr/bin/(quickfire|synapse-hud)|\$menu)" "Sway config binds Mod4+space to /usr/bin/synapse-hud or quickfire"
 check_file_contains "${SWAY_CONF}" "Mod4\+d.*(/usr/bin/(quickfire|synapse-hud)|\$menu)" "Sway config binds Mod4+d to /usr/bin/synapse-hud or quickfire"
 check_file_contains "${SWAY_CONF}" "Mod4\+Return.*(kitty|foot|\$term)" "Sway config binds Mod4+Return to kitty/foot"
-check_file_contains "${SWAY_CONF}" "Mod4\+i.*calamares" "Sway config binds Mod4+i to calamares"
+check_file_contains "${SWAY_CONF}" "Mod4\+i exec \[ -d /run/archiso \] && sudo -E /usr/bin/calamares" "Sway Mod4+i launches Calamares as root, live session only"
+# Calamares requires root (welcome.conf); -d is its debug mode
+if grep -RqsE "calamares -d|\"calamares\", \"-d\"" "${REPO_ROOT}/overlay" "${REPO_ROOT}/packages/desktop/synapse-hud/synapse-welcome"; then
+    fail "No launcher starts Calamares unprivileged in debug mode (calamares -d)"
+else
+    pass "No launcher starts Calamares unprivileged in debug mode (calamares -d)"
+fi
+check_file_lacks "${WAYBAR_CONF}" 'x /usr/bin/calamares' "Waybar install button is keyed to the live session, not to Calamares being installed"
 check_file_contains "${SWAY_CONF}" "Mod4\+slash.*synapse-shortcuts" "Sway config binds Mod4+slash to cheat sheet"
 check_file_contains "${SWAY_CONF}" "for_window.*calamares.*floating" "Sway config floats Calamares installer"
 check_file_contains "${SWAY_CONF}" "for_window.*synapse-welcome.*floating" "Sway config floats Synapse welcome onboarding"

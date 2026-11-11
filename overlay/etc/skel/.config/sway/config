@@ -60,8 +60,8 @@ bindsym Mod4+Shift+Return exec foot
 bindsym Mod4+b exec chromium
 bindsym Mod4+f exec thunar
 bindsym Mod4+n exec /usr/bin/synapse-notes
-bindsym Mod4+c exec [ -x /usr/bin/calamares ] && calamares -d || /usr/bin/galculator
-bindsym Mod4+i exec calamares -d
+bindsym Mod4+c exec /usr/bin/galculator
+bindsym Mod4+i exec [ -d /run/archiso ] && sudo -E /usr/bin/calamares
 bindsym Mod4+a exec /usr/bin/audio-switch
 bindsym Mod4+w exec /usr/bin/synapse-welcome
 bindsym Mod4+slash exec /usr/bin/synapse-shortcuts

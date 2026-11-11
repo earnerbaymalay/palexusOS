@@ -45,16 +45,16 @@
         "tooltip-format": "Synapse Command HUD (Mod4+Space)\n[Left-Click] Command HUD\n[Right-Click] Quickfire AI"
     },
     "custom/installer": {
-        "exec": "if [ -x /usr/bin/calamares ] || [ -f /etc/sudoers.d/00-synapse-live ]; then echo '{\"text\":\"󰐥 INSTALL SYNAPSEOS\",\"tooltip\":\"Launch Calamares Live System Installer\",\"class\":\"active\"}'; fi",
+        "exec": "if [ -d /run/archiso ]; then echo '{\"text\":\"󰐥 INSTALL SYNAPSEOS\",\"tooltip\":\"Launch Calamares Live System Installer\",\"class\":\"active\"}'; fi",
         "return-type": "json",
         "interval": 10,
-        "on-click": "/usr/bin/calamares -d"
+        "on-click": "sudo -E /usr/bin/calamares"
     },
     "custom/calamares": {
-        "exec": "if [ -x /usr/bin/calamares ] || [ -f /etc/sudoers.d/00-synapse-live ]; then echo '{\"text\":\"󰐥 INSTALL SYNAPSEOS\",\"tooltip\":\"Launch Calamares Live System Installer\",\"class\":\"active\"}'; fi",
+        "exec": "if [ -d /run/archiso ]; then echo '{\"text\":\"󰐥 INSTALL SYNAPSEOS\",\"tooltip\":\"Launch Calamares Live System Installer\",\"class\":\"active\"}'; fi",
         "return-type": "json",
         "interval": 10,
-        "on-click": "/usr/bin/calamares -d"
+        "on-click": "sudo -E /usr/bin/calamares"
     },
     "custom/terminal": {
         "format": "󰞷 TERM",
