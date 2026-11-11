@@ -463,6 +463,8 @@ check_file_contains "${REPO_ROOT}/packages/desktop/synapse-hud/synapse-oobe-appl
 check_file_contains "${REPO_ROOT}/packages/installer/calamares/settings.conf" 'shellprocess@oobe' "Calamares arms first-boot account setup"
 check_file_contains "${REPO_ROOT}/packages/desktop/synapse-hud/synapse-oobe-arm" 'synapse-oobe-apply ""' "First-boot sudo rule allows only the argument-less helper"
 check_file_contains "${REPO_ROOT}/packages/desktop/synapse-hud/synapse-oobe-apply" 'os\.remove\(MARKER\)' "First-boot helper disarms itself after one use"
+check_file_contains "${REPO_ROOT}/packages/desktop/synapse-hud/synapse-oobe-arm" 'systemctl enable synapse-oobe-recovery\.service' "First boot has a text-mode account fallback on tty2"
+check_file_contains "${REPO_ROOT}/packages/desktop/synapse-hud/synapse-oobe-recovery.service" '^ConditionPathExists=/var/lib/synapse/oobe-pending$' "Text-mode fallback only runs while first-boot setup is pending"
 check_file_contains "${REPO_ROOT}/packages/installer/calamares/modules/shellprocess@cleanup.conf" '00-synapse-live.conf' "Calamares cleanup removes live autologin"
 check_file_contains "${REPO_ROOT}/build/archiso/packages.x86_64" '^cachyos-calamares$' "ISO pins one Calamares build (19 CachyOS packages provide 'calamares')"
 check_file_lacks "${REPO_ROOT}/build/archiso/packages.x86_64" '(?m)^calamares$' "ISO does not leave the Calamares provider to chance"

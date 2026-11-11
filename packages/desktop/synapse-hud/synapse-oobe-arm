@@ -36,3 +36,6 @@ if command -v visudo >/dev/null 2>&1 && ! visudo -cqf "$rule"; then
 fi
 
 touch /var/lib/synapse/oobe-pending
+
+# Text-mode fallback on tty2 in case the graphical setup can't start
+systemctl enable synapse-oobe-recovery.service

@@ -243,6 +243,8 @@ def finalize():
             os.remove(path)
         except FileNotFoundError:
             pass
+    subprocess.run(["systemctl", "disable", "--now", "synapse-oobe-recovery.service"],
+                   stderr=subprocess.DEVNULL)
     subprocess.run(["systemctl", "restart", "display-manager"])
     subprocess.run(["loginctl", "terminate-user", OOBE_USER], stderr=subprocess.DEVNULL)
     for _ in range(20):

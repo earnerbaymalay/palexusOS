@@ -18,6 +18,8 @@ source=(
   "synapse-oobe-session"
   "synapse-oobe.desktop"
   "oobe-sway.conf"
+  "synapse-oobe-recovery"
+  "synapse-oobe-recovery.service"
   "synapse-shortcuts"
   "synapse-power"
   "synapse-stealth"
@@ -74,6 +76,8 @@ sha256sums=(
   'SKIP'
   'SKIP'
   'SKIP'
+  'SKIP'
+  'SKIP'
 )
 
 package() {
@@ -89,6 +93,8 @@ package() {
   install -Dm755 "${srcdir}/synapse-oobe-session" "${pkgdir}/usr/lib/synapse/synapse-oobe-session"
   install -Dm644 "${srcdir}/synapse-oobe.desktop" "${pkgdir}/usr/share/synapse-hud/synapse-oobe.desktop"
   install -Dm644 "${srcdir}/oobe-sway.conf" "${pkgdir}/usr/share/synapse-hud/oobe-sway.conf"
+  install -Dm755 "${srcdir}/synapse-oobe-recovery" "${pkgdir}/usr/lib/synapse/synapse-oobe-recovery"
+  install -Dm644 "${srcdir}/synapse-oobe-recovery.service" "${pkgdir}/usr/lib/systemd/system/synapse-oobe-recovery.service"
   install -Dm755 "${srcdir}/synapse-shortcuts" "${pkgdir}/usr/bin/synapse-shortcuts"
   install -Dm755 "${srcdir}/synapse-power" "${pkgdir}/usr/bin/synapse-power"
   install -Dm755 "${srcdir}/synapse-stealth" "${pkgdir}/usr/bin/synapse-stealth"

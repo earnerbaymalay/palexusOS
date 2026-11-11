@@ -1,0 +1,81 @@
+#!/usr/bin/env python3
+"""synapse-oobe-recovery — text-mode first-boot setup on tty2.
+
+Started by synapse-oobe-recovery.service only while first-boot setup is pending, so a
+machine whose graphical setup cannot start (GPU or Wayland trouble) can still get its
+first account. It collects the essentials and hands them to synapse-oobe-apply on stdin,
+which validates them exactly as it does for the graphical wizard.
+"""
+
+import getpass
+import json
+import os
+import subprocess
+import sys
+
+APPLY = "/usr/lib/synapse/synapse-oobe-apply"
+MARKER = "/var/lib/synapse/oobe-pending"
+
+
+def ask(prompt, default=""):
+    suffix = f" [{default}]" if default else ""
+    return input(f"{prompt}{suffix}: ").strip() or default
+
+
+def ask_password():
+    while True:
+        password = getpass.getpass("Password (at least 6 characters): ")
+        if getpass.getpass("Repeat password: ") == password:
+            return password
+        print("The passwords don't match. Try again.\n")
+
+
+def build_request(username, full_name, password, hostname):
+    # Same shape as the graphical wizard's request; theme and AI keep their defaults.
+    return {
+        "username": username,
+        "full_name": full_name,
+        "password": password,
+        "hostname": hostname,
+        "ai_engine": "local",
+        "ai_models": [],
+    }
+
+
+def submit(request, apply_cmd=APPLY):
+    """Send the request on stdin (never argv, which other users can read)."""
+    proc = subprocess.run([apply_cmd], input=json.dumps(request), text=True, capture_output=True)
+    lines = proc.stdout.strip().splitlines()
+    try:
+        return json.loads(lines[-1])
+    except (ValueError, IndexError):
+        return {"ok": False, "error": proc.stderr.strip()[:200] or "The setup helper did not answer."}
+
+
+def main():
+    if not os.path.exists(MARKER):
+        return 0
+    print("\nSynapseOS first-boot setup (text mode)\n")
+    print("Use this if the graphical setup did not appear on the main screen.")
+    print("If it did, you can finish there instead; this screen closes when setup is done.\n")
+    while os.path.exists(MARKER):
+        request = build_request(
+            ask("Username (lowercase)").lower(),
+            ask("Full name (optional)"),
+            ask_password(),
+            ask("Computer name", "synapseos"),
+        )
+        result = submit(request)
+        if result.get("ok"):
+            print("\nAccount created. The login screen will open on the main screen (Ctrl+Alt+F1).")
+            return 0
+        print(f"\n{result.get('error', 'Setup failed.')}\n")
+    return 0
+
+
+if __name__ == "__main__":
+    try:
+        sys.exit(main())
+    except (KeyboardInterrupt, EOFError):
+        print()
+        sys.exit(1)
