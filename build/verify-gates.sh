@@ -627,6 +627,11 @@ GH_WORKFLOW="${REPO_ROOT}/.github/workflows/build-iso.yml"
 check_file_contains "${GH_WORKFLOW}" "verify-gates\.sh" "GitHub workflow runs verify-gates.sh"
 check_file_contains "${GH_WORKFLOW}" "SHA256SUMS" "GitHub workflow generates SHA256SUMS"
 
+# --- Boot & first-boot (boot-firstboot-fixes) ---
+HUD_PKG="${REPO_ROOT}/packages/desktop/synapse-hud"
+check_file_contains "${HUD_PKG}/synapse-welcome" '^LIVE_MARKER = "/run/archiso"$' "Welcome wizard detects the live USB by /run/archiso (readable by the live user)"
+check_file_lacks "${HUD_PKG}/synapse-welcome" 'LIVE_MARKER = "/etc/sudoers\.d' "Welcome wizard does not probe the root-only /etc/sudoers.d"
+
 echo ""
 echo "=============================================================================="
 echo " Verification Summary: ${PASS_COUNT} passed, ${WARN_COUNT} warnings, ${FAIL_COUNT} failed"
