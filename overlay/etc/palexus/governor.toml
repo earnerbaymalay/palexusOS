@@ -1,0 +1,32 @@
+# PalexusOS Thermal & RAPL Power Governor Configuration
+# /etc/palexus/governor.toml
+
+[governor]
+poll_interval_sec = 1.0
+idle_cooldown_sec = 10.0
+temp_throttle_c = 88.0
+temp_resume_c = 75.0
+
+# Nominal idle and desktop interactive profile
+[profiles.balance_power]
+epp = "balance_power"
+pl1_watts = 15.0
+pl2_watts = 25.0
+
+# Local AI inference burst profile (Ollama, resident LLMs)
+[profiles.inference]
+epp = "performance"
+pl1_watts = 25.0
+pl2_watts = 44.0
+
+# Heavy compilation / continuous compute profile
+[profiles.build]
+epp = "performance"
+pl1_watts = 20.0
+pl2_watts = 28.0
+
+# Thermal safety ceiling throttling profile
+[profiles.throttled]
+epp = "balance_power"
+pl1_watts = 12.0
+pl2_watts = 18.0

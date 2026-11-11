@@ -3,9 +3,13 @@
 
 Phase 9 Autotuning:
 Monitors local Ollama LLM inference bursts, Rust/C++ compilation jobs,
-and CPU pressure. Elevates Intel/AMD P-state EPP to 'performance' and
-unlocks sustained PL1/PL2 power envelopes during generation, stepping
-gracefully down to 'balance_power' after 10 seconds of idle.
+system thermal headroom (/sys/class/thermal), and Intel RAPL power envelopes
+(/sys/class/powercap/intel-rapl/intel-rapl:0).
+
+Elevates Intel/AMD P-state EPP and unlocks PL1/PL2 power caps during generation,
+distinguishes bursty memory-intensive AI workloads from sustained CPU builds,
+applies safety throttling if thermal thresholds are breached, and steps gracefully
+down to 'balance_power' after cooldown.
 """
 
 import os
@@ -16,46 +20,127 @@ import signal
 import urllib.request
 import json
 from pathlib import Path
+from enum import Enum
 
-# Paths & Settings
-EPP_GLOB = "/sys/devices/system/cpu/cpu*/cpufreq/energy_performance_preference"
-GOV_GLOB = "/sys/devices/system/cpu/cpu*/cpufreq/scaling_governor"
+try:
+    import tomllib
+except ImportError:
+    try:
+        import tomli as tomllib
+    except ImportError:
+        tomllib = None
+
+# Default Configuration Values
+DEFAULT_CONFIG = {
+    "governor": {
+        "poll_interval_sec": 1.0,
+        "idle_cooldown_sec": 10.0,
+        "temp_throttle_c": 88.0,
+        "temp_resume_c": 75.0,
+    },
+    "profiles": {
+        "balance_power": {
+            "epp": "balance_power",
+            "pl1_watts": 15.0,
+            "pl2_watts": 25.0,
+        },
+        "inference": {
+            "epp": "performance",
+            "pl1_watts": 25.0,
+            "pl2_watts": 44.0,
+        },
+        "build": {
+            "epp": "performance",
+            "pl1_watts": 20.0,
+            "pl2_watts": 28.0,
+        },
+        "throttled": {
+            "epp": "balance_power",
+            "pl1_watts": 12.0,
+            "pl2_watts": 18.0,
+        },
+    },
+}
+
+CONFIG_FILE = Path("/etc/palexus/governor.toml")
 OLLAMA_PS_URL = "http://127.0.0.1:11434/api/ps"
-IDLE_COOLDOWN_SEC = 10.0
-POLL_INTERVAL_SEC = 1.0
-
 RUNNING = True
+
+
+class WorkloadType(Enum):
+    IDLE = "idle"
+    INFERENCE = "inference"
+    BUILD = "build"
+
+
+def load_config() -> dict:
+    """Load configuration from /etc/palexus/governor.toml or return defaults."""
+    cfg = dict(DEFAULT_CONFIG)
+    conf_path = Path(os.environ.get("PALEXUS_GOVERNOR_CONF", CONFIG_FILE))
+    if conf_path.is_file() and tomllib:
+        try:
+            with open(conf_path, "rb") as f:
+                user_cfg = tomllib.load(f)
+                if "governor" in user_cfg:
+                    cfg["governor"].update(user_cfg["governor"])
+                if "profiles" in user_cfg:
+                    for p, vals in user_cfg["profiles"].items():
+                        if p in cfg["profiles"]:
+                            cfg["profiles"][p].update(vals)
+                        else:
+                            cfg["profiles"][p] = vals
+        except Exception as e:
+            sys.stderr.write(f"[palexus-governor] Warning: failed to parse config {conf_path}: {e}\n")
+    return cfg
 
 
 def handle_signals(sig, frame):
     global RUNNING
     RUNNING = False
-    print(f"\n[palexus-governor] Received signal {sig}, restoring balanced state and exiting.")
-    set_epp("balance_power")
+    print(f"\n[palexus-governor] Received signal {sig}, restoring balanced profile and exiting.")
+    cfg = load_config()
+    apply_profile("balance_power", cfg)
     sys.exit(0)
 
+
+def get_cpu_base_dir() -> Path:
+    return Path(os.environ.get("PALEXUS_CPU_DIR", "/sys/devices/system/cpu"))
+
+
+def get_rapl_base_dir() -> Path:
+    return Path(os.environ.get("PALEXUS_RAPL_DIR", "/sys/class/powercap/intel-rapl/intel-rapl:0"))
+
+
+def get_thermal_base_dir() -> Path:
+    return Path(os.environ.get("PALEXUS_THERMAL_DIR", "/sys/class/thermal"))
+
+
+def get_proc_base_dir() -> Path:
+    return Path(os.environ.get("PALEXUS_PROC_DIR", "/proc"))
+
+
+# --- Energy Performance Preference (EPP) Scaling ---
 
 def set_epp(target: str) -> bool:
     """Sets Energy Performance Preference (EPP) across all logical CPU cores."""
     success = False
-    files = glob.glob(EPP_GLOB)
-    if not files:
-        # Fallback to scaling_governor if EPP is not supported
+    cpu_dir = get_cpu_base_dir()
+    epp_files = list(cpu_dir.glob("cpu*/cpufreq/energy_performance_preference"))
+    if not epp_files:
         gov = "performance" if target == "performance" else "powersave"
-        for gf in glob.glob(GOV_GLOB):
+        for gf in cpu_dir.glob("cpu*/cpufreq/scaling_governor"):
             try:
-                Path(gf).write_text(gov)
+                gf.write_text(gov)
                 success = True
             except Exception:
                 pass
         return success
 
-    for f in files:
+    for f in epp_files:
         try:
-            p = Path(f)
-            curr = p.read_text().strip()
+            curr = f.read_text().strip()
             if curr != target:
-                p.write_text(target)
+                f.write_text(target)
                 success = True
         except Exception:
             pass
@@ -63,120 +148,282 @@ def set_epp(target: str) -> bool:
 
 
 def get_current_epp() -> str:
-    files = glob.glob(EPP_GLOB)
-    if files:
+    cpu_dir = get_cpu_base_dir()
+    epp_files = list(cpu_dir.glob("cpu*/cpufreq/energy_performance_preference"))
+    if epp_files:
         try:
-            return Path(files[0]).read_text().strip()
+            return epp_files[0].read_text().strip()
         except Exception:
             pass
-    govs = glob.glob(GOV_GLOB)
+    govs = list(cpu_dir.glob("cpu*/cpufreq/scaling_governor"))
     if govs:
         try:
-            return Path(govs[0]).read_text().strip()
+            return govs[0].read_text().strip()
         except Exception:
             pass
     return "unknown"
 
 
-def is_process_bursting() -> bool:
-    """Detects active LLM generation or compilation processes via /proc scanning."""
-    burst_names = {"ollama_llama_se", "cargo", "rustc", "cc1", "cc1plus"}
+# --- Intel RAPL PL1 / PL2 Power Constraints ---
+
+def set_rapl_limits(pl1_watts: float, pl2_watts: float) -> bool:
+    """Writes long-term (PL1) and short-term (PL2) micro-watt limits via RAPL."""
+    rapl_dir = get_rapl_base_dir()
+    if not rapl_dir.is_dir():
+        return False
+
+    success = False
+    pl1_uw = int(pl1_watts * 1_000_000)
+    pl2_uw = int(pl2_watts * 1_000_000)
+
+    c0_file = rapl_dir / "constraint_0_power_limit_uw"
+    c1_file = rapl_dir / "constraint_1_power_limit_uw"
+
     try:
-        # Scan /proc for active matching processes
-        for pid_entry in os.listdir("/proc"):
-            if not pid_entry.isdigit():
+        if c0_file.is_file():
+            c0_file.write_text(str(pl1_uw))
+            success = True
+    except Exception:
+        pass
+
+    try:
+        if c1_file.is_file():
+            c1_file.write_text(str(pl2_uw))
+            success = True
+    except Exception:
+        pass
+
+    return success
+
+
+def get_rapl_limits() -> tuple[float, float]:
+    """Reads current (PL1, PL2) in Watts, or (0.0, 0.0) if unsupported."""
+    rapl_dir = get_rapl_base_dir()
+    pl1 = 0.0
+    pl2 = 0.0
+    try:
+        c0 = rapl_dir / "constraint_0_power_limit_uw"
+        if c0.is_file():
+            pl1 = int(c0.read_text().strip()) / 1_000_000.0
+    except Exception:
+        pass
+
+    try:
+        c1 = rapl_dir / "constraint_1_power_limit_uw"
+        if c1.is_file():
+            pl2 = int(c1.read_text().strip()) / 1_000_000.0
+    except Exception:
+        pass
+
+    return pl1, pl2
+
+
+# --- Thermal Monitoring ---
+
+def get_max_temp_c() -> float:
+    """Reads peak temperature across all system thermal zones in °C."""
+    thermal_dir = get_thermal_base_dir()
+    max_temp = 0.0
+    for zone in thermal_dir.glob("thermal_zone*/temp"):
+        try:
+            raw = int(zone.read_text().strip())
+            temp_c = raw / 1000.0 if raw > 1000 else float(raw)
+            if temp_c > max_temp:
+                max_temp = temp_c
+        except Exception:
+            continue
+    return max_temp
+
+
+# --- Workload Classification ---
+
+def classify_workload() -> WorkloadType:
+    """Detects active processes to classify workload as INFERENCE, BUILD, or IDLE."""
+    inference_names = {"ollama", "ollama_llama_se", "llama-runner", "llama-box"}
+    build_names = {"cargo", "rustc", "cc1", "cc1plus", "clang", "mold", "ld.lld", "ld"}
+
+    found_inference = False
+    found_build = False
+
+    proc_dir = get_proc_base_dir()
+    try:
+        for pid_entry in proc_dir.iterdir():
+            if not pid_entry.name.isdigit():
                 continue
-            comm_path = os.path.join("/proc", pid_entry, "comm")
+            comm_file = pid_entry / "comm"
             try:
-                with open(comm_path, "r", encoding="utf-8") as f:
-                    name = f.read().strip()
-                    if name in burst_names:
-                        return True
+                name = comm_file.read_text(encoding="utf-8").strip()
+                if name in inference_names:
+                    found_inference = True
+                    break
+                elif name in build_names:
+                    found_build = True
             except (IOError, OSError):
                 continue
     except Exception:
         pass
-    return False
 
+    if found_inference:
+        return WorkloadType.INFERENCE
+    if found_build:
+        return WorkloadType.BUILD
 
-def is_ollama_generating() -> bool:
-    """Checks if Ollama has an active resident model and active inference."""
+    # Secondary check: verify Ollama active model endpoint
     try:
         req = urllib.request.Request(OLLAMA_PS_URL, headers={"User-Agent": "palexus-governor"})
-        with urllib.request.urlopen(req, timeout=0.5) as resp:
+        with urllib.request.urlopen(req, timeout=0.3) as resp:
             data = json.loads(resp.read().decode("utf-8"))
-            models = data.get("models", [])
-            # If models are loaded, check process activity
-            if models and is_process_bursting():
-                return True
+            if data.get("models"):
+                return WorkloadType.INFERENCE
     except Exception:
         pass
-    return is_process_bursting()
+
+    return WorkloadType.IDLE
 
 
-def print_status():
+# --- Profile Application ---
+
+def apply_profile(profile_name: str, config: dict) -> bool:
+    """Applies EPP and RAPL limits defined for the given profile."""
+    prof = config.get("profiles", {}).get(profile_name)
+    if not prof:
+        return False
+
+    epp = prof.get("epp", "balance_power")
+    pl1 = prof.get("pl1_watts", 15.0)
+    pl2 = prof.get("pl2_watts", 25.0)
+
+    set_epp(epp)
+    set_rapl_limits(pl1, pl2)
+    return True
+
+
+# --- CLI and Status Displays ---
+
+def print_status(config: dict):
     epp = get_current_epp()
-    generating = is_ollama_generating()
+    pl1, pl2 = get_rapl_limits()
+    temp = get_max_temp_c()
+    workload = classify_workload()
+
     print("==================================================")
     print(" PalexusOS Neural Hardware Governor Status")
     print("==================================================")
-    print(f" Current CPU Energy Profile : {epp.upper()}")
-    print(f" Inference Burst Detected   : {'YES (TURBO BOOST)' if generating else 'NO (IDLE)'}")
-    print(f" Cooldown Window            : {IDLE_COOLDOWN_SEC}s")
-    print(f" Reference Platform Target  : Dell 7490 (25W PL1 sustained)")
+    print(f" CPU Energy Profile (EPP)   : {epp.upper()}")
+    print(f" RAPL Sustained Power (PL1) : {pl1:.1f} W")
+    print(f" RAPL Burst Power (PL2)     : {pl2:.1f} W")
+    print(f" Peak Package Temperature   : {temp:.1f} °C")
+    print(f" Detected Workload          : {workload.value.upper()}")
+    print(f" Thermal Throttle Ceiling   : {config['governor']['temp_throttle_c']} °C")
     print("==================================================")
 
 
-def run_governor_loop():
+def print_waybar(config: dict):
+    pl1, _ = get_rapl_limits()
+    temp = get_max_temp_c()
+    workload = classify_workload()
+    epp = get_current_epp()
+
+    icon = "⚡" if workload == WorkloadType.INFERENCE else ("🔨" if workload == WorkloadType.BUILD else "🍃")
+    text = f"{icon} {int(pl1) if pl1 > 0 else epp}"
+    tooltip = (
+        f"Palexus Governor\n"
+        f"Workload: {workload.value.upper()}\n"
+        f"PL1: {pl1:.1f}W | Temp: {temp:.1f}°C\n"
+        f"EPP: {epp}"
+    )
+
+    data = {
+        "text": text,
+        "tooltip": tooltip,
+        "class": workload.value,
+    }
+    print(json.dumps(data))
+
+
+def run_governor_loop(config: dict):
     global RUNNING
-    print(f"[palexus-governor] Initialized. Monitoring inference bursts (polling every {POLL_INTERVAL_SEC}s)...")
-    
-    last_burst_time = 0.0
-    active_profile = get_current_epp()
+    poll_sec = config["governor"]["poll_interval_sec"]
+    cooldown_sec = config["governor"]["idle_cooldown_sec"]
+    throttle_temp = config["governor"]["temp_throttle_c"]
+    resume_temp = config["governor"]["temp_resume_c"]
+
+    print(f"[palexus-governor] Initialized. Monitoring thermal & workload telemetry (poll={poll_sec}s)...")
+
+    active_profile = "balance_power"
+    apply_profile(active_profile, config)
+
+    last_active_time = 0.0
+    is_throttled = False
 
     while RUNNING:
-        burst = is_ollama_generating()
+        temp = get_max_temp_c()
+        workload = classify_workload()
         now = time.time()
 
-        if burst:
-            last_burst_time = now
-            if active_profile != "performance":
-                set_epp("performance")
-                active_profile = "performance"
-                print(f"[palexus-governor] ⚡ LLM/Build Burst detected. Elevated CPU profile -> PERFORMANCE (25W PL1)")
-        else:
-            idle_duration = now - last_burst_time
-            if active_profile == "performance" and idle_duration >= IDLE_COOLDOWN_SEC:
-                set_epp("balance_power")
-                active_profile = "balance_power"
-                print(f"[palexus-governor] 🍃 System idle for {int(idle_duration)}s. Scaled down -> BALANCE_POWER (15W nominal)")
+        # Check thermal safety ceiling
+        if temp >= throttle_temp and not is_throttled:
+            is_throttled = True
+            active_profile = "throttled"
+            apply_profile("throttled", config)
+            print(f"[palexus-governor] 🚨 High temp ({temp:.1f}°C >= {throttle_temp}°C). Engaged THROTTLED safety cap.")
+        elif is_throttled and temp <= resume_temp:
+            is_throttled = False
+            print(f"[palexus-governor] ❄️ Temp recovered ({temp:.1f}°C <= {resume_temp}°C). Disengaging thermal throttle.")
 
-        time.sleep(POLL_INTERVAL_SEC)
+        if not is_throttled:
+            if workload == WorkloadType.INFERENCE:
+                last_active_time = now
+                if active_profile != "inference":
+                    active_profile = "inference"
+                    apply_profile("inference", config)
+                    pl1 = config["profiles"]["inference"]["pl1_watts"]
+                    print(f"[palexus-governor] ⚡ LLM Inference Burst detected. Profile -> INFERENCE ({pl1}W PL1 / Turbo EPP)")
+            elif workload == WorkloadType.BUILD:
+                last_active_time = now
+                if active_profile != "build":
+                    active_profile = "build"
+                    apply_profile("build", config)
+                    pl1 = config["profiles"]["build"]["pl1_watts"]
+                    print(f"[palexus-governor] 🔨 Build/Compile Workload detected. Profile -> BUILD ({pl1}W PL1)")
+            else:
+                idle_duration = now - last_active_time
+                if active_profile != "balance_power" and idle_duration >= cooldown_sec:
+                    active_profile = "balance_power"
+                    apply_profile("balance_power", config)
+                    pl1 = config["profiles"]["balance_power"]["pl1_watts"]
+                    print(f"[palexus-governor] 🍃 System idle for {int(idle_duration)}s. Profile -> BALANCE_POWER ({pl1}W PL1)")
+
+        time.sleep(poll_sec)
 
 
 def main():
     signal.signal(signal.SIGINT, handle_signals)
     signal.signal(signal.SIGTERM, handle_signals)
 
+    config = load_config()
+
     if len(sys.argv) > 1:
         cmd = sys.argv[1].lower()
         if cmd == "status":
-            print_status()
+            print_status(config)
+            sys.exit(0)
+        elif cmd == "waybar":
+            print_waybar(config)
             sys.exit(0)
         elif cmd == "boost":
-            set_epp("performance")
+            apply_profile("inference", config)
             print("⚡ Manual Turbo Boost activated for 60 seconds...")
             time.sleep(60)
-            set_epp("balance_power")
-            print("🍃 Boost ended. Restored to balanced.")
+            apply_profile("balance_power", config)
+            print("🍃 Boost ended. Restored to balanced profile.")
             sys.exit(0)
         elif cmd in ("help", "--help", "-h"):
-            print("Usage: palexus-governor [run | status | boost]")
+            print("Usage: palexus-governor [run | status | waybar | boost]")
             sys.exit(0)
 
-    run_governor_loop()
+    run_governor_loop(config)
 
 
 if __name__ == "__main__":
     main()
-
