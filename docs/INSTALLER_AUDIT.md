@@ -13,6 +13,22 @@
 
 ---
 
+## Progress (branch `installer-fixes`)
+
+| # | Status | Notes |
+|---|---|---|
+| I1 | ✅ fixed | `grubcfg` runs right before `bootloader`, with a SynapseOS `grubcfg.conf` |
+| I2 | ✅ fixed, VM check pending | Launched via `sudo -E /usr/bin/calamares`, only when `/run/archiso` exists. This also fixes the INSTALL button and the `Super+C` half of I6. |
+| I3 | ✅ fixed | `packages` now runs last |
+| I4 | ✅ fixed | `responder` removed. Every other pack package was confirmed to exist in Arch `extra`. |
+| I5 | ✅ fixed | `xfsprogs` and `f2fs-tools` added to the ISO |
+
+- **Gates:** 8 new checks. On a clean Linux clone they pass 286/286. Run against the pre-fix files, all 8 fail as intended.
+- **Pytest:** 38/39; the one failure is the HUD test, same as before.
+- **Still open:** I6 (removing Calamares from the installed system), I7–I15, line endings, and a real VM install.
+
+---
+
 ## 1. Blockers: an install fails or the result doesn't boot
 
 | # | Problem | Effect | Evidence |
