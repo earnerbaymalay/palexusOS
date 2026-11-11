@@ -1,7 +1,7 @@
-# SPDX-FileCopyrightText: 2026 SynapseOS Project
+# SPDX-FileCopyrightText: 2026 PalexusOS Project
 # SPDX-License-Identifier: GPL-3.0-or-later
 #
-# SynapseOS Optional Feature Packs Manifest
+# PalexusOS Optional Feature Packs Manifest
 ---
 - name: "Pentest Heavy & RF Stack"
   description: "Advanced RF analysis, offensive security & penetration testing tools"
@@ -37,8 +37,8 @@
     - lsp-plugins
     - thunderbird
 
-- name: "Synapse CLI Power Pack"
-  description: "Canonical AI Engineering CLI & Lightweight Bash Tool Suite (synapse-cli, memory bridge, doctor)"
+- name: "Palexus CLI Power Pack"
+  description: "Canonical AI Engineering CLI & Lightweight Bash Tool Suite (palexus-cli, memory bridge, doctor)"
   hidden: false
   selected: true
   critical: false
@@ -50,7 +50,7 @@
     - ripgrep
     - bat
 
-- name: "Synapse Extras & Extended Ecosystem"
+- name: "Palexus Extras & Extended Ecosystem"
   description: "Community cyber themes, terminal soundscapes, and advanced Ollama workflow extensions"
   hidden: false
   selected: false

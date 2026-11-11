@@ -4,13 +4,6 @@ Plan the project here. Each card can start a Parallel Code task.
 
 ## Backlog
 
-- [ ] Rebrand the live-image customize hook and the Calamares modules together
-  `build/archiso/airootfs/root/customize_airootfs.sh` and `packages/installer/calamares/modules/*.conf` share names and must change in one card: the live user `synapse` -> `palexus` (useradd, `/home/...`, `/etc/sudoers.d/00-palexus-live`), hostname `palexusos`, enabled unit `palexus.service`, and the staged config path `/etc/palexusos/calamares`. In the modules update `shellprocess@cleanup.conf` (sudoers file, `userdel -r`, `/home/<live user>` copy logic), `services-systemd.conf` (`name: "palexus"`), `unpackfs.conf` (`/run/archiso/bootmnt/palexusos/x86_64/airootfs.sfs`), `netinstall.yaml` pack names, and SPDX/header comments in every module plus `settings.conf`. Also check `overlay/etc/sddm.conf.d/10-palexusos.conf` `HideUsers` against the new daemon/live user names.
-  - [ ] `grep -ri synapse packages/installer/calamares/modules build/archiso/airootfs/root` returns nothing
-  - [ ] Cleanup module removes exactly the user and sudoers file the hook creates
-  - [ ] `unpackfs.conf` source path matches `install_dir` in `profiledef.sh`
-  depends: Rebrand the archiso profile and bootloader entries
-  group: rebrand
 - [ ] Rebrand the user skeleton overlay
   Under `overlay/etc/skel/`: rename `.config/autostart/synapse-setup.desktop` and `synapse-welcome.desktop` to `palexus-*` with `Exec=/usr/bin/palexus-*` and matching `Icon=`; in `.bashrc` point aliases at `palexus`/`palexus-hud`/`palexus-settings`/`palexus-notes`, export `PALEXUS_GATEWAY_URL`/`PALEXUS_CONFIG` while keeping the `SYNAPSE_*` variables as compatibility exports (the upstream daemon may still read them); move `.synapse/config.toml` to `.palexus/config.toml` and update the paths inside it only if the daemon accepts a config path (check `components/synapse-cli`), otherwise keep `.synapse` and document why. Update remaining mentions in `sway/config`, `waybar/config.jsonc`, `waybar/style.css`, `kitty/*.conf`, `quickfire/theme.conf`, `mimeapps.list`, `xfce4-keyboard-shortcuts.xml`, and the gtk/xfwm4/xsettings files.
   - [ ] Every `Exec=` and keybinding target exists as a binary installed by a `palexus-*` PKGBUILD
@@ -132,6 +125,14 @@ Plan the project here. Each card can start a Parallel Code task.
 ## Review
 
 ## Done
+
+- [x] Rebrand the live-image customize hook and the Calamares modules together
+  `build/archiso/airootfs/root/customize_airootfs.sh` and `packages/installer/calamares/modules/*.conf` share names and must change in one card: the live user `synapse` -> `palexus` (useradd, `/home/...`, `/etc/sudoers.d/00-palexus-live`), hostname `palexusos`, enabled unit `palexus.service`, and the staged config path `/etc/palexusos/calamares`. In the modules update `shellprocess@cleanup.conf` (sudoers file, `userdel -r`, `/home/<live user>` copy logic), `services-systemd.conf` (`name: "palexus"`), `unpackfs.conf` (`/run/archiso/bootmnt/palexusos/x86_64/airootfs.sfs`), `netinstall.yaml` pack names, and SPDX/header comments in every module plus `settings.conf`. Also check `overlay/etc/sddm.conf.d/10-palexusos.conf` `HideUsers` against the new daemon/live user names.
+  - [x] `grep -ri synapse packages/installer/calamares/modules build/archiso/airootfs/root` returns nothing
+  - [x] Cleanup module removes exactly the user and sudoers file the hook creates
+  - [x] `unpackfs.conf` source path matches `install_dir` in `profiledef.sh`
+  depends: Rebrand the archiso profile and bootloader entries
+  group: rebrand
 
 - [x] Rebrand build-iso.sh and remove the host-specific path
   In `build/build-iso.sh` rename the work/state/repo paths (`/var/tmp/synapseos-archiso-work`, `/var/cache/synapseos-repo`, `/var/lib/synapseos-build`), the `synapseos.db.tar.gz` repo database, the staged `etc/synapseos/calamares` directory, the boot-entry filename check on line ~82, and all banner/usage text to `palexusos`. Lines ~141-143 hard-link `/home/ebaymlay/work/synapse` into the core package `src/`; replace that with an optional `PALEXUS_CORE_SRC` environment variable so the script is reproducible on other machines and in CI. The upstream daemon checkout directory stays named `synapse` (it is the upstream repo name used by `packages/core/palexus-core/PKGBUILD`).

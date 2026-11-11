@@ -1,55 +1,55 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# SynapseOS Archiso Post-Install RootFS Customization Hook
+# PalexusOS Archiso Post-Install RootFS Customization Hook
 # Executed inside the chroot during mkarchiso image generation.
 # ==============================================================================
 set -euo pipefail
 
-echo "[SynapseOS] Configuring locale, timezone, and hostname..."
+echo "[PalexusOS] Configuring locale, timezone, and hostname..."
 sed -i 's/#\(en_US\.UTF-8\)/\1/' /etc/locale.gen
 locale-gen
 ln -sf /usr/share/zoneinfo/UTC /etc/localtime
-echo "synapseos" > /etc/hostname
+echo "palexusos" > /etc/hostname
 
 # Merge staged /overlay/etc if present inside airootfs
 if [[ -d /overlay/etc ]]; then
-    echo "[SynapseOS] Merging /overlay/etc into root filesystem..."
+    echo "[PalexusOS] Merging /overlay/etc into root filesystem..."
     cp -af /overlay/etc/. /etc/
     rm -rf /overlay
 fi
 
-# Apply SynapseOS Calamares config over the cachyos-calamares defaults
-if [[ -d /etc/synapseos/calamares ]]; then
-    echo "[SynapseOS] Installing Calamares configuration..."
-    cp -af /etc/synapseos/calamares/. /etc/calamares/
-    rm -rf /etc/synapseos/calamares
+# Apply PalexusOS Calamares config over the cachyos-calamares defaults
+if [[ -d /etc/palexusos/calamares ]]; then
+    echo "[PalexusOS] Installing Calamares configuration..."
+    cp -af /etc/palexusos/calamares/. /etc/calamares/
+    rm -rf /etc/palexusos/calamares
 fi
 
 # Ensure experimental xfce-wayland session is removed so SDDM cleanly offers XFCE (X11) and Sway
 rm -f /usr/share/wayland-sessions/xfce-wayland.desktop
 
-# Create live user 'synapse' with passwordless sudo for live environment
+# Create live user 'palexus' with passwordless sudo for live environment
 # (live-only: Calamares shellprocess@cleanup deletes both on install)
-if ! id -u synapse >/dev/null 2>&1; then
-    echo "[SynapseOS] Creating live user 'synapse'..."
-    useradd -m -G wheel,video,audio,input,network,storage,wireshark -s /bin/bash synapse
-    passwd -d synapse
+if ! id -u palexus >/dev/null 2>&1; then
+    echo "[PalexusOS] Creating live user 'palexus'..."
+    useradd -m -G wheel,video,audio,input,network,storage,wireshark -s /bin/bash palexus
+    passwd -d palexus
 fi
 
 install -d -m 0750 /etc/sudoers.d
-cat << 'EOF' > /etc/sudoers.d/00-synapse-live
+cat << 'EOF' > /etc/sudoers.d/00-palexus-live
 %wheel ALL=(ALL:ALL) NOPASSWD: ALL
 EOF
-chmod 0440 /etc/sudoers.d/00-synapse-live
+chmod 0440 /etc/sudoers.d/00-palexus-live
 
-# Ensure /etc/skel is synced into /home/synapse
+# Ensure /etc/skel is synced into /home/palexus
 if [[ -d /etc/skel ]]; then
-    cp -af /etc/skel/. /home/synapse/
-    chown -R synapse:synapse /home/synapse
+    cp -af /etc/skel/. /home/palexus/
+    chown -R palexus:palexus /home/palexus
 fi
 
 # Set default systemd target to graphical
-echo "[SynapseOS] Setting default target to graphical.target..."
+echo "[PalexusOS] Setting default target to graphical.target..."
 systemctl set-default graphical.target
 
 # Enable core system, security, performance, and AI services
@@ -60,11 +60,11 @@ SERVICES=(
     "firewalld.service"
     "ananicy-cpp.service"
     "ollama.service"
-    "synapse.service"
+    "palexus.service"
 )
 
 for svc in "${SERVICES[@]}"; do
-    echo "[SynapseOS] Enabling service: ${svc}"
+    echo "[PalexusOS] Enabling service: ${svc}"
     systemctl enable "${svc}" 2>/dev/null || ln -sf "/usr/lib/systemd/system/${svc}" "/etc/systemd/system/multi-user.target.wants/${svc}" || true
 done
 
@@ -80,10 +80,10 @@ ln -sf /usr/lib/systemd/system/sddm.service /etc/systemd/system/display-manager.
 # airootfs: inside arch-chroot it is bind-mounted from the build host and can't be replaced.
 
 # Pacman Keyring: generated per boot on a tmpfs, never at build time, so no two
-# SynapseOS machines share a pacman master signing key. `--populate` picks up the
+# PalexusOS machines share a pacman master signing key. `--populate` picks up the
 # CachyOS key (F3B607488DB35A47) from the cachyos-keyring package; no keyserver fetch.
 # Calamares (shellprocess@cleanup) removes these units and builds a fresh keyring on install.
-echo "[SynapseOS] Installing per-boot pacman keyring units..."
+echo "[PalexusOS] Installing per-boot pacman keyring units..."
 rm -rf /etc/pacman.d/gnupg
 cat << 'EOF' > /etc/systemd/system/etc-pacman.d-gnupg.mount
 [Unit]
@@ -113,4 +113,4 @@ WantedBy=multi-user.target
 EOF
 systemctl enable pacman-init.service
 
-echo "[SynapseOS] customize_airootfs.sh completed successfully."
+echo "[PalexusOS] customize_airootfs.sh completed successfully."
