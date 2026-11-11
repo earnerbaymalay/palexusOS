@@ -1,5 +1,5 @@
 # ==============================================================================
-# SynapseOS Ananicy-CPP Process Scheduler Priority Rules
+# PalexusOS Ananicy-CPP Process Scheduler Priority Rules
 # CachyOS BORE / EEVDF low-latency desktop responsiveness
 # ==============================================================================
 
@@ -10,7 +10,7 @@
 { "name": "kitty", "type": "LowLatency_RT" }
 { "name": "foot", "type": "LowLatency_RT" }
 
-# Synapse Cyberdeck Tools
+# Palexus Cyberdeck Tools
 { "name": "palexus-hud", "type": "LowLatency_RT" }
 { "name": "palexus-welcome", "type": "LowLatency_RT" }
 { "name": "palexus-palette", "type": "LowLatency_RT" }
