@@ -16,6 +16,7 @@ source=(
   "synapse-oobe-apply"
   "synapse-oobe-arm"
   "synapse-oobe-session"
+  "synapse-oobe-wizard"
   "synapse-oobe.desktop"
   "oobe-sway.conf"
   "synapse-oobe-recovery"
@@ -78,6 +79,7 @@ sha256sums=(
   'SKIP'
   'SKIP'
   'SKIP'
+  'SKIP'
 )
 
 package() {
@@ -91,6 +93,7 @@ package() {
   install -Dm755 "${srcdir}/synapse-oobe-apply" "${pkgdir}/usr/lib/synapse/synapse-oobe-apply"
   install -Dm755 "${srcdir}/synapse-oobe-arm" "${pkgdir}/usr/lib/synapse/synapse-oobe-arm"
   install -Dm755 "${srcdir}/synapse-oobe-session" "${pkgdir}/usr/lib/synapse/synapse-oobe-session"
+  install -Dm755 "${srcdir}/synapse-oobe-wizard" "${pkgdir}/usr/lib/synapse/synapse-oobe-wizard"
   install -Dm644 "${srcdir}/synapse-oobe.desktop" "${pkgdir}/usr/share/synapse-hud/synapse-oobe.desktop"
   install -Dm644 "${srcdir}/oobe-sway.conf" "${pkgdir}/usr/share/synapse-hud/oobe-sway.conf"
   install -Dm755 "${srcdir}/synapse-oobe-recovery" "${pkgdir}/usr/lib/synapse/synapse-oobe-recovery"

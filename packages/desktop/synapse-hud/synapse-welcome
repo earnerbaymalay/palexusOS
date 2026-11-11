@@ -36,7 +36,8 @@ CONFIG_DIR = os.path.expanduser("~/.config/synapse")
 ONBOARDING_FLAG = os.path.join(CONFIG_DIR, ".onboarding_complete")
 # Read by `synapse-setup --first-boot`; its absence means "do not download models"
 AI_MODELS_FILE = os.path.join(CONFIG_DIR, "ai_models")
-LIVE_MARKER = "/etc/sudoers.d/00-synapse-live"
+# Exists only on the live USB and is readable by the live user (/etc/sudoers.d is root-only)
+LIVE_MARKER = "/run/archiso"
 OOBE_SEED_DIR = "/var/lib/synapse/oobe-seed"
 OOBE_HELPER = "/usr/lib/synapse/synapse-oobe-apply"
 USERNAME_RE = re.compile(r"^[a-z_][a-z0-9_-]{0,31}$")

@@ -26,6 +26,8 @@ AUTOLOGIN_CONF = "/etc/sddm.conf.d/50-synapse-oobe.conf"
 SUDOERS_RULE = "/etc/sudoers.d/50-synapse-oobe"
 WHEEL_RULE = "/etc/sudoers.d/10-wheel"
 SESSION_FILE = "/usr/share/wayland-sessions/synapse-oobe.desktop"
+# Look chosen in the live session, copied by the installer (shellprocess@cleanup)
+OOBE_SEED_DIR = "/var/lib/synapse/oobe-seed"
 GREETER_CONF = "/usr/share/sddm/themes/synapseos/theme.conf.user"
 SDDM_STATE = "/var/lib/sddm/state.conf"
 GROUPS = ["users", "wheel", "audio", "video", "input", "network", "storage"]
@@ -207,6 +209,18 @@ def configure_system(r):
         pass
 
 
+def remove_partial_account(username):
+    """Undo a half-finished account so the user can retry with the same name.
+
+    validate() already confirmed the name was free, so if it exists now this run created it.
+    """
+    try:
+        pwd.getpwnam(username)
+    except KeyError:
+        return
+    subprocess.run(["userdel", "-r", "-f", username], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+
 def apply():
     if not os.path.exists(MARKER):
         fail("First-boot setup has already finished.")
@@ -221,8 +235,10 @@ def apply():
         seed_home(r)
         configure_system(r)
     except subprocess.CalledProcessError as e:
+        remove_partial_account(r["username"])
         fail(f"Couldn't create the account ({e.cmd[0]}): {e.stderr.strip()[:200]}")
     except (OSError, Invalid) as e:
+        remove_partial_account(r["username"])
         fail(f"Couldn't finish setup: {e}")
 
     # The marker goes first so this helper can't be reused, even before the sudo rule is removed
@@ -243,6 +259,7 @@ def finalize():
             os.remove(path)
         except FileNotFoundError:
             pass
+    shutil.rmtree(OOBE_SEED_DIR, ignore_errors=True)
     subprocess.run(["systemctl", "disable", "--now", "synapse-oobe-recovery.service"],
                    stderr=subprocess.DEVNULL)
     subprocess.run(["systemctl", "restart", "display-manager"])

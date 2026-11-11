@@ -15,7 +15,7 @@ import shutil
 import tempfile
 from pathlib import Path
 from importlib.machinery import SourceFileLoader
-from unittest.mock import patch, MagicMock
+from unittest.mock import ANY, patch, MagicMock
 
 import pytest
 
@@ -89,7 +89,7 @@ class TestSynapseHudQml:
 
         # Test local LLM commands
         qwen_cmd = root.findFirstMatch("qwen")
-        assert "ask-qwen" in qwen_cmd
+        assert "ollama run qwen2.5-coder:latest" in qwen_cmd
 
         # Test key shortcut matching
         key1_cmd = root.findFirstMatch("1")
@@ -112,27 +112,45 @@ class TestSynapseHudQml:
         backend = hud_mod.HudBackend(qapp)
 
         with patch("subprocess.Popen") as mock_popen, patch.object(qapp, "quit") as mock_quit:
-            # Test direct command launch
+            # Test direct command launch (no ~/.bashrc: it exits at once for non-interactive shells)
             backend.launch("synapse-notes")
-            mock_popen.assert_called_with(["bash", "-c", "synapse-notes"], start_new_session=True)
+            mock_popen.assert_called_with(["bash", "-c", "synapse-notes"], env=ANY, start_new_session=True)
             mock_quit.assert_called()
 
         with patch("subprocess.Popen") as mock_popen, patch.object(qapp, "quit") as mock_quit:
             # Test AI prompt launch with prefix strip
             backend.launch("AI_PROMPT:?how to list files")
             mock_quit.assert_called()
-            args, _ = mock_popen.call_args
-            assert args[0][0] == "kitty"
-            assert "AI Prompt: how to list files" in args[0][2]
-            assert "ollama run qwen2.5-coder \"how to list files\"" in args[0][5]
+            argv = mock_popen.call_args[0][0]
+            assert argv[0] == "kitty"
+            assert "AI Prompt: how to list files" in argv[2]
+            # ollama is called directly (shell aliases don't exist in bash -c) ...
+            assert argv[5].startswith('ollama run "$1" "$2"')
+            assert argv[-2:] == ["qwen2.5-coder:latest", "how to list files"]
 
         with patch("subprocess.Popen") as mock_popen, patch.object(qapp, "quit") as mock_quit:
             # Test AI prompt launch with 'ai ' strip
             backend.launch("AI_PROMPT:ai explain btrfs snapshots")
             mock_quit.assert_called()
-            args, _ = mock_popen.call_args
-            assert "explain btrfs snapshots" in args[0][2]
-            assert "ollama run qwen2.5-coder \"explain btrfs snapshots\"" in args[0][5]
+            argv = mock_popen.call_args[0][0]
+            assert "explain btrfs snapshots" in argv[2]
+            assert argv[-1] == "explain btrfs snapshots"
+
+        with patch("subprocess.Popen") as mock_popen, patch.object(qapp, "quit"):
+            # ... and the prompt is an argument, never part of the script text
+            hostile = 'what does "$(touch /tmp/pwned)" do'
+            backend.launch("AI_PROMPT:?" + hostile)
+            argv = mock_popen.call_args[0][0]
+            assert hostile not in argv[5]
+            assert argv[-1] == hostile
+
+    def test_hud_menu_does_not_call_bashrc_aliases(self):
+        """kitty bash -c is non-interactive, so ~/.bashrc aliases (ask-*, squash) are undefined there."""
+        content = (HUD_DIR / "Main.qml").read_text(encoding="utf-8")
+        for alias in ("&& ask-qwen", "&& ask-llama", "&& squash "):
+            assert alias not in content
+        assert "&& ollama run qwen2.5-coder:latest" in content
+        assert "&& synapse squash $cmd" in content
 
     def test_hud_header_hint_and_placeholder_text(self, qapp):
         """Verify HUD header hint and searchbox placeholder contain required guidance."""
