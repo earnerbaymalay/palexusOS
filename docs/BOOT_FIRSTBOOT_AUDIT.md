@@ -18,6 +18,20 @@ Branch `boot-firstboot-fixes` from `main` @ `17814cf`. Audited 2026-11-12.
 
 **The HUD's "Ask AI" and three menu entries never worked.** They call shell aliases that only exist in interactive terminals. This is also why the old HUD test failed: the test expected the earlier code, and the newer code is broken.
 
+## Fixed on this branch
+
+| # | Fix |
+|---|---|
+| F1 | Live session detected by `/run/archiso` |
+| F2 | A half-created account is removed on failure, so the retry works |
+| F3 | `synapse-oobe-wizard` restarts the wizard up to 3 times, then shows a swaynag telling you to press Ctrl+Alt+F2 |
+| F4 | The tty2 text setup suggests `synapse`, the same as the wizard |
+| F5 | `--finalize` removes `/var/lib/synapse/oobe-seed` |
+| H1, H2, T1 | HUD calls `ollama run` directly with the prompt as an argument; menu entries no longer use aliases; the stale test is updated and now also covers injection |
+
+- **Checks:** `verify-gates.sh` passes 300/300, pytest 55/55 and ShellCheck is clean, all run in WSL on the branch's LF files.
+- **Regression check:** against the original files, the 6 new gates and 8 tests fail.
+
 ## Boot screen
 
 | Item | Status | Evidence |
