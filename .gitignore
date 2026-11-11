@@ -62,5 +62,15 @@ venv/
 .idea/
 *.log
 
+# Claude CLI caches and local settings
+.claude/
+
+# Blender binary files, renders, and intermediate video assets
+build/blender/*.blend*
+build/blender/renders/
+docs/assets/videos/
+
 # makepkg git source clone
 packages/core/palexus-core/synapse/
+packages/desktop/llm-quickfire-panel/llm-quickfire-panel/
+
