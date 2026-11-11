@@ -31,7 +31,7 @@ smart_borders on
 # --- Output & Idle Management ---
 output * bg #11111b solid_color
 output * bg /usr/share/backgrounds/synapseos/synapse-monolith-mauve.jpg fill #11111b
-exec swaybg -i /usr/share/backgrounds/synapseos/monolith-mauve.png -m fill 2>/dev/null || swaybg -i /usr/share/backgrounds/synapseos/synapse-monolith-mauve.jpg -m fill 2>/dev/null || true
+# Sway owns the background (output bg); synapse-theme --restore re-applies the saved theme
 exec synapse-theme --restore
 
 # Screensaver is not a lock: 5 min -> geodesic torus, 10 min -> displays off
