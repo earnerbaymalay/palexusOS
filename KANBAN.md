@@ -4,14 +4,6 @@ Plan the project here. Each card can start a Parallel Code task.
 
 ## Backlog
 
-- [ ] Rebrand the archiso profile and bootloader entries
-  `build/archiso/` still carries the old identity. In `profiledef.sh` set `iso_name="palexusos"`, `iso_label="PALEXUSOS_..."`, publisher/application strings and `install_dir="palexusos"`. Rename `efiboot/loader/entries/01-synapseos-x86_64-linux.conf` to `01-palexusos-x86_64-linux.conf` and update `efiboot/loader/loader.conf`, the entry title, and `syslinux/syslinux.cfg` menu text; any `archisobasedir=`/`archisolabel=` parameters must match the new `install_dir` and label. In `build/archiso/pacman.conf` rename the repo section to `[palexusos]` with `Server = file:///var/cache/palexusos-repo`, and update header comments in `packages.x86_64`. Only touch files under `build/archiso/` except `airootfs/root/customize_airootfs.sh` (separate card).
-  group: rebrand
-  depends: Commit the in-progress rebrand working tree as the baseline
-  - [ ] `grep -ri synapse build/archiso --exclude-dir=airootfs` returns nothing
-  - [ ] Boot entries reference the same install dir and label as `profiledef.sh`
-  - [ ] `packages.x86_64` lists `palexus-core`, `palexus-themes`, `palexus-greeter`, `palexus-plymouth`, `palexus-hud`
-
 - [ ] Rebrand build-iso.sh and remove the host-specific path
   In `build/build-iso.sh` rename the work/state/repo paths (`/var/tmp/synapseos-archiso-work`, `/var/cache/synapseos-repo`, `/var/lib/synapseos-build`), the `synapseos.db.tar.gz` repo database, the staged `etc/synapseos/calamares` directory, the boot-entry filename check on line ~82, and all banner/usage text to `palexusos`. Lines ~141-143 hard-link `/home/ebaymlay/work/synapse` into the core package `src/`; replace that with an optional `PALEXUS_CORE_SRC` environment variable so the script is reproducible on other machines and in CI. The upstream daemon checkout directory stays named `synapse` (it is the upstream repo name used by `packages/core/palexus-core/PKGBUILD`).
   group: rebrand
@@ -159,6 +151,14 @@ Plan the project here. Each card can start a Parallel Code task.
 ## Review
 
 ## Done
+
+- [x] Rebrand the archiso profile and bootloader entries
+  `build/archiso/` still carries the old identity. In `profiledef.sh` set `iso_name="palexusos"`, `iso_label="PALEXUSOS_..."`, publisher/application strings and `install_dir="palexusos"`. Rename `efiboot/loader/entries/01-synapseos-x86_64-linux.conf` to `01-palexusos-x86_64-linux.conf` and update `efiboot/loader/loader.conf`, the entry title, and `syslinux/syslinux.cfg` menu text; any `archisobasedir=`/`archisolabel=` parameters must match the new `install_dir` and label. In `build/archiso/pacman.conf` rename the repo section to `[palexusos]` with `Server = file:///var/cache/palexusos-repo`, and update header comments in `packages.x86_64`. Only touch files under `build/archiso/` except `airootfs/root/customize_airootfs.sh` (separate card).
+  group: rebrand
+  depends: Commit the in-progress rebrand working tree as the baseline
+  - [x] `grep -ri synapse build/archiso --exclude-dir=airootfs` returns nothing
+  - [x] Boot entries reference the same install dir and label as `profiledef.sh`
+  - [x] `packages.x86_64` lists `palexus-core`, `palexus-themes`, `palexus-greeter`, `palexus-plymouth`, `palexus-hud`
 
 - [x] Commit the in-progress rebrand working tree as the baseline
   The SynapseOS -> PalexusOS rename exists only as ~220 uncommitted changes on branch `rebrand/palexusos` (staged renames plus unstaged edits and untracked files). Card worktrees are created from committed history, so nothing below can see this work until it is committed. This card must be done in the main checkout, not a fresh worktree. Stage the intended files (`overlay/usr/`, `overlay/etc/skel/.themes/`, `.config/gtk-3.0`, `.config/gtk-4.0`, `xfwm4.xml`, `xsettings.xml`, `docs/*AUDIT*.md`, `docs/PALEXUS_BOOT_VIDEO_SUITE.md`, `docs/assets/palexus-banner.png`, `KANBAN.md`, sources under `build/blender` and `build/videos`). Do not commit build output: the old `packages/core/synapse-core`, `packages/desktop/synapse-{greeter,hud,plymouth,themes}` and `packages/installer/calamares/branding/synapseos` paths now hold only ignored leftovers (`src/`, `pkg/`, `*.pkg.tar.zst`, `__pycache__`), and `build/blender/renders`, `*.blend` and `docs/assets/videos` should be checked for size before staging (AGENTS.md: no binary blobs).

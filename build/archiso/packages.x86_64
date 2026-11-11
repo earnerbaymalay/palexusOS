@@ -1,6 +1,6 @@
 # ==============================================================================
-# SynapseOS x86_64 Live ISO Package Manifest
-# Architecture: x86-64-v3 (CachyOS BORE + EndeavourOS Minimal Base + Synapse AI)
+# PalexusOS x86_64 Live ISO Package Manifest
+# Architecture: x86-64-v3 (CachyOS BORE + EndeavourOS Minimal Base + Palexus AI)
 # ==============================================================================
 
 # --- Base Arch System & Boot ---
@@ -160,7 +160,7 @@ blueman
 bluez
 bluez-utils
 
-# --- SynapseOS Native Packages ([synapseos] Repo) ---
+# --- PalexusOS Native Packages ([palexusos] Repo) ---
 palexus-core
 palexus-hud
 llm-quickfire-panel

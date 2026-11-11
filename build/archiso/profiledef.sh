@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC2034
-# SynapseOS Archiso Profile Definition
+# PalexusOS Archiso Profile Definition
 
-iso_name="synapseos"
-iso_label="SYNAPSEOS_$(date --date="@${SOURCE_DATE_EPOCH:-$(date +%s)}" +%Y%m)"
-iso_publisher="SynapseOS Project <https://github.com/earnerbaymalay/synapseOS>"
-iso_application="SynapseOS Live/Installation DVD"
+iso_name="palexusos"
+iso_label="PALEXUSOS_$(date --date="@${SOURCE_DATE_EPOCH:-$(date +%s)}" +%Y%m)"
+iso_publisher="PalexusOS Project <https://github.com/earnerbaymalay/palexusos>"
+iso_application="PalexusOS Live/Installation DVD"
 iso_version="$(date --date="@${SOURCE_DATE_EPOCH:-$(date +%s)}" +%Y.%m.%d)"
-install_dir="synapseos"
+install_dir="palexusos"
 buildmodes=('iso')
 bootmodes=(
     'bios.syslinux.mbr'
