@@ -26,6 +26,8 @@ AUTOLOGIN_CONF = "/etc/sddm.conf.d/50-synapse-oobe.conf"
 SUDOERS_RULE = "/etc/sudoers.d/50-synapse-oobe"
 WHEEL_RULE = "/etc/sudoers.d/10-wheel"
 SESSION_FILE = "/usr/share/wayland-sessions/synapse-oobe.desktop"
+# Look chosen in the live session, copied by the installer (shellprocess@cleanup)
+OOBE_SEED_DIR = "/var/lib/synapse/oobe-seed"
 GREETER_CONF = "/usr/share/sddm/themes/synapseos/theme.conf.user"
 SDDM_STATE = "/var/lib/sddm/state.conf"
 GROUPS = ["users", "wheel", "audio", "video", "input", "network", "storage"]
@@ -257,6 +259,7 @@ def finalize():
             os.remove(path)
         except FileNotFoundError:
             pass
+    shutil.rmtree(OOBE_SEED_DIR, ignore_errors=True)
     subprocess.run(["systemctl", "disable", "--now", "synapse-oobe-recovery.service"],
                    stderr=subprocess.DEVNULL)
     subprocess.run(["systemctl", "restart", "display-manager"])

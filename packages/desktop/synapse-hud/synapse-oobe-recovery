@@ -15,6 +15,8 @@ import sys
 
 APPLY = "/usr/lib/synapse/synapse-oobe-apply"
 MARKER = "/var/lib/synapse/oobe-pending"
+# Same suggestion as the graphical wizard (synapse-welcome)
+DEFAULT_HOSTNAME = "synapse"
 
 
 def ask(prompt, default=""):
@@ -63,7 +65,7 @@ def main():
             ask("Username (lowercase)").lower(),
             ask("Full name (optional)"),
             ask_password(),
-            ask("Computer name", "synapseos"),
+            ask("Computer name", DEFAULT_HOSTNAME),
         )
         result = submit(request)
         if result.get("ok"):

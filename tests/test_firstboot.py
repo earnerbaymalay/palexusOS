@@ -130,6 +130,28 @@ def test_setup_compositor_uses_the_retrying_runner():
     assert "/usr/lib/synapse/synapse-oobe-wizard" in (HUD_DIR / "PKGBUILD").read_text()
 
 
+def test_text_setup_suggests_the_same_computer_name_as_the_wizard():
+    recovery = load("synapse_oobe_recovery_firstboot", HUD_DIR / "synapse-oobe-recovery")
+    src = (HUD_DIR / "synapse-welcome").read_text()
+    assert f'self._new_hostname = "{recovery.DEFAULT_HOSTNAME}"' in src
+
+
+def test_finalize_removes_the_live_seed(oobe_apply, tmp_path, monkeypatch):
+    seed = tmp_path / "oobe-seed"
+    seed.mkdir()
+    (seed / "theme").write_text("tower-sapphire\n")
+    oobe_apply.os.remove(oobe_apply.MARKER)
+    monkeypatch.setattr(oobe_apply, "OOBE_SEED_DIR", str(seed))
+    monkeypatch.setattr(oobe_apply, "AUTOLOGIN_CONF", str(tmp_path / "a"))
+    monkeypatch.setattr(oobe_apply, "SUDOERS_RULE", str(tmp_path / "b"))
+    monkeypatch.setattr(oobe_apply, "SESSION_FILE", str(tmp_path / "c"))
+    monkeypatch.setattr(oobe_apply.os, "geteuid", lambda: 0)
+    monkeypatch.setattr(oobe_apply.time, "sleep", lambda s: None)
+    monkeypatch.setattr(oobe_apply.subprocess, "run", lambda *a, **k: type("r", (), {"returncode": 1})())
+    oobe_apply.finalize()
+    assert not seed.exists()
+
+
 def test_live_marker_is_readable_by_the_live_user(welcome):
     # /etc/sudoers.d is 0750 root:root in Arch's sudo package, so a file inside it
     # can never be seen by the unprivileged live user.
