@@ -24,7 +24,7 @@
 > 4. **Firewall Default Drop**:
 >    - `firewalld` defaults to the `drop` zone. All unsolicited incoming connection attempts, ping sweeps, and port scans are silently dropped.
 > 5. **Telemetry-Stripped Chromium**:
->    - The packaged browser defaults with `--disable-telemetry`, `--disable-sync`, `--disable-metrics`, `--disable-background-networking`, and `--no-default-browser-check`.
+>    - The packaged browser defaults with `--disable-sync`, `--disable-domain-reliability` and `--no-default-browser-check`. Component updates stay on because they deliver certificate revocation lists.
 
 ---
 

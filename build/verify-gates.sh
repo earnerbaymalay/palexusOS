@@ -160,6 +160,7 @@ SDDM_CONF_FILE="${REPO_ROOT}/overlay/etc/sddm.conf"
 if [[ -d "${SDDM_CONF_DIR}" ]] || [[ -f "${SDDM_CONF_FILE}" ]]; then
     check_file_contains "${REPO_ROOT}/overlay/etc/sddm.conf.d/10-synapseos.conf" "^Current=synapseos$" "SDDM theme set to synapseos (synapse-greeter)"
     check_file_contains "${REPO_ROOT}/overlay/etc/sddm.conf.d/10-synapseos.conf" "HideUsers=git,ollama,synapse-daemon" "SDDM HideUsers excludes live user 'synapse'"
+    check_file_lacks "${REPO_ROOT}/overlay/etc/sddm.conf.d/10-synapseos.conf" "Catppuccin-Mocha-Mauve-Cursors" "SDDM names no cursor theme that isn't shipped"
 else
     warn "Pending Phase 3 deliverable: SDDM configuration in overlay/etc/sddm*"
 fi
@@ -177,6 +178,7 @@ check_file_contains "${SDDM_MAIN_QML}" "#cdd6f4" "SDDM Main.qml uses Liquid Silv
 check_file_contains "${SDDM_MAIN_QML}" "model: sessionModel" "SDDM Main.qml offers session selection (XFCE/Sway)"
 check_file_contains "${SDDM_MAIN_QML}" "sddm\.login\(" "SDDM Main.qml authenticates via sddm.login"
 check_file_contains "${SDDM_MAIN_QML}" "strokeStyle: ShapePath\.DashLine" "SDDM panel border carries animated accent trails"
+check_file_contains "${SDDM_MAIN_QML}" 'objectName: "loginField"' "SDDM login name is editable, so any account can sign in"
 check_file_contains "${REPO_ROOT}/packages/desktop/synapse-greeter/metadata.desktop" "^QtVersion=6$" "SDDM synapseos theme targets the Qt6 greeter"
 if grep -Eq "password\.text\.length[[:space:]]*===[[:space:]]*0" "${SDDM_MAIN_QML}"; then
     fail "SDDM Main.qml blocks passwordless live user login"
@@ -216,11 +218,15 @@ check_file_lacks "${WAYBAR_CONF}" 'x /usr/bin/calamares' "Waybar install button 
 check_file_contains "${SWAY_CONF}" "Mod4\+slash.*synapse-shortcuts" "Sway config binds Mod4+slash to cheat sheet"
 check_file_contains "${SWAY_CONF}" "for_window.*calamares.*floating" "Sway config floats Calamares installer"
 check_file_contains "${SWAY_CONF}" "for_window.*synapse-welcome.*floating" "Sway config floats Synapse welcome onboarding"
-check_file_contains "${SWAY_CONF}" "swaybg.*monolith-mauve" "Sway config sets monolith-mauve wallpaper fallback"
+check_file_contains "${SWAY_CONF}" "^output \* bg /usr/share/backgrounds/synapseos/synapse-monolith-mauve\.jpg" "Sway config sets monolith-mauve wallpaper fallback"
+check_file_lacks "${SWAY_CONF}" "(?m)^exec swaybg" "Sway runs no second swaybg over the themed background"
 check_file_contains "${SWAY_CONF}" "#11111b" "Sway config uses Obsidian Crust (#11111b)"
 check_file_contains "${SWAY_CONF}" "#cba6f7" "Sway config uses Catppuccin Mocha Mauve (#cba6f7)"
 check_file_contains "${SWAY_CONF}" "#cdd6f4" "Sway config uses Liquid Silver Chrome (#cdd6f4)"
 check_file_contains "${WAYBAR_CONF}" "sway/workspaces" "Waybar config.jsonc defines sway/workspaces"
+XFCE_KEYS="${REPO_ROOT}/overlay/etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-keyboard-shortcuts.xml"
+check_file_lacks "${XFCE_KEYS}" 'value="/usr/local/bin/' "XFCE shortcuts call nothing from /usr/local/bin (not shipped)"
+check_file_contains "${REPO_ROOT}/build/archiso/packages.x86_64" '^xorg-xkill$' "XFCE Ctrl+Alt+Esc (xkill) has its package"
 check_file_contains "${WAYBAR_CONF}" "custom/menu" "Waybar defines custom/menu cockpit widget"
 check_file_contains "${WAYBAR_CONF}" "custom/installer" "Waybar defines custom/installer action banner"
 check_file_contains "${WAYBAR_CONF}" "custom/terminal" "Waybar defines custom/terminal launcher"
@@ -233,6 +239,9 @@ check_file_contains "${WAYBAR_STYLE}" "#1e1e2e" "Waybar style.css uses Catppucci
 check_file_contains "${WAYBAR_STYLE}" "#cba6f7" "Waybar style.css uses Catppuccin Mocha Mauve (#cba6f7)"
 check_file_contains "${WAYBAR_STYLE}" "#cdd6f4" "Waybar style.css uses Liquid Silver Chrome (#cdd6f4)"
 check_file_contains "${WAYBAR_STYLE}" "#custom-installer" "Waybar style.css styles #custom-installer in mauve"
+check_file_contains "${WAYBAR_STYLE}" '^@import "theme-colors\.css";' "Waybar takes its accent from the theme switcher"
+check_file_contains "${REPO_ROOT}/overlay/etc/skel/.config/waybar/theme-colors.css" '^@define-color accent #cba6f7;$' "New users get a default Waybar accent to import"
+check_file_contains "${REPO_ROOT}/packages/desktop/synapse-themes/synapse-theme" 'client\.focused \$\{accent\}' "Theme switcher recolours Sway window borders"
 
 if grep -Rqs -i "#00a8ff" "${REPO_ROOT}/overlay" "${REPO_ROOT}/packages/installer/calamares"; then
     fail "Legacy #00a8ff color found in overlay/ or Calamares branding"
@@ -517,7 +526,8 @@ check_file_contains "${REPO_ROOT}/build/archiso/packages.x86_64" '^chromium$' "p
 check_file_contains "${REPO_ROOT}/build/archiso/packages.x86_64" '^galculator$' "packages.x86_64 ships galculator"
 check_file_contains "${REPO_ROOT}/build/archiso/packages.x86_64" '^mousepad$' "packages.x86_64 ships mousepad editor"
 check_file_contains "${REPO_ROOT}/build/archiso/packages.x86_64" '^synapse-hud$' "packages.x86_64 ships synapse-hud package"
-check_file_contains "${REPO_ROOT}/overlay/etc/chromium/default-flags" '--disable-telemetry' "Chromium flags disable telemetry"
+check_file_lacks "${REPO_ROOT}/overlay/etc/chromium/default-flags" '--disable-(telemetry|metrics|component-update)' "Chromium flags hold no fake switches and keep security updates on"
+check_file_lacks "${REPO_ROOT}/overlay/etc/skel/.config/chromium-flags.conf" '--disable-(telemetry|metrics|component-update)' "Per-user Chromium flags hold no fake switches and keep security updates on"
 check_file_contains "${REPO_ROOT}/overlay/etc/chromium/default-flags" '--disable-sync' "Chromium flags disable cloud sync"
 check_file_contains "${REPO_ROOT}/packages/desktop/synapse-hud/PKGBUILD" 'synapse-setup' "synapse-hud package includes synapse-setup"
 check_file_contains "${REPO_ROOT}/packages/desktop/synapse-hud/PKGBUILD" 'synapse-notes' "synapse-hud package includes synapse-notes"

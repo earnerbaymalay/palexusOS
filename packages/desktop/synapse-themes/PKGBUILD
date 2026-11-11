@@ -1,8 +1,8 @@
 # Maintainer: SynapseOS Engineering Team <maintainers@synapseos.org>
 pkgname=synapse-themes
 pkgver=0.1.0
-pkgrel=3
-pkgdesc="SynapseOS wallpapers (3 designs x accent variants), system theme switcher (Super+Ctrl+T) and geodesic torus screensaver"
+pkgrel=4
+pkgdesc="SynapseOS wallpapers (3 designs x accent variants), system theme switcher for wallpaper, terminal, launcher, Waybar and Sway (Super+Ctrl+T), and geodesic torus screensaver"
 arch=('any')
 url="https://github.com/earnerbaymalay/synapseOS"
 license=('MIT')
@@ -33,7 +33,7 @@ source=(
   'synapse-tower-sapphire.jpg'
   'synapse-tower-tungsten.jpg'
 )
-sha256sums=('80ea8f2d5d80fd1888c67f48eb587e85bde69bde58461362dfc08cd4297a9284'
+sha256sums=('0456db175fda21eeeeccd1576466f170c2bcae519b192930aa462f79df3a02a2'
             '2552879115ebd5e719c463a307aa88166d2ad555c1d92fbe318b338af367865d'
             '3edb549f83489e57d50dd0c0fed2ec09675459621848d7a50f09822b2986be10'
             '72456c7558db818fb155071c4686e83e1f03f97aa1de6826ac9eec2f943893a2'
