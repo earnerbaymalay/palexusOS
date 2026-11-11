@@ -128,7 +128,7 @@ Presentation {
                 Row {
                     spacing: 6
                     Text {
-                        text: "SYNAPSE"
+                        text: "PALEXUS"
                         font.family: "DejaVu Sans, Inter, sans-serif"
                         font.pixelSize: 14
                         font.bold: true
@@ -203,7 +203,7 @@ Presentation {
     }
 
     // ==========================================
-    // SLIDE 1: WELCOME TO SYNAPSEOS
+    // SLIDE 1: WELCOME TO PALEXUSOS
     // ==========================================
     Slide {
         id: slide1
@@ -407,7 +407,7 @@ Presentation {
     }
 
     // ==========================================
-    // SLIDE 2: LOCAL AI & SYNAPSE MEMORY ENGINE
+    // SLIDE 2: LOCAL AI & PALEXUS MEMORY ENGINE
     // ==========================================
     Slide {
         id: slide2
@@ -461,7 +461,7 @@ Presentation {
                 Column {
                     spacing: 4
                     Text {
-                        text: "Local AI & Synapse Memory Engine"
+                        text: "Local AI & Palexus Memory Engine"
                         font.family: "DejaVu Sans, Inter, sans-serif"
                         font.pixelSize: 24
                         font.bold: true
@@ -554,7 +554,7 @@ Presentation {
                             anchors.margins: 12
                             spacing: 3
                             Text {
-                                text: "Synapse Memory Engine"
+                                text: "Palexus Memory Engine"
                                 font.family: "DejaVu Sans, Inter, sans-serif"
                                 font.pixelSize: 12
                                 font.bold: true

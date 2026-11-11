@@ -4,23 +4,6 @@ Plan the project here. Each card can start a Parallel Code task.
 
 ## Backlog
 
-- [ ] Rebrand the verification gate harness
-  `build/verify-gates.sh` has ~80 old-name references and zero new ones, so it currently checks paths that no longer exist (`packages/core/synapse-core/PKGBUILD`, `overlay/etc/sysctl.d/99-synapseos.conf`, `sddm.conf.d/10-synapseos.conf`, `branding/synapseos`, `synapseos.script.in`, `synapse-boot.mp4`, wallpaper names, icon theme names, the `[synapseos]` repo and boot entry). Rewrite every path and expected string to the names produced by the rebrand cards. Add one new gate that fails if a tracked file outside an explicit allowlist (upstream `synapse` source name, compatibility symlinks/provides, `components/` submodules, historical docs) contains `synapse`.
-  - [ ] `./build/verify-gates.sh` reports 0 failures and 0 warnings
-  - [ ] The leftover-name gate fails when a stray `synapseos` string is added
-  - [ ] `shellcheck build/verify-gates.sh` is clean
-  depends: Rebrand build-iso.sh and remove the host-specific path
-  depends: Rebrand the live-image customize hook and the Calamares modules together
-  depends: Rebrand the user skeleton overlay
-  depends: Rebrand system overlay configs and the AMOLED theme
-  depends: Rename leftover Synapse assets inside the palexus-* packages
-  group: testing
-- [ ] Rebrand the pytest suites
-  `tests/test_iso_profile.py` uses either-name fallbacks and old paths (`synapse-greeter`, `10-synapseos.conf`, `iso_name="synapseos"`, live user `synapse`); `tests/test_ui_ux.py` loads `packages/desktop/synapse-hud/synapse-hud` etc. and asserts old titles and icon theme names. Point both at the `palexus-*` paths and names, remove the fallbacks so the tests assert the new brand only, and rename the test classes.
-  - [ ] `pytest tests/` passes with no skips caused by missing paths
-  - [ ] No `or "…synapseos…"` fallback assertions remain
-  depends: Rebrand the verification gate harness
-  group: testing
 - [ ] Rebrand docs, agent rules and editor config
   Text-only pass over `ROADMAP.md`, `AGENTS.md`, `GEMINI.md`, `IDE_HANDOVER.md`, `docs/*.md`, `.cursor/**` (rename `.cursor/skills/synapseos-iso-build`), `.vscode/tasks.json`, `synapseos.code-workspace` (rename to `palexusos.code-workspace`), and `.gitignore` comments/paths. Delete the superseded `docs/assets/synapseos-banner.png` and make `generate_banner.py` write `palexus-banner.png`. Leave `docs/RESEARCH_SYNAPSE_INTEGRATION.md` content about the upstream Synapse project intact and keep completed roadmap history readable (add a one-line "formerly SynapseOS" note rather than rewriting history). Leave `.gitmodules` and GitHub URLs unchanged until the repository itself is renamed.
   - [ ] README, AGENTS.md and docs describe the product as PalexusOS with `palexus-*` commands
@@ -113,6 +96,25 @@ Plan the project here. Each card can start a Parallel Code task.
 ## Review
 
 ## Done
+
+- [x] Rebrand the pytest suites
+  `tests/test_iso_profile.py` uses either-name fallbacks and old paths (`synapse-greeter`, `10-synapseos.conf`, `iso_name="synapseos"`, live user `synapse`); `tests/test_ui_ux.py` loads `packages/desktop/synapse-hud/synapse-hud` etc. and asserts old titles and icon theme names. Point both at the `palexus-*` paths and names, remove the fallbacks so the tests assert the new brand only, and rename the test classes.
+  - [x] `pytest tests/` passes with no skips caused by missing paths
+  - [x] No `or "…synapseos…"` fallback assertions remain
+  depends: Rebrand the verification gate harness
+  group: testing
+
+- [x] Rebrand the verification gate harness
+  `build/verify-gates.sh` has ~80 old-name references and zero new ones, so it currently checks paths that no longer exist (`packages/core/synapse-core/PKGBUILD`, `overlay/etc/sysctl.d/99-synapseos.conf`, `sddm.conf.d/10-synapseos.conf`, `branding/synapseos`, `synapseos.script.in`, `synapse-boot.mp4`, wallpaper names, icon theme names, the `[synapseos]` repo and boot entry). Rewrite every path and expected string to the names produced by the rebrand cards. Add one new gate that fails if a tracked file outside an explicit allowlist (upstream `synapse` source name, compatibility symlinks/provides, `components/` submodules, historical docs) contains `synapse`.
+  - [x] `./build/verify-gates.sh` reports 0 failures and 0 warnings
+  - [x] The leftover-name gate fails when a stray `synapseos` string is added
+  - [x] `shellcheck build/verify-gates.sh` is clean
+  depends: Rebrand build-iso.sh and remove the host-specific path
+  depends: Rebrand the live-image customize hook and the Calamares modules together
+  depends: Rebrand the user skeleton overlay
+  depends: Rebrand system overlay configs and the AMOLED theme
+  depends: Rename leftover Synapse assets inside the palexus-* packages
+  group: testing
 
 - [x] Rename leftover Synapse assets inside the palexus-* packages
   Package directories were renamed but assets were not. In `packages/desktop/palexus-themes` rename the 14 `synapse-*.jpg` wallpapers to `palexus-*.jpg` and fix `source=`, the install loop, and `sha256sums` (run `updpkgsums`). In `palexus-hud` and `palexus-plymouth` rename `synapse_chrome_*` images, and the four `icons/Synapse-*` themes to `Palexus-*` including `index.theme` names, `synapse-*.svg` app icons, `generate_icons.py`, `generate_spinning_chrome.py`, `Welcome.qml`/`palexus-welcome` defaults and `palexus-settings`. Fix user-visible strings ("Synapse Command HUD", "Synapse Settings", "Synapse Notes", `palexus-governor.service` description, greeter `metadata.desktop`/`theme.conf`). Keep the existing `provides`/`conflicts` and `synapse-*` compatibility symlinks; set `url=` consistently. Bump each `pkgrel`.

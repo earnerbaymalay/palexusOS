@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# SynapseOS Verification Harness (build/verify-gates.sh)
+# PalexusOS Verification Harness (build/verify-gates.sh)
 # Validates Engineering Gates G1, G2, G3, and G4 across the repository.
 # ==============================================================================
 set -euo pipefail
@@ -58,7 +58,7 @@ check_file_lacks() {
 }
 
 echo "=============================================================================="
-echo " SynapseOS Engineering Verification Harness (Gates G1 - G4)"
+echo " PalexusOS Engineering Verification Harness (Gates G1 - G4)"
 echo "=============================================================================="
 
 # ------------------------------------------------------------------------------
@@ -67,12 +67,12 @@ echo "==========================================================================
 echo ""
 echo "---> Gate G1: Native Package Verification (PKGBUILDs)"
 EXPECTED_PKGBUILDS=(
-    "${REPO_ROOT}/packages/core/synapse-core/PKGBUILD"
+    "${REPO_ROOT}/packages/core/palexus-core/PKGBUILD"
     "${REPO_ROOT}/packages/desktop/llm-quickfire-panel/PKGBUILD"
-    "${REPO_ROOT}/packages/desktop/synapse-themes/PKGBUILD"
-    "${REPO_ROOT}/packages/desktop/synapse-greeter/PKGBUILD"
-    "${REPO_ROOT}/packages/desktop/synapse-plymouth/PKGBUILD"
-    "${REPO_ROOT}/packages/desktop/synapse-hud/PKGBUILD"
+    "${REPO_ROOT}/packages/desktop/palexus-themes/PKGBUILD"
+    "${REPO_ROOT}/packages/desktop/palexus-greeter/PKGBUILD"
+    "${REPO_ROOT}/packages/desktop/palexus-plymouth/PKGBUILD"
+    "${REPO_ROOT}/packages/desktop/palexus-hud/PKGBUILD"
 )
 
 for pkgbuild in "${EXPECTED_PKGBUILDS[@]}"; do
@@ -97,14 +97,14 @@ done
 # ------------------------------------------------------------------------------
 echo ""
 echo "---> Gate G2: Kernel, Latency & Prime Directive Stealth Configs"
-SYSCTL_CONF="${REPO_ROOT}/overlay/etc/sysctl.d/99-synapseos.conf"
+SYSCTL_CONF="${REPO_ROOT}/overlay/etc/sysctl.d/99-palexusos.conf"
 if [[ -f "${SYSCTL_CONF}" ]]; then
-    check_file_contains "${SYSCTL_CONF}" "vm\.swappiness[[:space:]]*=[[:space:]]*180" "ZRAM swappiness=180 in 99-synapseos.conf"
-    check_file_contains "${SYSCTL_CONF}" "vm\.page-cluster[[:space:]]*=[[:space:]]*0" "ZRAM page-cluster=0 in 99-synapseos.conf"
-    check_file_contains "${SYSCTL_CONF}" "vm\.vfs_cache_pressure[[:space:]]*=[[:space:]]*50" "vfs_cache_pressure=50 in 99-synapseos.conf"
-    check_file_contains "${SYSCTL_CONF}" "tcp_congestion_control[[:space:]]*=[[:space:]]*bbr" "TCP BBR congestion control in 99-synapseos.conf"
+    check_file_contains "${SYSCTL_CONF}" "vm\.swappiness[[:space:]]*=[[:space:]]*180" "ZRAM swappiness=180 in 99-palexusos.conf"
+    check_file_contains "${SYSCTL_CONF}" "vm\.page-cluster[[:space:]]*=[[:space:]]*0" "ZRAM page-cluster=0 in 99-palexusos.conf"
+    check_file_contains "${SYSCTL_CONF}" "vm\.vfs_cache_pressure[[:space:]]*=[[:space:]]*50" "vfs_cache_pressure=50 in 99-palexusos.conf"
+    check_file_contains "${SYSCTL_CONF}" "tcp_congestion_control[[:space:]]*=[[:space:]]*bbr" "TCP BBR congestion control in 99-palexusos.conf"
 else
-    warn "Pending Phase 2 deliverable: overlay/etc/sysctl.d/99-synapseos.conf"
+    warn "Pending Phase 2 deliverable: overlay/etc/sysctl.d/99-palexusos.conf"
 fi
 
 ZRAM_CONF="${REPO_ROOT}/overlay/etc/systemd/zram-generator.conf"
@@ -158,26 +158,26 @@ fi
 SDDM_CONF_DIR="${REPO_ROOT}/overlay/etc/sddm.conf.d"
 SDDM_CONF_FILE="${REPO_ROOT}/overlay/etc/sddm.conf"
 if [[ -d "${SDDM_CONF_DIR}" ]] || [[ -f "${SDDM_CONF_FILE}" ]]; then
-    check_file_contains "${REPO_ROOT}/overlay/etc/sddm.conf.d/10-synapseos.conf" "^Current=synapseos$" "SDDM theme set to synapseos (synapse-greeter)"
-    check_file_contains "${REPO_ROOT}/overlay/etc/sddm.conf.d/10-synapseos.conf" "HideUsers=git,ollama,synapse-daemon" "SDDM HideUsers excludes live user 'synapse'"
+    check_file_contains "${REPO_ROOT}/overlay/etc/sddm.conf.d/10-palexusos.conf" "^Current=palexusos$" "SDDM theme set to palexusos (palexus-greeter)"
+    check_file_contains "${REPO_ROOT}/overlay/etc/sddm.conf.d/10-palexusos.conf" "HideUsers=git,ollama,palexus-daemon" "SDDM HideUsers excludes live and daemon users"
 else
     warn "Pending Phase 3 deliverable: SDDM configuration in overlay/etc/sddm*"
 fi
 
-SDDM_THEME_CONF="${REPO_ROOT}/packages/desktop/synapse-greeter/theme.conf"
-SDDM_MAIN_QML="${REPO_ROOT}/packages/desktop/synapse-greeter/Main.qml"
-SYNAPSE_SVC="${REPO_ROOT}/packages/core/synapse-core/synapse.service"
+SDDM_THEME_CONF="${REPO_ROOT}/packages/desktop/palexus-greeter/theme.conf"
+SDDM_MAIN_QML="${REPO_ROOT}/packages/desktop/palexus-greeter/Main.qml"
+PALEXUS_SVC="${REPO_ROOT}/packages/core/palexus-core/palexus.service"
 QF_THEME_BIN="${REPO_ROOT}/components/synapse-palette/bin/quickfire-theme"
 QF_DESKTOP_SRC="${REPO_ROOT}/packages/desktop/llm-quickfire-panel/config/llm-quickfire-panel.desktop"
 
-check_file_contains "${SDDM_THEME_CONF}" "^user=$" "SDDM synapseos theme.conf pins no host-specific user"
-check_file_contains "${SDDM_THEME_CONF}" "^variant=monolith-mauve$" "SDDM synapseos theme defaults to monolith-mauve"
+check_file_contains "${SDDM_THEME_CONF}" "^user=$" "SDDM palexusos theme.conf pins no host-specific user"
+check_file_contains "${SDDM_THEME_CONF}" "^variant=monolith-mauve$" "SDDM palexusos theme defaults to monolith-mauve"
 check_file_contains "${SDDM_MAIN_QML}" "#cba6f7" "SDDM Main.qml uses Catppuccin Mauve (#cba6f7)"
 check_file_contains "${SDDM_MAIN_QML}" "#cdd6f4" "SDDM Main.qml uses Liquid Silver Chrome (#cdd6f4)"
 check_file_contains "${SDDM_MAIN_QML}" "model: sessionModel" "SDDM Main.qml offers session selection (XFCE/Sway)"
 check_file_contains "${SDDM_MAIN_QML}" "sddm\.login\(" "SDDM Main.qml authenticates via sddm.login"
 check_file_contains "${SDDM_MAIN_QML}" "strokeStyle: ShapePath\.DashLine" "SDDM panel border carries animated accent trails"
-check_file_contains "${REPO_ROOT}/packages/desktop/synapse-greeter/metadata.desktop" "^QtVersion=6$" "SDDM synapseos theme targets the Qt6 greeter"
+check_file_contains "${REPO_ROOT}/packages/desktop/palexus-greeter/metadata.desktop" "^QtVersion=6$" "SDDM palexusos theme targets the Qt6 greeter"
 if grep -Eq "password\.text\.length[[:space:]]*===[[:space:]]*0" "${SDDM_MAIN_QML}"; then
     fail "SDDM Main.qml blocks passwordless live user login"
 else
@@ -189,8 +189,8 @@ else
     pass "SDDM Main.qml has zero legacy blue accent colors"
 fi
 
-check_file_contains "${SYNAPSE_SVC}" "^User=synapse-daemon$" "synapse.service isolates DynamicUser as User=synapse-daemon"
-check_file_contains "${SYNAPSE_SVC}" "^Group=synapse-daemon$" "synapse.service isolates DynamicUser as Group=synapse-daemon"
+check_file_contains "${PALEXUS_SVC}" "^User=palexus-daemon$" "palexus.service isolates DynamicUser as User=palexus-daemon"
+check_file_contains "${PALEXUS_SVC}" "^Group=palexus-daemon$" "palexus.service isolates DynamicUser as Group=palexus-daemon"
 check_file_contains "${QF_DESKTOP_SRC}" "^Exec=/usr/bin/quickfire --autostart$" "llm-quickfire-panel.desktop uses /usr/bin/quickfire --autostart"
 if [[ -f "${QF_THEME_BIN}" ]] && grep -Fq "ps2-cyber-blue" "${QF_THEME_BIN}"; then
     fail "quickfire-theme still contains legacy ps2-cyber-blue option"
@@ -202,13 +202,13 @@ SWAY_CONF="${REPO_ROOT}/overlay/etc/skel/.config/sway/config"
 WAYBAR_CONF="${REPO_ROOT}/overlay/etc/skel/.config/waybar/config.jsonc"
 WAYBAR_STYLE="${REPO_ROOT}/overlay/etc/skel/.config/waybar/style.css"
 
-check_file_contains "${SWAY_CONF}" "Mod4\+space.*(/usr/bin/(quickfire|synapse-hud)|\$menu)" "Sway config binds Mod4+space to /usr/bin/synapse-hud or quickfire"
-check_file_contains "${SWAY_CONF}" "Mod4\+d.*(/usr/bin/(quickfire|synapse-hud)|\$menu)" "Sway config binds Mod4+d to /usr/bin/synapse-hud or quickfire"
+check_file_contains "${SWAY_CONF}" "Mod4\+space.*(/usr/bin/(quickfire|palexus-hud)|\$menu)" "Sway config binds Mod4+space to /usr/bin/palexus-hud or quickfire"
+check_file_contains "${SWAY_CONF}" "Mod4\+d.*(/usr/bin/(quickfire|palexus-hud)|\$menu)" "Sway config binds Mod4+d to /usr/bin/palexus-hud or quickfire"
 check_file_contains "${SWAY_CONF}" "Mod4\+Return.*(kitty|foot|\$term)" "Sway config binds Mod4+Return to kitty/foot"
 check_file_contains "${SWAY_CONF}" "Mod4\+i.*calamares" "Sway config binds Mod4+i to calamares"
-check_file_contains "${SWAY_CONF}" "Mod4\+slash.*synapse-shortcuts" "Sway config binds Mod4+slash to cheat sheet"
+check_file_contains "${SWAY_CONF}" "Mod4\+slash.*palexus-shortcuts" "Sway config binds Mod4+slash to cheat sheet"
 check_file_contains "${SWAY_CONF}" "for_window.*calamares.*floating" "Sway config floats Calamares installer"
-check_file_contains "${SWAY_CONF}" "for_window.*synapse-welcome.*floating" "Sway config floats Synapse welcome onboarding"
+check_file_contains "${SWAY_CONF}" "for_window.*palexus-welcome.*floating" "Sway config floats Palexus welcome onboarding"
 check_file_contains "${SWAY_CONF}" "swaybg.*monolith-mauve" "Sway config sets monolith-mauve wallpaper fallback"
 check_file_contains "${SWAY_CONF}" "#11111b" "Sway config uses Obsidian Crust (#11111b)"
 check_file_contains "${SWAY_CONF}" "#cba6f7" "Sway config uses Catppuccin Mocha Mauve (#cba6f7)"
@@ -266,7 +266,7 @@ else
     fail "Archiso profiledef.sh has syntax errors"
 fi
 
-check_file_contains "${PROFILEDEF}" 'iso_name="synapseos"' "Archiso iso_name set to synapseos"
+check_file_contains "${PROFILEDEF}" 'iso_name="palexusos"' "Archiso iso_name set to palexusos"
 check_file_contains "${PROFILEDEF}" 'uefi-x64\.systemd-boot\.esp' "Archiso UEFI systemd-boot mode enabled"
 check_file_contains "${PROFILEDEF}" 'bios\.syslinux\.mbr' "Archiso BIOS syslinux mode enabled"
 check_file_contains "${PROFILEDEF}" 'zstd' "Archiso squashfs zstd compression enabled"
@@ -308,11 +308,11 @@ REQUIRED_PKGS=(
     "bettercap"
     "nmap"
     "macchanger"
-    "synapse-core"
+    "palexus-core"
     "llm-quickfire-panel"
-    "synapse-themes"
-    "synapse-greeter"
-    "synapse-plymouth"
+    "palexus-themes"
+    "palexus-greeter"
+    "palexus-plymouth"
     "plymouth"
 )
 
@@ -326,7 +326,7 @@ else
     pass "packages.x86_64 excludes AUR/alias blockers (nohang, tshark)"
 fi
 
-check_file_contains "${PACMAN_CONF}" "^\[synapseos\]" "pacman.conf includes [synapseos] repo"
+check_file_contains "${PACMAN_CONF}" "^\[palexusos\]" "pacman.conf includes [palexusos] repo"
 check_file_contains "${PACMAN_CONF}" "^\[cachyos-v3\]" "pacman.conf includes [cachyos-v3] repo"
 check_file_contains "${PACMAN_CONF}" "^\[cachyos-core-v3\]" "pacman.conf includes [cachyos-core-v3] repo"
 check_file_contains "${PACMAN_CONF}" "^\[cachyos-extra-v3\]" "pacman.conf includes [cachyos-extra-v3] repo"
@@ -334,8 +334,8 @@ check_file_contains "${PACMAN_CONF}" "^\[cachyos\]" "pacman.conf includes [cachy
 check_file_contains "${PACMAN_CONF}" "^\[core\]" "pacman.conf includes [core] repo"
 check_file_contains "${PACMAN_CONF}" "^\[extra\]" "pacman.conf includes [extra] repo"
 
-check_file_contains "${REPO_ROOT}/build/archiso/efiboot/loader/loader.conf" "01-synapseos-x86_64-linux\.conf" "UEFI loader.conf points to SynapseOS entry"
-check_file_contains "${REPO_ROOT}/build/archiso/efiboot/loader/entries/01-synapseos-x86_64-linux.conf" "vmlinuz-linux-cachyos" "UEFI entry boots vmlinuz-linux-cachyos"
+check_file_contains "${REPO_ROOT}/build/archiso/efiboot/loader/loader.conf" "01-palexusos-x86_64-linux\.conf" "UEFI loader.conf points to PalexusOS entry"
+check_file_contains "${REPO_ROOT}/build/archiso/efiboot/loader/entries/01-palexusos-x86_64-linux.conf" "vmlinuz-linux-cachyos" "UEFI entry boots vmlinuz-linux-cachyos"
 check_file_contains "${REPO_ROOT}/build/archiso/syslinux/syslinux.cfg" "vmlinuz-linux-cachyos" "BIOS syslinux.cfg boots vmlinuz-linux-cachyos"
 
 if [[ -x "${CUSTOMIZE_SH}" ]] && bash -n "${CUSTOMIZE_SH}"; then
@@ -364,11 +364,11 @@ if command -v shellcheck >/dev/null 2>&1; then
     fi
 fi
 
-# Stage A & B: Local [synapseos] repo, CachyOS mirrorlists, keyring & staged airootfs checks
+# Stage A & B: Local [palexusos] repo, CachyOS mirrorlists, keyring & staged airootfs checks
 if [[ -d "${REPO_ROOT}/out/repo" ]]; then
     for repo_artifact in \
-        "${REPO_ROOT}/out/repo/synapseos.db.tar.gz" \
-        "${REPO_ROOT}/build/archiso/airootfs/var/cache/synapseos-repo/synapseos.db.tar.gz"; do
+        "${REPO_ROOT}/out/repo/palexusos.db.tar.gz" \
+        "${REPO_ROOT}/build/archiso/airootfs/var/cache/palexusos-repo/palexusos.db.tar.gz"; do
         rel_art="${repo_artifact#"${REPO_ROOT}/"}"
         if [[ -f "${repo_artifact}" ]]; then
             pass "Repository database present: ${rel_art}"
@@ -377,7 +377,7 @@ if [[ -d "${REPO_ROOT}/out/repo" ]]; then
         fi
     done
 
-    for built_pkg in "synapse-core" "llm-quickfire-panel" "synapse-themes" "synapse-greeter" "synapse-plymouth" "synapse-hud"; do
+    for built_pkg in "palexus-core" "llm-quickfire-panel" "palexus-themes" "palexus-greeter" "palexus-plymouth" "palexus-hud"; do
         if compgen -G "${REPO_ROOT}/out/repo/${built_pkg}-*.pkg.tar.*" >/dev/null; then
             pass "Compiled package archive in out/repo/: ${built_pkg}"
         else
@@ -389,7 +389,7 @@ fi
 check_file_contains "${REPO_ROOT}/build/archiso/airootfs/etc/pacman.d/cachyos-mirrorlist" "mirror\.cachyos\.org/repo/x86_64" "Staged airootfs CachyOS x86_64 mirrorlist"
 check_file_contains "${REPO_ROOT}/build/archiso/airootfs/etc/pacman.d/cachyos-v3-mirrorlist" "mirror\.cachyos\.org/repo/x86_64_v3" "Staged airootfs CachyOS x86-64-v3 mirrorlist"
 check_file_contains "${CUSTOMIZE_SH}" "F3B607488DB35A47" "customize_airootfs.sh imports and signs CachyOS key (F3B607488DB35A47)"
-check_file_contains "${REPO_ROOT}/build/archiso/airootfs/etc/skel/.config/sway/config" "Mod4\+space.*(/usr/bin/(quickfire|synapse-hud)|\$menu)" "Staged airootfs includes Sway config"
+check_file_contains "${REPO_ROOT}/build/archiso/airootfs/etc/skel/.config/sway/config" "Mod4\+space.*(/usr/bin/(quickfire|palexus-hud)|\$menu)" "Staged airootfs includes Sway config"
 check_file_contains "${REPO_ROOT}/build/archiso/airootfs/etc/skel/.config/waybar/style.css" "#cba6f7" "Staged airootfs includes Waybar style.css"
 
 if grep -Rqs -i "#00a8ff" "${REPO_ROOT}/build/archiso/airootfs/etc"; then
@@ -400,20 +400,20 @@ fi
 
 # Calamares checks
 CAL_SETTINGS="${REPO_ROOT}/packages/installer/calamares/settings.conf"
-CAL_BRANDING="${REPO_ROOT}/packages/installer/calamares/branding/synapseos/branding.desc"
+CAL_BRANDING="${REPO_ROOT}/packages/installer/calamares/branding/palexusos/branding.desc"
 CAL_PARTITION="${REPO_ROOT}/packages/installer/calamares/modules/partition.conf"
 CAL_SERVICES="${REPO_ROOT}/packages/installer/calamares/modules/services-systemd.conf"
 CAL_UNPACKFS="${REPO_ROOT}/packages/installer/calamares/modules/unpackfs.conf"
 
-check_file_contains "${CAL_SETTINGS}" "branding:[[:space:]]*synapseos" "Calamares settings.conf uses synapseos branding"
+check_file_contains "${CAL_SETTINGS}" "branding:[[:space:]]*palexusos" "Calamares settings.conf uses palexusos branding"
 check_file_contains "${CAL_SETTINGS}" "unpackfs" "Calamares settings.conf exec sequence includes unpackfs"
 check_file_contains "${CAL_SETTINGS}" "services-systemd" "Calamares settings.conf exec sequence includes services-systemd"
-check_file_contains "${CAL_BRANDING}" "componentName:[[:space:]]*synapseos" "Calamares branding.desc defines synapseos component"
+check_file_contains "${CAL_BRANDING}" "componentName:[[:space:]]*palexusos" "Calamares branding.desc defines palexusos component"
 check_file_contains "${CAL_BRANDING}" "#11111b" "Calamares branding.desc includes Obsidian Crust (#11111b)"
 check_file_contains "${CAL_BRANDING}" "#cdd6f4" "Calamares branding.desc includes Liquid Silver Chrome (#cdd6f4)"
 check_file_contains "${CAL_BRANDING}" "#cba6f7" "Calamares branding.desc includes Catppuccin Mauve (#cba6f7)"
-CAL_BRANDING_DIR="${REPO_ROOT}/packages/installer/calamares/branding/synapseos"
-for asset in synapseos-logo.svg synapseos-icon.svg synapseos-welcome.png background.png show.qml; do
+CAL_BRANDING_DIR="${REPO_ROOT}/packages/installer/calamares/branding/palexusos"
+for asset in palexusos-logo.svg palexusos-icon.svg palexusos-welcome.png background.png show.qml; do
     if [[ -s "${CAL_BRANDING_DIR}/${asset}" ]]; then
         pass "Calamares branding asset present: ${asset}"
     else
@@ -427,10 +427,10 @@ check_file_contains "${CAL_BRANDING_DIR}/show.qml" "Ollama" "Calamares show.qml 
 check_file_contains "${CAL_BRANDING_DIR}/show.qml" "Quad9" "Calamares show.qml showcases Quad9 DNS-over-TLS"
 check_file_contains "${CAL_PARTITION}" 'defaultFileSystemType:[[:space:]]*"btrfs"' "Calamares partition.conf defaults to Btrfs"
 check_file_contains "${CAL_PARTITION}" "/@snapshots" "Calamares partition.conf defines @snapshots subvolume"
-check_file_contains "${CAL_SERVICES}" "synapse" "Calamares services-systemd.conf enables synapse service"
+check_file_contains "${CAL_SERVICES}" "palexus" "Calamares services-systemd.conf enables palexus service"
 check_file_contains "${CAL_SERVICES}" "sddm" "Calamares services-systemd.conf enables sddm service"
 check_file_contains "${CAL_SERVICES}" "firewalld" "Calamares services-systemd.conf enables firewalld service"
-check_file_contains "${CAL_UNPACKFS}" "/run/archiso/bootmnt/synapseos/x86_64/airootfs\.sfs" "Calamares unpackfs.conf targets /run/archiso/bootmnt/synapseos/x86_64/airootfs.sfs"
+check_file_contains "${CAL_UNPACKFS}" "/run/archiso/bootmnt/palexusos/x86_64/airootfs\.sfs" "Calamares unpackfs.conf targets /run/archiso/bootmnt/palexusos/x86_64/airootfs.sfs"
 check_file_contains "${CAL_UNPACKFS}" 'sourcefs:[[:space:]]*"squashfs"' "Calamares unpackfs.conf specifies squashfs sourcefs"
 
 # Package trust & live-session credential isolation
@@ -440,8 +440,8 @@ check_file_contains "${REPO_ROOT}/build/archiso/packages.x86_64" '^cachyos-keyri
 check_file_lacks "${REPO_ROOT}/build/archiso/airootfs/root/customize_airootfs.sh" '(?m)^[[:space:]]*pacman-key --init' "No pacman master key baked into the ISO at build time"
 check_file_contains "${REPO_ROOT}/build/archiso/airootfs/root/customize_airootfs.sh" 'systemctl enable pacman-init\.service' "Live session generates its pacman keyring per boot"
 check_file_contains "${REPO_ROOT}/packages/installer/calamares/settings.conf" 'shellprocess@cleanup' "Calamares runs live-session cleanup"
-check_file_contains "${REPO_ROOT}/packages/installer/calamares/modules/shellprocess@cleanup.conf" '00-synapse-live' "Calamares cleanup removes live NOPASSWD sudoers"
-check_file_contains "${REPO_ROOT}/packages/installer/calamares/modules/shellprocess@cleanup.conf" 'userdel -r synapse' "Calamares cleanup removes passwordless live user"
+check_file_contains "${REPO_ROOT}/packages/installer/calamares/modules/shellprocess@cleanup.conf" '00-palexus-live' "Calamares cleanup removes live NOPASSWD sudoers"
+check_file_contains "${REPO_ROOT}/packages/installer/calamares/modules/shellprocess@cleanup.conf" 'userdel -r palexus' "Calamares cleanup removes passwordless live user"
 check_file_contains "${REPO_ROOT}/packages/installer/calamares/modules/users.conf" '^sudoersGroup: wheel' "Installed users get password-protected wheel sudo"
 check_file_contains "${REPO_ROOT}/build/build-iso.sh" 'mkarchiso -v -C' "ISO build uses isolated build pacman.conf/keyring"
 
@@ -455,7 +455,7 @@ check_file_lacks "${REPO_ROOT}/build/build-iso.sh" 'AIROOTFS_DIR\}/etc/calamares
 
 # Live boot & installed-system bootability
 check_file_contains "${REPO_ROOT}/build/archiso/airootfs/etc/mkinitcpio.conf.d/archiso.conf" '^HOOKS=\(.* archiso .*\)$' "Live initramfs includes archiso hooks"
-check_file_lacks "${REPO_ROOT}/build/archiso/efiboot/loader/entries/01-synapseos-x86_64-linux.conf" '(intel|amd)-ucode\.img' "systemd-boot entry has no external microcode (microcode hook embeds it)"
+check_file_lacks "${REPO_ROOT}/build/archiso/efiboot/loader/entries/01-palexusos-x86_64-linux.conf" '(intel|amd)-ucode\.img' "systemd-boot entry has no external microcode (microcode hook embeds it)"
 check_file_lacks "${REPO_ROOT}/build/archiso/syslinux/syslinux.cfg" '(intel|amd)-ucode\.img' "syslinux entries have no external microcode"
 check_file_contains "${REPO_ROOT}/packages/installer/calamares/modules/shellprocess@cleanup.conf" 'install -Dm644 .*/vmlinuz' "Calamares restores kernels emptied from /boot by mkarchiso"
 check_file_contains "${REPO_ROOT}/packages/installer/calamares/modules/shellprocess@cleanup.conf" 'rm -f /etc/mkinitcpio.conf.d/archiso.conf' "Calamares drops live archiso initramfs hooks"
@@ -488,18 +488,18 @@ check_file_contains "${REPO_ROOT}/packages/installer/calamares/settings.conf" '^
 check_file_contains "${REPO_ROOT}/build/archiso/packages.x86_64" '^chromium$' "packages.x86_64 ships chromium browser"
 check_file_contains "${REPO_ROOT}/build/archiso/packages.x86_64" '^galculator$' "packages.x86_64 ships galculator"
 check_file_contains "${REPO_ROOT}/build/archiso/packages.x86_64" '^mousepad$' "packages.x86_64 ships mousepad editor"
-check_file_contains "${REPO_ROOT}/build/archiso/packages.x86_64" '^synapse-hud$' "packages.x86_64 ships synapse-hud package"
+check_file_contains "${REPO_ROOT}/build/archiso/packages.x86_64" '^palexus-hud$' "packages.x86_64 ships palexus-hud package"
 check_file_contains "${REPO_ROOT}/overlay/etc/chromium/default-flags" '--disable-telemetry' "Chromium flags disable telemetry"
 check_file_contains "${REPO_ROOT}/overlay/etc/chromium/default-flags" '--disable-sync' "Chromium flags disable cloud sync"
-check_file_contains "${REPO_ROOT}/packages/desktop/synapse-hud/PKGBUILD" 'synapse-setup' "synapse-hud package includes synapse-setup"
-check_file_contains "${REPO_ROOT}/packages/desktop/synapse-hud/PKGBUILD" 'synapse-notes' "synapse-hud package includes synapse-notes"
-check_file_contains "${REPO_ROOT}/packages/desktop/synapse-hud/PKGBUILD" 'synapse-settings' "synapse-hud package includes synapse-settings"
-check_file_contains "${REPO_ROOT}/packages/desktop/synapse-hud/PKGBUILD" 'synapse-welcome' "synapse-hud package includes synapse-welcome"
-check_file_contains "${REPO_ROOT}/overlay/etc/skel/.config/autostart/synapse-welcome.desktop" 'synapse-welcome' "Autostart launches synapse-welcome on first session"
+check_file_contains "${REPO_ROOT}/packages/desktop/palexus-hud/PKGBUILD" 'palexus-setup' "palexus-hud package includes palexus-setup"
+check_file_contains "${REPO_ROOT}/packages/desktop/palexus-hud/PKGBUILD" 'palexus-notes' "palexus-hud package includes palexus-notes"
+check_file_contains "${REPO_ROOT}/packages/desktop/palexus-hud/PKGBUILD" 'palexus-settings' "palexus-hud package includes palexus-settings"
+check_file_contains "${REPO_ROOT}/packages/desktop/palexus-hud/PKGBUILD" 'palexus-welcome' "palexus-hud package includes palexus-welcome"
+check_file_contains "${REPO_ROOT}/overlay/etc/skel/.config/autostart/palexus-welcome.desktop" 'palexus-welcome' "Autostart launches palexus-welcome on first session"
 
 # Metallic Icon Themes
-for icon_theme in "Synapse-Liquid-Chrome" "Synapse-Smoked-Obsidian" "Synapse-Radial-Tungsten" "Synapse-Aerospace-Billet"; do
-    if [[ -f "${REPO_ROOT}/packages/desktop/synapse-hud/icons/${icon_theme}/index.theme" ]]; then
+for icon_theme in "Palexus-Liquid-Chrome" "Palexus-Smoked-Obsidian" "Palexus-Radial-Tungsten" "Palexus-Aerospace-Billet"; do
+    if [[ -f "${REPO_ROOT}/packages/desktop/palexus-hud/icons/${icon_theme}/index.theme" ]]; then
         pass "Metallic Icon Theme present: ${icon_theme}"
     else
         fail "Metallic Icon Theme missing: ${icon_theme}"
@@ -516,37 +516,37 @@ else
 fi
 check_file_lacks "${REPO_ROOT}/build/archiso/airootfs/etc/mkinitcpio.conf.d/archiso.conf" 'archiso_pxe' "Live initramfs has no PXE hooks (nbd/nfs helpers not shipped)"
 check_file_lacks "${REPO_ROOT}/build/archiso/airootfs/root/customize_airootfs.sh" '(?m)^ln .*/etc/resolv\.conf' "customize_airootfs.sh does not replace chroot-bind-mounted resolv.conf"
-check_file_lacks "${REPO_ROOT}/packages/core/synapse-core/synapse.service" 'ExecStart=.*--config' "synapse.service passes only flags 'synapse serve' accepts"
-check_file_lacks "${REPO_ROOT}/packages/core/synapse-core/synapse.service" 'network-online\.target' "synapse.service does not wait on network-online (localhost gateway)"
+check_file_lacks "${REPO_ROOT}/packages/core/palexus-core/palexus.service" 'ExecStart=.*--config' "palexus.service passes only flags 'synapse serve' accepts"
+check_file_lacks "${REPO_ROOT}/packages/core/palexus-core/palexus.service" 'network-online\.target' "palexus.service does not wait on network-online (localhost gateway)"
 check_file_contains "${REPO_ROOT}/build/archiso/airootfs/root/customize_airootfs.sh" 'systemctl disable systemd-networkd\.service' "systemd-networkd disabled (NetworkManager owns networking)"
 
 # Boot splash (Plymouth, official boot animation)
-PLY_DIR="${REPO_ROOT}/packages/desktop/synapse-plymouth"
+PLY_DIR="${REPO_ROOT}/packages/desktop/palexus-plymouth"
 check_file_contains "${REPO_ROOT}/build/archiso/airootfs/etc/mkinitcpio.conf.d/archiso.conf" '^HOOKS=\(.* kms plymouth .*\)$' "Live initramfs runs the plymouth hook"
-check_file_contains "${REPO_ROOT}/overlay/etc/plymouth/plymouthd.conf" '^Theme=synapseos$' "Plymouth uses the single synapseos theme"
-check_file_contains "${REPO_ROOT}/build/archiso/efiboot/loader/entries/01-synapseos-x86_64-linux.conf" '^options .* splash' "Live boot entry passes splash"
+check_file_contains "${REPO_ROOT}/overlay/etc/plymouth/plymouthd.conf" '^Theme=palexusos$' "Plymouth uses the single palexusos theme"
+check_file_contains "${REPO_ROOT}/build/archiso/efiboot/loader/entries/01-palexusos-x86_64-linux.conf" '^options .* splash' "Live boot entry passes splash"
 check_file_contains "${REPO_ROOT}/packages/installer/calamares/modules/bootloader.conf" '"splash"' "Installed systems boot with splash"
-check_file_contains "${PLY_DIR}/synapseos.script.in" 'Plymouth\.SetDisplayPasswordFunction' "Splash handles the LUKS passphrase prompt"
-check_file_contains "${PLY_DIR}/synapseos.script.in" 'Plymouth\.SetRefreshFunction' "Splash script drives frame playback"
-check_file_contains "${PLY_DIR}/synapseos.script.in" 'Plymouth\.SetQuitFunction' "Splash holds the final frame for the login hand-off"
-check_file_contains "${PLY_DIR}/PKGBUILD" "^source=\\('synapse-boot\\.mp4'" "Boot splash is built from the official synapse-boot.mp4"
+check_file_contains "${PLY_DIR}/palexusos.script.in" 'Plymouth\.SetDisplayPasswordFunction' "Splash handles the LUKS passphrase prompt"
+check_file_contains "${PLY_DIR}/palexusos.script.in" 'Plymouth\.SetRefreshFunction' "Splash script drives frame playback"
+check_file_contains "${PLY_DIR}/palexusos.script.in" 'Plymouth\.SetQuitFunction' "Splash holds the final frame for the login hand-off"
+check_file_contains "${PLY_DIR}/PKGBUILD" "^source=\\('palexus-boot\\.mp4'" "Boot splash is built from the official palexus-boot.mp4"
 check_file_contains "${PLY_DIR}/PKGBUILD" "ffmpeg .*-an" "Boot splash frames are extracted without audio"
-if [[ -s "${PLY_DIR}/synapse-boot.mp4" ]]; then
+if [[ -s "${PLY_DIR}/palexus-boot.mp4" ]]; then
     pass "Official boot video present"
 else
     fail "Official boot video present"
 fi
 
 # V4 theme pack & screensaver
-THEMES_DIR="${REPO_ROOT}/packages/desktop/synapse-themes"
-for wp in synapse-monolith-{mauve,tungsten,sapphire,emerald} synapse-tower-{mauve,tungsten,crimson,sapphire,emerald} synapse-carbon-{crimson,mauve,tungsten,sapphire,emerald}; do
-    check_file_contains "${THEMES_DIR}/PKGBUILD" "^  .${wp}\\.jpg.$" "synapse-themes ships ${wp}.jpg"
+THEMES_DIR="${REPO_ROOT}/packages/desktop/palexus-themes"
+for wp in palexus-monolith-{mauve,tungsten,sapphire,emerald} palexus-tower-{mauve,tungsten,crimson,sapphire,emerald} palexus-carbon-{crimson,mauve,tungsten,sapphire,emerald}; do
+    check_file_contains "${THEMES_DIR}/PKGBUILD" "^  .${wp}\\.jpg.$" "palexus-themes ships ${wp}.jpg"
 done
-check_file_contains "${THEMES_DIR}/synapse-theme" '^DEFAULT_THEME="monolith-mauve"$' "Default system theme is monolith-mauve"
-check_file_contains "${THEMES_DIR}/synapse-theme" 'pkexec tee .*GREETER_CONF' "synapse-theme can sync the login screen variant (pkexec)"
-check_file_contains "${THEMES_DIR}/synapse-theme" '<Primary><Super>t' "XFCE Super+Ctrl+T opens the theme menu"
-check_file_contains "${REPO_ROOT}/overlay/etc/skel/.config/sway/config" 'Ctrl\+t exec synapse-theme --menu' "Sway Super+Ctrl+T opens the theme menu"
-check_file_contains "${REPO_ROOT}/overlay/etc/skel/.config/sway/config" "synapse-screensaver --launch" "Sway idle launches the torus screensaver"
+check_file_contains "${THEMES_DIR}/palexus-theme" '^DEFAULT_THEME="monolith-mauve"$' "Default system theme is monolith-mauve"
+check_file_contains "${THEMES_DIR}/palexus-theme" 'pkexec tee .*GREETER_CONF' "palexus-theme can sync the login screen variant (pkexec)"
+check_file_contains "${THEMES_DIR}/palexus-theme" '<Primary><Super>t' "XFCE Super+Ctrl+T opens the theme menu"
+check_file_contains "${REPO_ROOT}/overlay/etc/skel/.config/sway/config" 'Ctrl\+t exec palexus-theme --menu' "Sway Super+Ctrl+T opens the theme menu"
+check_file_contains "${REPO_ROOT}/overlay/etc/skel/.config/sway/config" "palexus-screensaver --launch" "Sway idle launches the torus screensaver"
 check_themes_sha256() {
     (
         cd "${THEMES_DIR}"
@@ -568,15 +568,42 @@ check_themes_sha256() {
 }
 
 if check_themes_sha256; then
-    pass "synapse-themes sha256sums match sources"
+    pass "palexus-themes sha256sums match sources"
 else
-    fail "synapse-themes sha256sums match sources (run updpkgsums in ${THEMES_DIR#"${REPO_ROOT}/"})"
+    fail "palexus-themes sha256sums match sources (run updpkgsums in ${THEMES_DIR#"${REPO_ROOT}/"})"
 fi
 
 # GitHub Actions workflow check
 GH_WORKFLOW="${REPO_ROOT}/.github/workflows/build-iso.yml"
 check_file_contains "${GH_WORKFLOW}" "verify-gates\.sh" "GitHub workflow runs verify-gates.sh"
 check_file_contains "${GH_WORKFLOW}" "SHA256SUMS" "GitHub workflow generates SHA256SUMS"
+
+# ------------------------------------------------------------------------------
+# Leftover Name Gate: Verify zero stray 'synapseos' references
+# ------------------------------------------------------------------------------
+echo ""
+echo "---> Brand Gate: Stray Brand & Legacy Name Validation"
+stray_synapseos_files=()
+ALLOWLIST_REGEX='^(docs/|\.cursor/|\.github/|\.vscode/|components/|tests/|AGENTS\.md|GEMINI\.md|IDE_HANDOVER\.md|ROADMAP\.md|README\.md|synapseos\.code-workspace|packages/desktop/palexus-hud/generate_spinning_chrome\.py$|\.gitignore$|KANBAN\.md$|build/verify-gates\.sh$)'
+
+while IFS= read -r f; do
+    [[ -z "$f" ]] && continue
+    if [[ "$f" =~ ${ALLOWLIST_REGEX} ]]; then
+        continue
+    fi
+    if [[ -d "${REPO_ROOT}/${f}" ]]; then
+        continue
+    fi
+    if grep -Eni 'synapseos' "${REPO_ROOT}/${f}" | grep -Ev 'github\.com/.*synapseOS|ln -sf.*synapseos|backgrounds/synapseos|themes/synapseos' >/dev/null 2>&1; then
+        stray_synapseos_files+=("$f")
+    fi
+done < <(git -C "${REPO_ROOT}" ls-files)
+
+if [[ ${#stray_synapseos_files[@]} -eq 0 ]]; then
+    pass "Zero stray 'synapseos' references outside allowlist"
+else
+    fail "Stray 'synapseos' references found in: ${stray_synapseos_files[*]}"
+fi
 
 echo ""
 echo "=============================================================================="
