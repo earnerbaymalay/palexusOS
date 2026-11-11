@@ -52,7 +52,7 @@ Options:
 Examples:
   ./build/test-iso-boot.sh --check
   ./build/test-iso-boot.sh --dry-run
-  ./build/test-iso-boot.sh --gui --iso out/synapseos-2026.11.09-x86_64.iso
+  ./build/test-iso-boot.sh --gui --iso out/palexusos-2026.11.12-x86_64.iso
   ./build/test-iso-boot.sh --iso out/palexusos-2026.11.12-x86_64.iso --timeout 90
 EOF
 }
