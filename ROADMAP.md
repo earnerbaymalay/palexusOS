@@ -80,9 +80,10 @@
   - [x] Resolve CI verification portability across Ubuntu runners without `makepkg`.
   - [x] Tag `v0.1.0-alpha.2` and trigger automated GitHub Actions release CI/CD workflow.
 
-## Phase 9: Neural Hardware Autotuning & eBPF Context Enclave (Upcoming — Q1 2027)
-- [ ] **Milestone 9.1: Dynamic PL1/PL2 Thermal Governor (`palexus-governor`)**:
+## Phase 9: Neural Hardware Autotuning & eBPF Context Enclave (In Progress — Q1 2027)
+- [x] **Milestone 9.1: Dynamic PL1/PL2 Thermal Governor (`palexus-governor`)**:
   - Automatically scale CPU package TDP based on real-time Ollama inference vs background compilation state.
+  - Supports Intel RAPL powercap limits, CPU EPP scaling, thermal ceiling safety guard (88°C throttle / 75°C recovery), `/etc/palexus/governor.toml` configuration, Waybar status integration, and automated unit test coverage (`tests/test_governor.py`).
 - [ ] **Milestone 9.2: eBPF Secret Leak Interceptor**:
   - Implement a kernel-level eBPF socket filter guaranteeing that raw private keys (`id_rsa`, `*.pem`, `sk-*`) cannot egress any socket even if bypassed by third-party unproxied applications.
 - [ ] **Milestone 9.3: Vulkan Offload Profiler for Integrated Graphics**:
