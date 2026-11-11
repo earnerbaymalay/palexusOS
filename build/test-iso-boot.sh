@@ -22,6 +22,7 @@ CHECK_ONLY=false
 CUSTOM_OVMF=""
 CUSTOM_MARKER=""
 KEEP_LOGS=false
+GUI_MODE=false
 
 # Temporary log files
 SERIAL_LOG=""
@@ -40,6 +41,7 @@ Options:
   -t, --timeout <sec>    Maximum boot timeout in seconds (default: 120)
   -m, --memory <mb>      VM memory in megabytes (default: 2048)
   -s, --smp <cores>      Virtual CPU core count (default: 2)
+  -g, --gui, --window    Launch interactive graphical VM window (GTK/VirtIO) on DISPLAY
       --ovmf <path>      Explicit path to OVMF UEFI firmware file
       --marker <regex>   Custom regex marker to wait for in boot logs
       --dry-run          Validate prerequisites and show QEMU command without booting
@@ -50,6 +52,7 @@ Options:
 Examples:
   ./build/test-iso-boot.sh --check
   ./build/test-iso-boot.sh --dry-run
+  ./build/test-iso-boot.sh --gui --iso out/synapseos-2026.11.09-x86_64.iso
   ./build/test-iso-boot.sh --iso out/palexusos-2026.11.12-x86_64.iso --timeout 90
 EOF
 }
@@ -86,6 +89,10 @@ while [[ $# -gt 0 ]]; do
             [[ $# -ge 2 ]] || { echo "[!] Error: --marker requires a regex pattern"; exit 1; }
             CUSTOM_MARKER="$2"
             shift 2
+            ;;
+        -g|--gui|--window)
+            GUI_MODE=true
+            shift
             ;;
         --dry-run)
             DRY_RUN=true
@@ -264,6 +271,26 @@ echo "[*] Virtualization:     ${ACCEL_DESC}"
 echo "[*] Maximum Timeout:    ${TIMEOUT}s"
 echo "[*] Serial Log:         ${SERIAL_LOG}"
 echo "=============================================================================="
+
+# Launch QEMU
+if [[ "${GUI_MODE}" == "true" ]]; then
+    echo "[+] Launching interactive QEMU graphical VM on DISPLAY=${DISPLAY:-:0}..."
+    echo "[*] Close the QEMU window when done to return to shell."
+    "${QEMU_BIN}" \
+        -m "${MEMORY}" \
+        -smp "${SMP}" \
+        -vga virtio \
+        -display gtk \
+        -device virtio-mouse-pci \
+        -device virtio-keyboard-pci \
+        -device intel-hda -device hda-duplex \
+        -serial file:"${SERIAL_LOG}" \
+        -drive if=pflash,format=raw,readonly=on,file="${OVMF_CODE}" \
+        -cdrom "${ISO_PATH}" \
+        -boot d \
+        "${ACCEL_OPTS[@]}"
+    exit 0
+fi
 
 # Launch QEMU headless
 # Redirect serial output directly to log file, suppress monitor on stdio
