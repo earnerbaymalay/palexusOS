@@ -631,6 +631,9 @@ check_file_contains "${GH_WORKFLOW}" "SHA256SUMS" "GitHub workflow generates SHA
 HUD_PKG="${REPO_ROOT}/packages/desktop/synapse-hud"
 check_file_contains "${HUD_PKG}/synapse-welcome" '^LIVE_MARKER = "/run/archiso"$' "Welcome wizard detects the live USB by /run/archiso (readable by the live user)"
 check_file_lacks "${HUD_PKG}/synapse-welcome" 'LIVE_MARKER = "/etc/sudoers\.d' "Welcome wizard does not probe the root-only /etc/sudoers.d"
+check_file_contains "${HUD_PKG}/oobe-sway.conf" '^exec /usr/lib/synapse/synapse-oobe-wizard$' "First-boot compositor runs the wizard through the retrying runner"
+check_file_contains "${HUD_PKG}/synapse-oobe-wizard" 'Ctrl\+Alt\+F2' "A wizard that keeps failing points to the tty2 text setup"
+check_file_contains "${HUD_PKG}/synapse-oobe-apply" 'remove_partial_account\(r\["username"\]\)' "Failed account creation is rolled back so setup can be retried"
 
 echo ""
 echo "=============================================================================="

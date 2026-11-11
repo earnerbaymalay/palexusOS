@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# synapse-oobe-wizard — runs the first-boot wizard inside the setup compositor (oobe-sway.conf).
+# Restarts it while setup is still pending. If it keeps failing, says where the text-mode
+# setup is instead of dropping to a login screen that has no account yet.
+set -u
+
+MARKER=${SYNAPSE_OOBE_MARKER:-/var/lib/synapse/oobe-pending}
+WELCOME=${SYNAPSE_WELCOME:-/usr/bin/synapse-welcome}
+SWAYNAG=${SWAYNAG:-swaynag}
+SWAYMSG=${SWAYMSG:-swaymsg}
+ATTEMPTS=3
+
+# A successful setup removes the marker, which ends the loop
+for ((i = 1; i <= ATTEMPTS; i++)); do
+    [[ -e $MARKER ]] || break
+    "$WELCOME" --oobe
+done
+
+if [[ -e $MARKER ]]; then
+    "$SWAYNAG" -t warning -m "Setup couldn't start. Press Ctrl+Alt+F2 to create your account in text mode."
+fi
+"$SWAYMSG" exit

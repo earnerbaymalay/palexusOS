@@ -89,6 +89,47 @@ def test_validation_failure_touches_no_account(oobe_apply, monkeypatch, capsys):
     assert not any(c[0] == "userdel" for c in called)
 
 
+def _fake(tmp_path, name, body):
+    path = tmp_path / name
+    path.write_text(f"#!/bin/sh\n{body}\n")
+    path.chmod(0o755)
+    return str(path)
+
+
+def _run_wizard(tmp_path, welcome_body):
+    import os
+    import subprocess
+    marker = tmp_path / "oobe-pending"
+    marker.touch()
+    log = tmp_path / "log"
+    env = dict(os.environ,
+               SYNAPSE_OOBE_MARKER=str(marker),
+               SYNAPSE_WELCOME=_fake(tmp_path, "welcome", f'echo welcome >> "{log}"; {welcome_body}'),
+               SWAYNAG=_fake(tmp_path, "swaynag", f'echo "nag $*" >> "{log}"'),
+               SWAYMSG=_fake(tmp_path, "swaymsg", f'echo "msg $*" >> "{log}"'))
+    subprocess.run(["bash", str(HUD_DIR / "synapse-oobe-wizard")], env=env, check=True, timeout=20)
+    return log.read_text().splitlines()
+
+
+def test_crashing_wizard_is_retried_then_points_to_text_setup(tmp_path):
+    lines = _run_wizard(tmp_path, "exit 1")
+    assert lines.count("welcome") == 3
+    nag = [line for line in lines if line.startswith("nag ")]
+    assert nag and "Ctrl+Alt+F2" in nag[0]
+    assert lines[-1] == "msg exit"
+
+
+def test_finished_setup_runs_the_wizard_once_and_shows_no_warning(tmp_path):
+    lines = _run_wizard(tmp_path, f'rm -f "{tmp_path / "oobe-pending"}"')
+    assert lines == ["welcome", "msg exit"]
+
+
+def test_setup_compositor_uses_the_retrying_runner():
+    conf = (HUD_DIR / "oobe-sway.conf").read_text()
+    assert "exec /usr/lib/synapse/synapse-oobe-wizard" in conf
+    assert "/usr/lib/synapse/synapse-oobe-wizard" in (HUD_DIR / "PKGBUILD").read_text()
+
+
 def test_live_marker_is_readable_by_the_live_user(welcome):
     # /etc/sudoers.d is 0750 root:root in Arch's sudo package, so a file inside it
     # can never be seen by the unprivileged live user.
