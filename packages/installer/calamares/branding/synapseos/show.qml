@@ -302,7 +302,7 @@ Presentation {
                                 color: "#cba6f7"
                             }
                             Text {
-                                text: "Burst-Oriented Response Enhancer prevents interface lag and guarantees zero-jitter audio DSP."
+                                text: "Burst-Oriented Response Enhancer keeps the desktop responsive under heavy load."
                                 font.family: "DejaVu Sans, Inter, sans-serif"
                                 font.pixelSize: 11
                                 color: "#a6adc8"
@@ -355,14 +355,14 @@ Presentation {
                             anchors.margins: 12
                             spacing: 3
                             Text {
-                                text: "Sub-500MB Idle Footprint"
+                                text: "Lean, Telemetry-Free Base"
                                 font.family: "DejaVu Sans, Inter, sans-serif"
                                 font.pixelSize: 12
                                 font.bold: true
                                 color: "#a6e3a1"
                             }
                             Text {
-                                text: "Zero telemetry bloat, strictly vetted background daemons, and instant cold-boot launch times."
+                                text: "No telemetry, and only vetted background services run at idle."
                                 font.family: "DejaVu Sans, Inter, sans-serif"
                                 font.pixelSize: 11
                                 color: "#a6adc8"
@@ -392,7 +392,7 @@ Presentation {
                                 color: "#f9e2af"
                             }
                             Text {
-                                text: "Engineered subvolume layout (@, @home, @snapshots, @var_log) with instant rollback capabilities."
+                                text: "Subvolume layout (@, @home, @snapshots, @var_log), ready for snapshot tools."
                                 font.family: "DejaVu Sans, Inter, sans-serif"
                                 font.pixelSize: 11
                                 color: "#a6adc8"
@@ -501,7 +501,7 @@ Presentation {
                                 color: "#cba6f7"
                             }
                             Text {
-                                text: "Configured locally at port 11434 with single-threaded CPU protection and 24h keep-alive."
+                                text: "Runs locally on port 11434, one request at a time, with models kept loaded for 24h."
                                 font.family: "DejaVu Sans, Inter, sans-serif"
                                 font.pixelSize: 11
                                 color: "#a6adc8"
@@ -561,7 +561,7 @@ Presentation {
                                 color: "#a6e3a1"
                             }
                             Text {
-                                text: "Cross-session semantic recall and knowledge graph persistence stored strictly on local NVMe."
+                                text: "Cross-session semantic recall and knowledge graph persistence stored only on your local disk."
                                 font.family: "DejaVu Sans, Inter, sans-serif"
                                 font.pixelSize: 11
                                 color: "#a6adc8"
