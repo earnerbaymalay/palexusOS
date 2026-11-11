@@ -259,6 +259,7 @@ PACKAGES_FILE="${REPO_ROOT}/build/archiso/packages.x86_64"
 PACMAN_CONF="${REPO_ROOT}/build/archiso/pacman.conf"
 CUSTOMIZE_SH="${REPO_ROOT}/build/archiso/airootfs/root/customize_airootfs.sh"
 BUILD_ISO_SH="${REPO_ROOT}/build/build-iso.sh"
+TEST_BOOT_SH="${REPO_ROOT}/build/test-iso-boot.sh"
 
 if bash -n "${PROFILEDEF}"; then
     pass "Archiso profiledef.sh bash syntax valid"
@@ -356,8 +357,20 @@ else
     fail "build/build-iso.sh --dry-run failed to stage airootfs"
 fi
 
+if [[ -x "${TEST_BOOT_SH}" ]] && bash -n "${TEST_BOOT_SH}"; then
+    pass "build/test-iso-boot.sh is executable and syntactically valid"
+else
+    fail "build/test-iso-boot.sh is not executable or has syntax errors"
+fi
+
+if "${TEST_BOOT_SH}" --check >/dev/null 2>&1; then
+    pass "build/test-iso-boot.sh --check verifies QEMU and firmware prerequisites"
+else
+    fail "build/test-iso-boot.sh --check failed prerequisite check"
+fi
+
 if command -v shellcheck >/dev/null 2>&1; then
-    if shellcheck "${BUILD_ISO_SH}" "${REPO_ROOT}/build/verify-gates.sh" "${PROFILEDEF}" "${CUSTOMIZE_SH}"; then
+    if shellcheck "${BUILD_ISO_SH}" "${TEST_BOOT_SH}" "${REPO_ROOT}/build/verify-gates.sh" "${PROFILEDEF}" "${CUSTOMIZE_SH}"; then
         pass "ShellCheck validation passed for all build & archiso scripts"
     else
         fail "ShellCheck reported warnings/errors in build scripts"
