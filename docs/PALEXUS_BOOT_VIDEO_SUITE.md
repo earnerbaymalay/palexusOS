@@ -100,10 +100,10 @@ To compile the animation frames directly into the `palexus-plymouth` package:
 
 ```bash
 # Extract frames from MP4 into Plymouth theme directory
-ffmpeg -y -i build/blender/palexus_boot_concept2.mp4 -vf "fps=30" -pix_fmt rgb24 packages/desktop/synapse-plymouth/frame-%03d.png
+ffmpeg -y -i build/blender/palexus_boot_concept2.mp4 -vf "fps=30" -pix_fmt rgb24 packages/desktop/palexus-plymouth/frame-%03d.png
 ```
 
-The Plymouth script (`packages/desktop/synapse-plymouth/synapseos.script.in` / `palexus.script.in`) handles:
+The Plymouth script (`packages/desktop/palexus-plymouth/palexusos.script.in`) handles:
 1. Frame-by-frame loop playback during kernel and service initialization.
 2. Holding the final frame (`frame-120.png`) with clean ambient glow.
 3. Seamless zero-flicker handoff into the SDDM greeter at `#11111b`.

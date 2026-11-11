@@ -1,7 +1,7 @@
-# SynapseOS — Ventoy Multi-Boot Installation Guide
+# PalexusOS — Ventoy Multi-Boot Installation Guide
 
 > **Surgical precision. Zero friction.**  
-> Comprehensive end-to-end walkthrough for burning, configuring, and booting SynapseOS from a multi-ISO Ventoy flash drive.
+> Comprehensive end-to-end walkthrough for burning, configuring, and booting PalexusOS from a multi-ISO Ventoy flash drive.
 
 ---
 
@@ -9,8 +9,8 @@
 
 [Ventoy](https://www.ventoy.net/) is an open-source tool that allows you to write the bootloader to a USB drive once, after which you simply copy `.iso` files directly onto the drive like files on a standard thumb drive.
 
-### Advantages for SynapseOS:
-- **Multi-Boot**: Keep `synapseos-2026.11.01-x86_64.iso` alongside recovery distros (Clonezilla, GParted, Arch Linux, Windows PE) on a single drive.
+### Advantages for PalexusOS:
+- **Multi-Boot**: Keep `palexusos-2026.11.01-x86_64.iso` alongside recovery distros (Clonezilla, GParted, Arch Linux, Windows PE) on a single drive.
 - **Integrity**: Ventoy boots directly from the ISO file without extracting or altering filesystem permissions.
 - **UEFI & Legacy Support**: Compatible with modern UEFI GPT systems as well as legacy BIOS MBR motherboards.
 - **Persistence**: Storage partition remains usable for general file transfers, model weights, and offline toolkits.
@@ -22,7 +22,7 @@
 ### Option A: Using Linux CLI (Recommended for Developers)
 1. Install `ventoy` from your distribution repository:
    ```bash
-   # Arch Linux / EndeavourOS / SynapseOS:
+   # Arch Linux / EndeavourOS / PalexusOS:
    sudo pacman -S ventoy
 
    # Debian / Ubuntu:
@@ -53,21 +53,21 @@
 
 ---
 
-## 3. Phase 2: Copying the SynapseOS ISO & Verifying Checksums
+## 3. Phase 2: Copying the PalexusOS ISO & Verifying Checksums
 
-1. Download or locate your compiled SynapseOS ISO image:
-   - File: `synapseos-2026.11.01-x86_64.iso`
+1. Download or locate your compiled PalexusOS ISO image:
+   - File: `palexusos-2026.11.01-x86_64.iso`
    - Release: `v0.1.0-alpha.2` or latest channel build
 
 2. Compute the cryptographic hash and compare against official `SHA256SUMS`:
    ```bash
-   sha256sum synapseos-2026.11.01-x86_64.iso
+   sha256sum palexusos-2026.11.01-x86_64.iso
    ```
    *Verify that the output exactly matches the hash published on the release page.*
 
 3. Mount the newly created `Ventoy` storage partition (formatted as exFAT) and copy the ISO file:
    ```bash
-   cp synapseos-2026.11.01-x86_64.iso /run/media/$USER/Ventoy/
+   cp palexusos-2026.11.01-x86_64.iso /run/media/$USER/Ventoy/
    sync
    ```
    *(On Windows, simply drag and drop the `.iso` file into the `Ventoy` drive letter).*
@@ -95,7 +95,7 @@ From the menu, select your USB drive (marked as `UEFI: <Device Name>, Partition 
 
 ## 5. Phase 4: Secure Boot & Ventoy MOK Enrollment
 
-SynapseOS runs the custom high-performance `linux-cachyos` BORE kernel.
+PalexusOS runs the custom high-performance `linux-cachyos` BORE kernel.
 
 ### Recommended Path: Disable Secure Boot
 For maximum hardware acceleration, kernel module compiling (`dkms`), and zero friction:
@@ -120,12 +120,12 @@ If your device firmware is locked by institutional policy or requires Secure Boo
 ## 6. Phase 5: Ventoy Boot Mode Selection
 
 Once inside the Ventoy graphical boot menu:
-1. Use arrow keys to select `synapseos-2026.11.01-x86_64.iso` and press `Enter`.
+1. Use arrow keys to select `palexusos-2026.11.01-x86_64.iso` and press `Enter`.
 2. A secondary menu will appear asking for the launch mode:
    - **Boot in Normal Mode** *(Default & Recommended)*: Passes direct kernel execution to `systemd-boot`.
    - **Boot in Grub2 Mode**: Fallback mode if your UEFI implementation has quirks with native PE loaders.
-   - **Boot in Memdisk Mode**: Do NOT use (SynapseOS live image is ~3 GB and does not require memdisk loading).
-3. The laser-engraved `synapse-plymouth` boot splash will initialize, followed by the chamfered `synapse-greeter` login screen.
+   - **Boot in Memdisk Mode**: Do NOT use (PalexusOS live image is ~3 GB and does not require memdisk loading).
+3. The laser-engraved `palexus-plymouth` boot splash will initialize, followed by the chamfered `palexus-greeter` login screen.
 
 ---
 
@@ -137,4 +137,3 @@ Once inside the Ventoy graphical boot menu:
 | **Ventoy menu does not appear; boots straight to Windows** | Windows Fast Startup locked the EFI controller or USB boot priority is low | In Windows, disable Fast Startup (`Power Options`). In BIOS, move USB Storage above Windows Boot Manager. |
 | **"No media found" during pacstrap/live mount** | Slow USB 2.0 handshake or corrupted ISO copy | Re-copy ISO to the Ventoy partition and run `sync` before unmounting. Ensure USB is plugged into a USB 3.0/3.1 port. |
 | **Resolution is stretched or low** | UEFI fallback resolution selected | In BIOS setup, ensure Video/Display mode is set to Native resolution or UEFI High-Resolution mode. |
-

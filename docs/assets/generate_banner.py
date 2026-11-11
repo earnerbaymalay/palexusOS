@@ -5,11 +5,10 @@
 import os
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 
-REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-ASSETS_DIR = os.path.join(REPO_ROOT, "docs", "assets")
+ASSETS_DIR = os.path.dirname(os.path.abspath(__file__))
+REPO_ROOT = os.path.dirname(os.path.dirname(ASSETS_DIR))
 os.makedirs(ASSETS_DIR, exist_ok=True)
 BANNER_PATH = os.path.join(ASSETS_DIR, "palexus-banner.png")
-LEGACY_BANNER = os.path.join(ASSETS_DIR, "synapseos-banner.png")
 
 # Dimensions
 WIDTH = 1200
@@ -125,8 +124,7 @@ def create_banner():
     draw.text((q_x, q_y), quote_text, font=quote_font, fill=(186, 194, 222, 255))
 
     img.save(BANNER_PATH, "PNG", optimize=True)
-    img.save(LEGACY_BANNER, "PNG", optimize=True)
-    print(f"Generated banner image at: {BANNER_PATH} and {LEGACY_BANNER}")
+    print(f"Generated banner image at: {BANNER_PATH}")
 
 if __name__ == "__main__":
     create_banner()

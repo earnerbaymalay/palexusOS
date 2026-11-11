@@ -1,4 +1,4 @@
-# SynapseOS Distribution & Build Gitignore
+# PalexusOS Distribution & Build Gitignore
 # Strict protection against ISO artifacts, chroots, build caches, and credentials
 
 # ISO Builds & Working Root Filesystems

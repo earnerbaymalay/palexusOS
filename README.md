@@ -162,11 +162,11 @@ PalexusOS guarantees that no telemetry packet leaves your machine without your e
 
 | Subsystem Package | Recipe Location | Binary & Deliverables |
 | :--- | :--- | :--- |
-| `palexus-core` | [`packages/core/synapse-core/PKGBUILD`](packages/core/synapse-core/PKGBUILD) | `palexus`, `palexus.service`, `palexus-sync.timer` |
-| `palexus-hud` | [`packages/desktop/synapse-hud/PKGBUILD`](packages/desktop/synapse-hud/PKGBUILD) | `palexus-hud`, `palexus-welcome`, `palexus-settings`, `palexus-notes` |
-| `palexus-greeter` | [`packages/desktop/synapse-greeter/PKGBUILD`](packages/desktop/synapse-greeter/PKGBUILD) | SDDM Qt6 Greeter theme (`palexus`) |
-| `palexus-plymouth` | [`packages/desktop/synapse-plymouth/PKGBUILD`](packages/desktop/synapse-plymouth/PKGBUILD) | Plymouth DRM/KMS boot splash (`palexus-boot.mp4`) |
-| `palexus-themes` | [`packages/desktop/synapse-themes/PKGBUILD`](packages/desktop/synapse-themes/PKGBUILD) | `palexus-theme`, `palexus-screensaver`, 5 curated wallpapers |
+| `palexus-core` | [`packages/core/palexus-core/PKGBUILD`](packages/core/palexus-core/PKGBUILD) | `palexus`, `palexus.service`, `palexus-sync.timer` |
+| `palexus-hud` | [`packages/desktop/palexus-hud/PKGBUILD`](packages/desktop/palexus-hud/PKGBUILD) | `palexus-hud`, `palexus-welcome`, `palexus-settings`, `palexus-notes` |
+| `palexus-greeter` | [`packages/desktop/palexus-greeter/PKGBUILD`](packages/desktop/palexus-greeter/PKGBUILD) | SDDM Qt6 Greeter theme (`palexusos`) |
+| `palexus-plymouth` | [`packages/desktop/palexus-plymouth/PKGBUILD`](packages/desktop/palexus-plymouth/PKGBUILD) | Plymouth DRM/KMS boot splash (`palexus-boot.mp4`) |
+| `palexus-themes` | [`packages/desktop/palexus-themes/PKGBUILD`](packages/desktop/palexus-themes/PKGBUILD) | `palexus-theme`, `palexus-screensaver`, 14 curated wallpapers |
 
 ---
 

@@ -2,7 +2,7 @@
 
 Building a Linux distribution involves managing multiple distinct layers: upstream source code, package recipes, root filesystem overlays, installer images, and documentation. If not structured properly, OS git repositories quickly swell into gigabytes of bloated history.
 
-This document outlines the **Clean Git Architecture** for SynapseOS.
+This document outlines the **Clean Git Architecture** for PalexusOS.
 
 ---
 
@@ -19,13 +19,12 @@ This document outlines the **Clean Git Architecture** for SynapseOS.
 
 ## 2. The Clean Repository Structure
 
-SynapseOS strictly adopts the **Metadata-as-Code** pattern used by Arch Linux, Debian, and Fedora:
+PalexusOS strictly adopts the **Metadata-as-Code** pattern used by Arch Linux, Debian, and Fedora:
 
 ```
-synapseOS/
-├── .agents/                    # Antigravity agent rules & skills
-│   └── rules/
-├── .vscode/                    # Antigravity IDE workspace configuration
+palexusOS/
+├── .cursor/skills/             # Workspace skills (palexusos-iso-build)
+├── .vscode/                    # IDE tasks and settings
 ├── docs/                       # Architecture, research papers, specifications
 │   ├── ARCHITECTURE.md
 │   ├── RESEARCH_SYNAPSE_INTEGRATION.md
@@ -33,16 +32,20 @@ synapseOS/
 │   └── GIT_REPO_STRATEGY.md
 ├── build/                      # Build orchestration (Code only, no artifacts)
 │   ├── archiso/                # archiso profile (profiledef.sh, packages.x86_64)
-│   └── scripts/                # Automated chroot & ISO generation scripts
+│   ├── build-iso.sh            # Automated chroot & ISO generation script
+│   └── verify-gates.sh         # Engineering gate verification harness
 ├── packages/                   # Native Arch PKGBUILD recipes
 │   ├── core/
-│   │   ├── synapse-core/       # PKGBUILD building Synapse daemon from git
-│   │   ├── synapse-firewall/   # nftables/systemd context firewall rules
-│   │   └── synapse-desktop/    # Theme, icons, and SDDM greeter
-│   └── aur/                    # Custom AUR package recipes
+│   │   └── palexus-core/       # PKGBUILD building Palexus daemon from git
+│   └── desktop/
+│       ├── palexus-hud/        # Command HUD & utilities
+│       ├── palexus-themes/     # Palettes, wallpapers, screensaver
+│       ├── palexus-greeter/    # SDDM Qt6 theme
+│       ├── palexus-plymouth/   # Plymouth boot splash
+│       └── llm-quickfire-panel/# Quickfire floating panel
 ├── overlay/                    # System root overlay (/etc, /usr/share skeleton)
 │   ├── etc/
-│   │   ├── synapse/
+│   │   ├── palexus/
 │   │   ├── sysctl.d/
 │   │   └── systemd/
 │   └── skel/                   # Default user profile dotfiles
@@ -60,10 +63,10 @@ To keep the repository featherlight (< 10 MB total size):
 
 ```mermaid
 flowchart LR
-    REPO["synapseOS Git Repo (<10MB)"] -->|Tag: v0.1.0| CI["CI / Local Build Runner"]
+    REPO["palexusOS Git Repo (<10MB)"] -->|Tag: v0.1.0| CI["CI / Local Build Runner"]
     CI -->|makepkg in arch-nspawn| PKG["Binary Packages (.pkg.tar.zst)"]
-    CI -->|mkarchiso| ISO["SynapseOS Bootable ISO (.iso)"]
-    PKG --> R2["External Package Repository ([synapseos])"]
+    CI -->|mkarchiso| ISO["PalexusOS Bootable ISO (.iso)"]
+    PKG --> R2["External Package Repository ([palexusos])"]
     ISO --> GH["GitHub Releases / Object Storage CDN"]
 ```
 
@@ -77,5 +80,5 @@ flowchart LR
 
 - `main`: Production-ready, verified package recipes and ISO profile definitions.
 - `staging`: Integration branch where package updates are tested in chroots before promoting to main.
-- `feat/*`: Topic branches for specific subsystems (e.g. `feat/cachy-kernel-hook`, `feat/synapse-daemon-preset`).
+- `feat/*`: Topic branches for specific subsystems (e.g. `feat/cachy-kernel-hook`, `feat/palexus-daemon-preset`).
 - **Commit Standards**: Conventional Commits (`feat(kernel):`, `fix(sddm):`, `docs(arch):`) to enable automated changelog generation and semantic release tagging.
