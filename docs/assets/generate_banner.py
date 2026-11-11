@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""generate_banner.py — Generates the official SynapseOS Cyberdeck banner and responsive ASCII art.
+"""generate_banner.py — Generates the official PalexusOS Cyberdeck banner and responsive ASCII art.
 """
 
 import os
@@ -8,7 +8,8 @@ from PIL import Image, ImageDraw, ImageFont, ImageFilter
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ASSETS_DIR = os.path.join(REPO_ROOT, "docs", "assets")
 os.makedirs(ASSETS_DIR, exist_ok=True)
-BANNER_PATH = os.path.join(ASSETS_DIR, "synapseos-banner.png")
+BANNER_PATH = os.path.join(ASSETS_DIR, "palexus-banner.png")
+LEGACY_BANNER = os.path.join(ASSETS_DIR, "synapseos-banner.png")
 
 # Dimensions
 WIDTH = 1200
@@ -57,15 +58,31 @@ def create_banner():
     draw.line([WIDTH - margin, HEIGHT - margin - 8 - bracket_len, WIDTH - margin, HEIGHT - margin - 8], fill=(203, 166, 247, 255), width=3)
 
     # 4. Typography
-    font_path_bold = "/usr/share/fonts/TTF/JetBrainsMonoNerdFont-ExtraBold.ttf"
-    font_path_reg = "/usr/share/fonts/TTF/JetBrainsMonoNerdFont-Regular.ttf"
-    font_path_italic = "/usr/share/fonts/TTF/JetBrainsMonoNerdFont-Italic.ttf"
+    font_bold_candidates = [
+        "/usr/share/fonts/truetype/jetbrains-mono-zorin-os/JetBrainsMono-ExtraBold.ttf",
+        "/usr/share/fonts/truetype/jetbrains-mono-zorin-os/JetBrainsMono-Bold.ttf",
+        "/usr/share/fonts/TTF/JetBrainsMonoNerdFont-ExtraBold.ttf"
+    ]
+    font_reg_candidates = [
+        "/usr/share/fonts/truetype/jetbrains-mono-zorin-os/JetBrainsMono-Regular.ttf",
+        "/usr/share/fonts/TTF/JetBrainsMonoNerdFont-Regular.ttf"
+    ]
+    font_italic_candidates = [
+        "/usr/share/fonts/truetype/jetbrains-mono-zorin-os/JetBrainsMono-Italic.ttf",
+        "/usr/share/fonts/TTF/JetBrainsMonoNerdFont-Italic.ttf"
+    ]
 
-    main_font = ImageFont.truetype(font_path_bold, 78)
-    sub_font = ImageFont.truetype(font_path_bold, 17)
-    quote_font = ImageFont.truetype(font_path_italic, 13)
+    def pick_font(candidates, size):
+        for path in candidates:
+            if os.path.exists(path):
+                return ImageFont.truetype(path, size)
+        return ImageFont.load_default()
 
-    text = "SYNAPSE  OS"
+    main_font = pick_font(font_bold_candidates, 76)
+    sub_font = pick_font(font_bold_candidates, 16)
+    quote_font = pick_font(font_italic_candidates, 13)
+
+    text = "PALEXUS  OS"
     bbox = draw.textbbox((0, 0), text, font=main_font)
     text_w = bbox[2] - bbox[0]
     text_h = bbox[3] - bbox[1]
@@ -81,18 +98,18 @@ def create_banner():
     img = Image.alpha_composite(img, text_glow)
     draw = ImageDraw.Draw(img)
 
-    # Main Text (Liquid Chrome to Mauve Gradient)
+    # Main Text (Liquid Silver to Mauve Highlight)
     draw.text((text_x, text_y + 3), text, font=main_font, fill=(24, 24, 37, 255)) # depth
     draw.text((text_x, text_y), text, font=main_font, fill=(245, 224, 220, 255)) # highlight
 
     # Center Space Singularity Torus Dot
-    # Position dot right between SYNAPSE and OS
-    space_x = text_x + int(text_w * 0.765)
+    # Position dot right between PALEXUS and OS
+    space_x = text_x + int(text_w * 0.745)
     space_y = text_y + 40
     draw.ellipse([space_x - 6, space_y - 6, space_x + 6, space_y + 6], fill=(203, 166, 247, 255), outline=(255, 255, 255, 255), width=2)
 
     # Subtitle Banner
-    sub_text = "AI-NATIVE LINUX  ·  BORE SCHEDULER  ·  CYBER RESILIENCE"
+    sub_text = "AI-NATIVE LINUX  ·  BORE SCHEDULER  ·  SOVEREIGN NEURAL CYBERDECK"
     s_bbox = draw.textbbox((0, 0), sub_text, font=sub_font)
     s_w = s_bbox[2] - s_bbox[0]
     s_x = (WIDTH - s_w) // 2
@@ -108,7 +125,8 @@ def create_banner():
     draw.text((q_x, q_y), quote_text, font=quote_font, fill=(186, 194, 222, 255))
 
     img.save(BANNER_PATH, "PNG", optimize=True)
-    print(f"Generated banner image at: {BANNER_PATH}")
+    img.save(LEGACY_BANNER, "PNG", optimize=True)
+    print(f"Generated banner image at: {BANNER_PATH} and {LEGACY_BANNER}")
 
 if __name__ == "__main__":
     create_banner()

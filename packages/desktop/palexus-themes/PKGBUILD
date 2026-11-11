@@ -1,0 +1,87 @@
+# Maintainer: PalexusOS Engineering Team <maintainers@palexusos.org>
+pkgname=palexus-themes
+pkgver=0.1.0
+pkgrel=4
+pkgdesc="PalexusOS wallpapers (3 designs x accent variants), system theme switcher (Super+Ctrl+T) and geodesic torus screensaver"
+arch=('any')
+url="https://github.com/earnerbaymalay/synapseOS"
+license=('MIT')
+provides=('synapse-themes' 'palexus-themes')
+conflicts=('synapse-themes')
+depends=('bash' 'python' 'rofi' 'kitty' 'xfconf' 'xorg-xrandr' 'xprintidle' 'swaybg' 'libnotify')
+optdepends=(
+  'python-terminaltexteffects: tte effects for the screensaver brand reveal (AUR)'
+  'foot: Wayland fallback terminal for the screensaver'
+)
+source=(
+  'palexus-theme'
+  'palexus-screensaver'
+  'palexus-idle'
+  'palexus-theme-restore.desktop'
+  'palexus-idle.desktop'
+  'palexus-screensaver.desktop'
+  'synapse-carbon-crimson.jpg'
+  'synapse-carbon-emerald.jpg'
+  'synapse-carbon-mauve.jpg'
+  'synapse-carbon-sapphire.jpg'
+  'synapse-carbon-tungsten.jpg'
+  'synapse-monolith-emerald.jpg'
+  'synapse-monolith-mauve.jpg'
+  'synapse-monolith-sapphire.jpg'
+  'synapse-monolith-tungsten.jpg'
+  'synapse-tower-crimson.jpg'
+  'synapse-tower-emerald.jpg'
+  'synapse-tower-mauve.jpg'
+  'synapse-tower-sapphire.jpg'
+  'synapse-tower-tungsten.jpg'
+)
+sha256sums=('SKIP'
+            'SKIP'
+            'SKIP'
+            'SKIP'
+            'SKIP'
+            'SKIP'
+            'SKIP'
+            'SKIP'
+            'SKIP'
+            'SKIP'
+            'SKIP'
+            'SKIP'
+            'SKIP'
+            'SKIP'
+            'SKIP'
+            'SKIP'
+            'SKIP'
+            'SKIP'
+            'SKIP'
+            'SKIP')
+
+package() {
+  install -Dm755 palexus-theme "$pkgdir/usr/bin/palexus-theme"
+  ln -sf "palexus-theme" "$pkgdir/usr/bin/synapse-theme"
+
+  install -Dm755 palexus-screensaver "$pkgdir/usr/bin/palexus-screensaver"
+  ln -sf "palexus-screensaver" "$pkgdir/usr/bin/synapse-screensaver"
+
+  install -Dm755 palexus-idle "$pkgdir/usr/bin/palexus-idle"
+  ln -sf "palexus-idle" "$pkgdir/usr/bin/synapse-idle"
+
+  install -Dm644 palexus-theme-restore.desktop "$pkgdir/etc/xdg/autostart/palexus-theme-restore.desktop"
+  ln -sf "palexus-theme-restore.desktop" "$pkgdir/etc/xdg/autostart/synapse-theme-restore.desktop"
+
+  install -Dm644 palexus-idle.desktop "$pkgdir/etc/xdg/autostart/palexus-idle.desktop"
+  ln -sf "palexus-idle.desktop" "$pkgdir/etc/xdg/autostart/synapse-idle.desktop"
+
+  install -Dm644 palexus-screensaver.desktop "$pkgdir/usr/share/applications/palexus-screensaver.desktop"
+  ln -sf "palexus-screensaver.desktop" "$pkgdir/usr/share/applications/synapse-screensaver.desktop"
+
+  install -dm755 "$pkgdir/usr/share/backgrounds/palexusos"
+  local wp
+  for wp in synapse-*.jpg; do
+    local base="${wp#synapse-}"
+    install -Dm644 "$wp" "$pkgdir/usr/share/backgrounds/palexusos/$wp"
+    ln -sf "$wp" "$pkgdir/usr/share/backgrounds/palexusos/palexus-$base"
+  done
+  ln -sf "/usr/share/backgrounds/palexusos/synapse-monolith-mauve.jpg" "$pkgdir/usr/share/backgrounds/palexusos/monolith-mauve.png"
+  ln -sf "palexusos" "$pkgdir/usr/share/backgrounds/synapseos"
+}

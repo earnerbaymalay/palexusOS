@@ -1,0 +1,5 @@
+/* XPM */
+static char * border_xpm[] = {
+"1 1 1 1",
+"  c #1a1b26"
+};

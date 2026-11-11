@@ -61,3 +61,6 @@ venv/
 *~
 .idea/
 *.log
+
+# makepkg git source clone
+packages/core/palexus-core/synapse/

@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=PalexusOS Theme
+Comment=Restore the PalexusOS wallpaper and palette, bind Super+Ctrl+T theme menu
+Exec=/usr/bin/palexus-theme --restore --register-shortcut
+OnlyShowIn=XFCE;
+Terminal=false
+NoDisplay=true
+X-GNOME-Autostart-enabled=true

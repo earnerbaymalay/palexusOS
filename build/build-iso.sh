@@ -115,6 +115,12 @@ if [[ -d "${OVERLAY_DIR}/skel" ]]; then
     cp -af "${OVERLAY_DIR}/skel/." "${AIROOTFS_DIR}/etc/skel/"
 fi
 
+if [[ -d "${OVERLAY_DIR}/usr" ]]; then
+    echo "==> Syncing ${OVERLAY_DIR}/usr -> ${AIROOTFS_DIR}/usr ..."
+    mkdir -p "${AIROOTFS_DIR}/usr"
+    cp -af "${OVERLAY_DIR}/usr/." "${AIROOTFS_DIR}/usr/"
+fi
+
 # 3. Stage Calamares installer configurations into airootfs
 if [[ -d "${CALAMARES_SRC}" ]]; then
     # Staged aside: cachyos-calamares owns /etc/calamares/*, so pacstrap would hit file
@@ -131,13 +137,13 @@ build_local_packages() {
     mkdir -p "${LOCAL_REPO_DIR}"
 
     # Pre-seed local sources only when not already staged in packages/.../src/
-    local sc_dir="${REPO_ROOT}/packages/core/synapse-core"
+    local sc_dir="${REPO_ROOT}/packages/core/palexus-core"
     if [[ ! -d "${sc_dir}/src/synapse" ]] && [[ -d "/home/ebaymlay/work/synapse" ]]; then
         mkdir -p "${sc_dir}/src"
         cp -al "/home/ebaymlay/work/synapse" "${sc_dir}/src/synapse"
     fi
     if [[ -d "${sc_dir}/src" ]]; then
-        cp -f "${sc_dir}/synapse.service" "${sc_dir}/synapse-sync.service" "${sc_dir}/synapse-sync.timer" "${sc_dir}/src/"
+        cp -f "${sc_dir}/palexus.service" "${sc_dir}/palexus-sync.service" "${sc_dir}/palexus-sync.timer" "${sc_dir}/src/"
     fi
 
     local qf_dir="${REPO_ROOT}/packages/desktop/llm-quickfire-panel"
@@ -147,16 +153,21 @@ build_local_packages() {
     fi
 
     local pkg_dirs=(
-        "${REPO_ROOT}/packages/core/synapse-core"
+        "${REPO_ROOT}/packages/core/palexus-core"
         "${REPO_ROOT}/packages/desktop/llm-quickfire-panel"
-        "${REPO_ROOT}/packages/desktop/synapse-themes"
-        "${REPO_ROOT}/packages/desktop/synapse-greeter"
-        "${REPO_ROOT}/packages/desktop/synapse-plymouth"
-        "${REPO_ROOT}/packages/desktop/synapse-hud"
+        "${REPO_ROOT}/packages/desktop/palexus-themes"
+        "${REPO_ROOT}/packages/desktop/palexus-greeter"
+        "${REPO_ROOT}/packages/desktop/palexus-plymouth"
+        "${REPO_ROOT}/packages/desktop/palexus-hud"
     )
 
     for pkg_dir in "${pkg_dirs[@]}"; do
         if [[ -f "${pkg_dir}/PKGBUILD" ]]; then
+            if compgen -G "${pkg_dir}/*.pkg.tar.*" > /dev/null; then
+                echo "    -> [CACHED] Package already built in ${pkg_dir}, using existing package..."
+                cp -f "${pkg_dir}"/*.pkg.tar.* "${LOCAL_REPO_DIR}/"
+                continue
+            fi
             echo "    -> Building PKGBUILD in ${pkg_dir}..."
             (
                 cd "${pkg_dir}"
@@ -164,7 +175,7 @@ build_local_packages() {
                 # shellcheck source=/dev/null disable=SC2154  # PKGBUILD is per package; makedepends comes from it
                 if [[ -d "${pkg_dir}/src" ]] && [[ -n "$(ls -A "${pkg_dir}/src" 2>/dev/null)" ]]; then
                     makepkg_flags=("-ef" "--noconfirm" "--nodeps")
-                elif [[ -z "$( (source ./PKGBUILD; ((${#makedepends[@]})) && pacman -T "${makedepends[@]}") || true)" ]]; then
+                elif [[ -z "$( (source ./PKGBUILD; if declare -p makedepends >/dev/null 2>&1 && ((${#makedepends[@]})); then pacman -T "${makedepends[@]}"; fi) || true)" ]]; then
                     # Build tools already present: never install runtime deps on the build host
                     makepkg_flags=("-f" "--noconfirm" "--nodeps")
                 fi
@@ -177,7 +188,11 @@ build_local_packages() {
                     user_home=$(eval echo ~"${build_user}")
                     mkdir -p "${user_home}/.cargo"
                     chown -R "${build_user}:${build_user}" "${pkg_dir}" "${LOCAL_REPO_DIR}" "${user_home}"
-                    sudo -H -u "${build_user}" env HOME="${user_home}" CARGO_HOME="${user_home}/.cargo" makepkg "${makepkg_flags[@]}"
+                    if command -v sudo >/dev/null 2>&1; then
+                        sudo -H -u "${build_user}" env HOME="${user_home}" CARGO_HOME="${user_home}/.cargo" makepkg "${makepkg_flags[@]}"
+                    else
+                        runuser -u "${build_user}" -- env HOME="${user_home}" CARGO_HOME="${user_home}/.cargo" makepkg "${makepkg_flags[@]}"
+                    fi
                 else
                     makepkg "${makepkg_flags[@]}"
                 fi

@@ -1,0 +1,12 @@
+[Unit]
+Description=Periodic Palexus Brain Memory Distillation & Sync Timer
+Documentation=https://github.com/earnerbaymalay/palexus
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=30min
+Persistent=true
+RandomizedDelaySec=30s
+
+[Install]
+WantedBy=timers.target

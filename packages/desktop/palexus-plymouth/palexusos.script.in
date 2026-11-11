@@ -1,0 +1,127 @@
+# PalexusOS — official boot animation (Plymouth script plugin)
+# Plays the frames extracted from synapse-boot.mp4 once at the video's real speed,
+# then holds the final frame until the login screen takes over.
+
+Window.SetBackgroundTopColor(0, 0, 0);
+Window.SetBackgroundBottomColor(0, 0, 0);
+
+FRAMES = @FRAMES@;
+# Plymouth calls the refresh function at 50 Hz; one frame every TICKS calls
+TICKS = @TICKS@;
+SRC_W = @WIDTH@;
+SRC_H = @HEIGHT@;
+
+# Fit the 16:9 animation inside any screen without distortion (letterbox on black)
+screen_w = Window.GetWidth();
+screen_h = Window.GetHeight();
+scale = screen_w / SRC_W;
+if (screen_h / SRC_H < scale) scale = screen_h / SRC_H;
+
+fw = Math.Int(SRC_W * scale);
+fh = Math.Int(SRC_H * scale);
+fx = Window.GetX() + Math.Int((screen_w - fw) / 2);
+fy = Window.GetY() + Math.Int((screen_h - fh) / 2);
+
+fun load(name) {
+    img = Image(name);
+    if (img.GetWidth() != fw || img.GetHeight() != fh) img = img.Scale(fw, fh);
+    return img;
+}
+
+fun frame_name(n) {
+    if (n < 10) return "frame-000" + n + ".png";
+    if (n < 100) return "frame-00" + n + ".png";
+    if (n < 1000) return "frame-0" + n + ".png";
+    return "frame-" + n + ".png";
+}
+
+anim = Sprite();
+anim.SetPosition(fx, fy, 1);
+
+global.tick = 0;
+global.shown = -1;
+global.finished = 0;
+
+fun show_final() {
+    if (global.finished == 0) {
+        anim.SetImage(load("final.png"));
+        global.finished = 1;
+    }
+}
+
+fun refresh_callback() {
+    if (global.finished == 0) {
+        frame_idx = Math.Int(global.tick / TICKS);
+        global.tick = global.tick + 1;
+        if (frame_idx >= FRAMES) {
+            show_final();
+        } else if (frame_idx != global.shown) {
+            anim.SetImage(load(frame_name(frame_idx)));
+            global.shown = frame_idx;
+        }
+    }
+}
+Plymouth.SetRefreshFunction(refresh_callback);
+
+# --- LUKS passphrase and other questions -------------------------------------
+prompt_sprite = Sprite();
+entry_sprite = Sprite();
+prompt_sprite.SetOpacity(0);
+entry_sprite.SetOpacity(0);
+
+fun place_below_animation(sprite, img, offset) {
+    x = Window.GetX() + Math.Int((Window.GetWidth() - img.GetWidth()) / 2);
+    y = fy + fh - Math.Int(fh / 6) + offset;
+    sprite.SetImage(img);
+    sprite.SetPosition(x, y, 10);
+    sprite.SetOpacity(1);
+}
+
+fun show_prompt(prompt, entry_text) {
+    # Liquid silver (#cdd6f4) prompt, mauve (#cba6f7) entry
+    p = Image.Text(prompt, 0.804, 0.839, 0.957);
+    place_below_animation(prompt_sprite, p, 0);
+    e = Image.Text(entry_text, 0.796, 0.651, 0.969);
+    place_below_animation(entry_sprite, e, p.GetHeight() + 10);
+}
+
+fun display_password_callback(prompt, bullets) {
+    dots = "";
+    i = 0;
+    while (i < bullets) {
+        dots = dots + " • ";
+        i = i + 1;
+    }
+    if (dots == "") dots = " _ ";
+    show_prompt(prompt, dots);
+}
+Plymouth.SetDisplayPasswordFunction(display_password_callback);
+
+fun display_question_callback(prompt, entry) {
+    show_prompt(prompt, entry + "_");
+}
+Plymouth.SetDisplayQuestionFunction(display_question_callback);
+
+fun display_normal_callback() {
+    prompt_sprite.SetOpacity(0);
+    entry_sprite.SetOpacity(0);
+}
+Plymouth.SetDisplayNormalFunction(display_normal_callback);
+
+# --- Boot messages (e.g. fsck), bottom centre ---------------------------------
+message_sprite = Sprite();
+fun message_callback(text) {
+    m = Image.Text(text, 0.576, 0.600, 0.698);
+    message_sprite.SetImage(m);
+    mx = Window.GetX() + Math.Int((Window.GetWidth() - m.GetWidth()) / 2);
+    my = Window.GetY() + Window.GetHeight() - m.GetHeight() - 36;
+    message_sprite.SetPosition(mx, my, 10);
+    message_sprite.SetOpacity(1);
+}
+Plymouth.SetMessageFunction(message_callback);
+
+# Hand off to the login screen on the finished logo, even if boot beat the animation.
+fun quit_callback() {
+    show_final();
+}
+Plymouth.SetQuitFunction(quit_callback);

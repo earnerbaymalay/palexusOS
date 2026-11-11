@@ -1,0 +1,13 @@
+[Unit]
+Description=Palexus Brain 3-Layer Memory Synchronization
+Documentation=https://github.com/earnerbaymalay/palexus
+After=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/palexus sync --once
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=6
+NoNewPrivileges=true
+PrivateTmp=true

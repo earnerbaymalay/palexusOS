@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=PalexusOS Screensaver Idle Watcher
+Comment=Start the geodesic torus screensaver after 5 minutes idle
+Exec=/usr/bin/palexus-idle
+OnlyShowIn=XFCE;
+Terminal=false
+NoDisplay=true
+X-GNOME-Autostart-enabled=true

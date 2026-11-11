@@ -114,25 +114,30 @@ class TestSynapseHudQml:
         with patch("subprocess.Popen") as mock_popen, patch.object(qapp, "quit") as mock_quit:
             # Test direct command launch
             backend.launch("synapse-notes")
-            mock_popen.assert_called_with(["bash", "-c", "synapse-notes"], start_new_session=True)
             mock_quit.assert_called()
+            args, kwargs = mock_popen.call_args
+            assert args[0] == ["bash", "-c", "source ~/.bashrc 2>/dev/null; synapse-notes"]
+            assert kwargs.get("start_new_session") is True
+            assert "env" in kwargs
 
         with patch("subprocess.Popen") as mock_popen, patch.object(qapp, "quit") as mock_quit:
             # Test AI prompt launch with prefix strip
             backend.launch("AI_PROMPT:?how to list files")
             mock_quit.assert_called()
-            args, _ = mock_popen.call_args
+            args, kwargs = mock_popen.call_args
             assert args[0][0] == "kitty"
             assert "AI Prompt: how to list files" in args[0][2]
-            assert "ollama run qwen2.5-coder \"how to list files\"" in args[0][5]
+            assert 'ask-qwen "how to list files"' in args[0][5]
+            assert kwargs.get("start_new_session") is True
 
         with patch("subprocess.Popen") as mock_popen, patch.object(qapp, "quit") as mock_quit:
             # Test AI prompt launch with 'ai ' strip
             backend.launch("AI_PROMPT:ai explain btrfs snapshots")
             mock_quit.assert_called()
-            args, _ = mock_popen.call_args
+            args, kwargs = mock_popen.call_args
             assert "explain btrfs snapshots" in args[0][2]
-            assert "ollama run qwen2.5-coder \"explain btrfs snapshots\"" in args[0][5]
+            assert 'ask-qwen "explain btrfs snapshots"' in args[0][5]
+            assert kwargs.get("start_new_session") is True
 
     def test_hud_header_hint_and_placeholder_text(self, qapp):
         """Verify HUD header hint and searchbox placeholder contain required guidance."""

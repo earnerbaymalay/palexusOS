@@ -60,6 +60,8 @@ xorg-xrandr
 xorg-xsetroot
 xf86-video-intel
 xf86-video-amdgpu
+xf86-video-fbdev
+xf86-video-vesa
 xf86-input-libinput
 
 # --- Desktop Environment & Cyberdeck UI (XFCE 4.20 + Omarchy HUD) ---
@@ -159,9 +161,9 @@ bluez
 bluez-utils
 
 # --- SynapseOS Native Packages ([synapseos] Repo) ---
-synapse-core
-synapse-hud
+palexus-core
+palexus-hud
 llm-quickfire-panel
-synapse-themes
-synapse-greeter
-synapse-plymouth
+palexus-themes
+palexus-greeter
+palexus-plymouth

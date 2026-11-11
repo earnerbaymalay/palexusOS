@@ -1,0 +1,19 @@
+# Synapse-AMOLED xfwm4 theme
+title_shadow_active=false
+title_shadow_inactive=false
+active_text_color=#cdd6f4
+inactive_text_color=#6c7086
+active_color_1=#050508
+active_color_2=#050508
+inactive_color_1=#000000
+inactive_color_2=#000000
+button_spacing=6
+button_offset=8
+maximized_offset=0
+title_vertical_offset_active=4
+title_vertical_offset_inactive=4
+shadow_delta_x=0
+shadow_delta_y=0
+shadow_delta_width=0
+shadow_delta_height=0
+full_width_margins=true

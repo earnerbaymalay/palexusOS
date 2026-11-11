@@ -1,0 +1,23 @@
+# Maintainer: PalexusOS Engineering Team <maintainers@palexusos.org>
+pkgname=palexus-greeter
+pkgver=0.1.0
+pkgrel=3
+pkgdesc="PalexusOS SDDM login theme: clock + system readout, chamfered panel with animated accent trails"
+arch=('any')
+url="https://github.com/earnerbaymalay/synapseOS"
+license=('MIT')
+provides=('synapse-greeter' 'palexus-greeter')
+conflicts=('synapse-greeter')
+depends=('sddm' 'qt6-declarative' 'palexus-themes' 'ttf-jetbrains-mono-nerd')
+source=('Main.qml' 'metadata.desktop' 'theme.conf')
+sha256sums=('SKIP' 'SKIP' 'SKIP')
+
+package() {
+  local dir="$pkgdir/usr/share/sddm/themes/palexusos"
+  install -dm755 "$dir"
+  for f in Main.qml metadata.desktop theme.conf; do
+    install -Dm644 "$f" "$dir/$f"
+  done
+  # Legacy compatibility symlink
+  ln -sf "palexusos" "$pkgdir/usr/share/sddm/themes/synapseos"
+}

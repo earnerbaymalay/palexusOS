@@ -1,0 +1,82 @@
+# Maintainer: PalexusOS Engineering Team <maintainers@palexusos.org>
+pkgname=palexus-core
+pkgver=0.1.0
+pkgrel=3
+pkgdesc="Core AI runtime gateway, bidirectional context firewall, and 3-layer agent memory daemon for PalexusOS"
+arch=('x86_64')
+url="https://github.com/earnerbaymalay/synapseOS"
+license=('MIT' 'Apache-2.0')
+provides=('synapse-core' 'palexus-core')
+conflicts=('synapse-core')
+depends=('gcc-libs' 'glibc' 'openssl' 'sqlite')
+makedepends=('cargo' 'rust' 'git')
+optdepends=(
+  'ollama: Local LLM inference engine integration'
+  'obsidian: Central AI Knowledge Base vault viewer'
+)
+backup=('etc/palexus/config.toml' 'etc/synapse/config.toml')
+options=('!debug' '!lto')
+source=(
+  "synapse::git+https://github.com/earnerbaymalay/synapse.git#branch=main"
+  "palexus.service"
+  "palexus-sync.service"
+  "palexus-sync.timer"
+)
+sha256sums=(
+  'SKIP'
+  'SKIP'
+  'SKIP'
+  'SKIP'
+)
+
+prepare() {
+  cd "$srcdir/synapse"
+  export CARGO_HOME="$srcdir/cargo"
+}
+
+build() {
+  cd "$srcdir/synapse"
+  unset CFLAGS CXXFLAGS LDFLAGS
+  export CARGO_HOME="$srcdir/cargo"
+  export CARGO_TARGET_DIR=target
+  export RUSTFLAGS="-C target-cpu=x86-64-v3 -C opt-level=3 -C codegen-units=1"
+  cargo build --release --locked -p synapse --bin synapse
+}
+
+check() {
+  cd "$srcdir/synapse"
+  unset CFLAGS CXXFLAGS LDFLAGS
+  export CARGO_HOME="$srcdir/cargo"
+  export CARGO_TARGET_DIR=target
+  cargo test --release --locked -p synapse -p synapse-core
+}
+
+package() {
+  cd "$srcdir/synapse"
+
+  # Install core binary
+  install -Dm755 "target/release/synapse" "$pkgdir/usr/bin/palexus"
+  ln -sf "palexus" "$pkgdir/usr/bin/synapse"
+
+  # Install squash wrapper for context compression
+  cat > "$pkgdir/usr/bin/squash" << 'EOF'
+#!/bin/sh
+exec /usr/bin/palexus context squash "$@"
+EOF
+  chmod 755 "$pkgdir/usr/bin/squash"
+
+  # Systemd units
+  install -Dm644 "$srcdir/palexus.service" "$pkgdir/usr/lib/systemd/system/palexus.service"
+  install -Dm644 "$srcdir/palexus-sync.service" "$pkgdir/usr/lib/systemd/system/palexus-sync.service"
+  install -Dm644 "$srcdir/palexus-sync.timer" "$pkgdir/usr/lib/systemd/system/palexus-sync.timer"
+
+  ln -sf "palexus.service" "$pkgdir/usr/lib/systemd/system/synapse.service"
+  ln -sf "palexus-sync.service" "$pkgdir/usr/lib/systemd/system/synapse-sync.service"
+  ln -sf "palexus-sync.timer" "$pkgdir/usr/lib/systemd/system/synapse-sync.timer"
+
+  # Configuration directories
+  install -dm750 "$pkgdir/etc/palexus"
+  install -dm750 "$pkgdir/var/lib/palexus"
+  ln -sf "palexus" "$pkgdir/etc/synapse"
+  ln -sf "palexus" "$pkgdir/var/lib/synapse"
+}

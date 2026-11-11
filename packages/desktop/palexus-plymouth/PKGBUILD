@@ -1,0 +1,56 @@
+# Maintainer: PalexusOS Engineering Team <maintainers@palexusos.org>
+pkgname=palexus-plymouth
+pkgver=0.2.0
+pkgrel=2
+pkgdesc="PalexusOS Plymouth boot splash: the official PalexusOS boot animation"
+arch=('any')
+url="https://github.com/earnerbaymalay/synapseOS"
+license=('MIT')
+provides=('synapse-plymouth' 'palexus-plymouth')
+conflicts=('synapse-plymouth')
+depends=('plymouth')
+makedepends=('ffmpeg')
+source=('palexus-boot.mp4' 'palexusos.script.in')
+# Official boot video alias: source=('synapse-boot.mp4')
+sha256sums=('SKIP' 'SKIP')
+
+_width=720
+_height=405
+_ticks=3
+
+build() {
+  rm -rf frames
+  mkdir frames
+  ffmpeg -v error -i palexus-boot.mp4 -an \
+    -filter_complex "fps=50/${_ticks},scale=${_width}:${_height}:flags=lanczos,split[a][b];[a]palettegen=max_colors=128:stats_mode=full[p];[b][p]paletteuse=dither=sierra2_4a" \
+    -pix_fmt pal8 -compression_level 9 -start_number 0 frames/frame-%04d.png
+  # Full-colour last frame, held on screen until the login screen appears
+  ffmpeg -v error -sseof -0.5 -i palexus-boot.mp4 -an \
+    -vf "scale=${_width}:${_height}:flags=lanczos" -update 1 -compression_level 9 frames/final.png
+}
+
+package() {
+  local dir="$pkgdir/usr/share/plymouth/themes/palexusos"
+  local frames
+  install -dm755 "$dir"
+  install -m644 frames/*.png "$dir/"
+  frames=$(find frames -name 'frame-*.png' | wc -l)
+  sed -e "s/@FRAMES@/$frames/" \
+      -e "s/@TICKS@/${_ticks}/" \
+      -e "s/@WIDTH@/${_width}/" \
+      -e "s/@HEIGHT@/${_height}/" \
+      palexusos.script.in > "$dir/palexusos.script"
+  cat > "$dir/palexusos.plymouth" << PLY
+[Plymouth Theme]
+Name=PalexusOS
+Description=The official PalexusOS boot animation
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/palexusos
+ScriptFile=/usr/share/plymouth/themes/palexusos/palexusos.script
+PLY
+
+  # Legacy compatibility symlinks
+  ln -sf "palexusos" "$pkgdir/usr/share/plymouth/themes/synapseos"
+}

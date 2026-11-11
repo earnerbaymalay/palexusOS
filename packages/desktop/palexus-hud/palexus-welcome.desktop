@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=PalexusOS Welcome & Onboarding
+Comment=Personalize Metallic Icons, Wallpapers, Screensavers, and AI
+Exec=/usr/bin/palexus-welcome
+Icon=palexus-welcome
+Terminal=false
+Categories=System;Settings;Utility;
+Keywords=welcome;onboarding;theme;icons;screensaver;wallpaper;palexus;

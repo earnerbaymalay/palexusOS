@@ -76,7 +76,10 @@
     },
     "sway/window": {
         "max-length": 40,
-        "separate-outputs": true
+        "separate-outputs": true,
+        "on-click-right": "swaymsg kill",
+        "on-click-middle": "swaymsg kill",
+        "tooltip-format": "{title}\n[Right-Click / Middle-Click] Close Window"
     },
     "clock": {
         "format": "{:%Y-%m-%d  %H:%M:%S}",
@@ -97,7 +100,7 @@
         "tooltip": false
     },
     "custom/stealth": {
-        "exec": "/usr/bin/synapse-stealth 2>/dev/null || ( [ -f /etc/NetworkManager/conf.d/00-synapseos-stealth.conf ] && echo '{\"text\":\"󰒃 STEALTH: OK\",\"tooltip\":\"Prime Directive: MAC Randomization & Quad9 DoT Active\",\"class\":\"secure\"}' || echo '{\"text\":\"󰒃 STEALTH: WARN\",\"class\":\"warning\"}' )",
+        "exec": "/usr/bin/synapse-stealth 2>/dev/null || ( [ -f /etc/NetworkManager/conf.d/00-palexusos-stealth.conf ] && echo '{\"text\":\"󰒃 STEALTH: OK\",\"tooltip\":\"Prime Directive: MAC Randomization & Quad9 DoT Active\",\"class\":\"secure\"}' || echo '{\"text\":\"󰒃 STEALTH: WARN\",\"class\":\"warning\"}' )",
         "return-type": "json",
         "interval": 15,
         "on-click": "/usr/bin/sec-status"

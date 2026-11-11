@@ -12,7 +12,7 @@ set $up k
 set $right l
 set $term kitty
 set $term_alt foot
-set $menu /usr/bin/synapse-hud
+set $menu /usr/bin/palexus-hud
 
 # --- Palette Tokens (Catppuccin Mocha + Liquid Chrome + Obsidian Crust) ---
 set $crust    #11111b
@@ -22,58 +22,67 @@ set $silver   #cdd6f4
 
 # --- Typography & Window Geometry ---
 font pango:JetBrainsMono Nerd Font Mono 10
-default_border pixel 2
-default_floating_border pixel 2
+default_border normal 2
+default_floating_border normal 2
+titlebar_border_thickness 1
+titlebar_padding 4 8
 gaps inner 8
 gaps outer 4
 smart_borders on
 
 # --- Output & Idle Management ---
 output * bg #11111b solid_color
-output * bg /usr/share/backgrounds/synapseos/synapse-monolith-mauve.jpg fill #11111b
-exec swaybg -i /usr/share/backgrounds/synapseos/monolith-mauve.png -m fill 2>/dev/null || swaybg -i /usr/share/backgrounds/synapseos/synapse-monolith-mauve.jpg -m fill 2>/dev/null || true
-exec synapse-theme --restore
+output * bg /usr/share/backgrounds/palexusos/synapse-monolith-mauve.jpg fill #11111b
+exec swaybg -i /usr/share/backgrounds/palexusos/monolith-mauve.png -m fill 2>/dev/null || swaybg -i /usr/share/backgrounds/palexusos/synapse-monolith-mauve.jpg -m fill 2>/dev/null || true
+exec palexus-theme --restore
 
 # Screensaver is not a lock: 5 min -> geodesic torus, 10 min -> displays off
 exec swayidle -w \
-    timeout 300 'synapse-screensaver --launch' \
+    timeout 300 'palexus-screensaver --launch' \
     timeout 600 'swaymsg "output * power off"' \
     resume 'swaymsg "output * power on"'
 
-# --- Client Window Border Colors ---
+# --- Client Window Border Colors (AMOLED Black Top Bar) ---
 # class                 border   backgr.  text     indicator child_border
-client.focused          #cba6f7  #1e1e2e  #cdd6f4  #cba6f7   #cba6f7
-client.focused_inactive #1e1e2e  #11111b  #cdd6f4  #1e1e2e   #1e1e2e
-client.unfocused        #11111b  #11111b  #cdd6f4  #11111b   #11111b
-client.urgent           #cba6f7  #1e1e2e  #cdd6f4  #cba6f7   #cba6f7
-client.placeholder      #11111b  #11111b  #cdd6f4  #11111b   #11111b
-client.background       #11111b
+client.focused          #11111b  #050508  #cdd6f4  #cba6f7   #313244
+client.focused_inactive #11111b  #000000  #a6adc8  #11111b   #11111b
+client.unfocused        #11111b  #000000  #6c7086  #11111b   #11111b
+client.urgent           #f38ba8  #050508  #f38ba8  #f38ba8   #f38ba8
+client.placeholder      #050508  #050508  #cdd6f4  #050508   #050508
+client.background       #050508
 
 # --- Mnemonic Application Launchers (Super + First Letter) ---
-bindsym Mod4+s exec /usr/bin/synapse-hud
-bindsym Mod4+space exec /usr/bin/synapse-hud
-bindsym Mod4+d exec /usr/bin/synapse-hud
+bindsym Mod4+s exec /usr/bin/palexus-hud
+bindsym Mod4+space exec /usr/bin/palexus-hud
+bindsym Mod4+d exec /usr/bin/palexus-hud
 # Secondary prompt palette: /usr/bin/quickfire
 bindsym Mod4+t exec kitty
 bindsym Mod4+Return exec kitty
 bindsym Mod4+Shift+Return exec foot
 bindsym Mod4+b exec chromium
 bindsym Mod4+f exec thunar
-bindsym Mod4+n exec /usr/bin/synapse-notes
-bindsym Mod4+c exec [ -x /usr/bin/calamares ] && calamares -d || /usr/bin/galculator
+bindsym Mod4+n exec /usr/bin/palexus-notes
 bindsym Mod4+i exec calamares -d
 bindsym Mod4+a exec /usr/bin/audio-switch
-bindsym Mod4+w exec /usr/bin/synapse-welcome
-bindsym Mod4+slash exec /usr/bin/synapse-shortcuts
-bindsym Mod4+question exec /usr/bin/synapse-shortcuts
-bindsym Mod4+m exec synapse-theme --menu
-bindsym Mod4+Ctrl+t exec synapse-theme --menu
+bindsym Mod4+Shift+o exec /usr/bin/palexus-welcome
+bindsym Mod4+slash exec /usr/bin/palexus-shortcuts
+bindsym Mod4+question exec /usr/bin/palexus-shortcuts
+bindsym Mod4+m exec palexus-theme --menu
+bindsym Mod4+Ctrl+t exec palexus-theme --menu
 bindsym Mod4+p exec /usr/bin/sec-status
 
 # --- Window Closing & Session Management (Esc, Mouse & Keys) ---
+bindsym Mod4+w kill
 bindsym Mod4+q kill
 bindsym Mod4+Escape kill
 bindsym Mod4+Shift+q kill
+bindsym Mod4+Shift+w kill
+bindsym Mod4+c kill
+bindsym Mod4+BackSpace kill
+bindsym Alt+F4 kill
+bindsym Mod1+F4 kill
+bindsym Mod1+q kill
+bindsym Mod1+w kill
 bindsym Mod4+Shift+c reload
 bindsym Mod4+Shift+e exec swaymsg exit
 
@@ -81,8 +90,10 @@ bindsym Mod4+Shift+e exec swaymsg exit
 # Super+Left-drag moves, Super+Right-drag resizes, Super+Middle-click closes window
 floating_modifier Mod4 normal
 bindsym --whole-window Mod4+button2 kill
+bindsym --border Mod4+button2 kill
 bindsym --border Mod4+button3 kill
 bindsym --border button2 kill
+bindsym --border button3 kill
 
 # --- Direct Window Adjustment Shortcuts (No Modal Mode Required) ---
 bindsym Mod4+Ctrl+Left resize shrink width 40px

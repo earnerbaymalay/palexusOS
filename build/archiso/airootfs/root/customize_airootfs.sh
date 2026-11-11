@@ -25,6 +25,9 @@ if [[ -d /etc/synapseos/calamares ]]; then
     rm -rf /etc/synapseos/calamares
 fi
 
+# Ensure experimental xfce-wayland session is removed so SDDM cleanly offers XFCE (X11) and Sway
+rm -f /usr/share/wayland-sessions/xfce-wayland.desktop
+
 # Create live user 'synapse' with passwordless sudo for live environment
 # (live-only: Calamares shellprocess@cleanup deletes both on install)
 if ! id -u synapse >/dev/null 2>&1; then

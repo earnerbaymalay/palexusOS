@@ -1,0 +1,48 @@
+# SPDX-FileCopyrightText: 2026 PalexusOS Project
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# PalexusOS Calamares Branding Descriptor (Catppuccin Mocha Mauve + Liquid Silver Chrome)
+---
+componentName:   palexusos
+welcomeStyleCalamares: false
+welcomeExpandingLogo: true
+windowExpanding: normal
+windowSize: 960px,620px
+windowPlacement: center
+
+strings:
+    productName:         "PalexusOS"
+    shortProductName:    "PalexusOS"
+    version:             "0.1.0-alpha (Obsidian Mauve)"
+    shortVersion:        "0.1.0"
+    versionedName:       "PalexusOS 0.1.0-alpha (Catppuccin Mauve)"
+    shortVersionedName:  "PalexusOS 0.1.0"
+    bootloaderEntryName: "PalexusOS"
+    productUrl:          "https://github.com/earnerbaymalay/synapseOS"
+    supportUrl:          "https://github.com/earnerbaymalay/synapseOS/issues"
+    knownIssuesUrl:      "https://github.com/earnerbaymalay/synapseOS/issues"
+    releaseNotesUrl:     "https://github.com/earnerbaymalay/synapseOS/releases"
+    donateUrl:           "https://github.com/earnerbaymalay/synapseOS"
+
+sidebar: widget
+navigation: widget
+
+images:
+    productLogo:         "palexusos-logo.svg"
+    productIcon:         "palexusos-icon.svg"
+    productWelcome:      "palexusos-welcome.png"
+    productWallpaper:    "background.png"
+
+slideshow:               "show.qml"
+slideshowAPI:            2
+
+style:
+    # Catppuccin Mocha Mauve + Liquid Silver Chrome & Obsidian Crust
+    SidebarBackground:        "#11111b"
+    SidebarText:              "#cdd6f4"
+    SidebarTextCurrent:       "#cba6f7"
+    SidebarBackgroundCurrent: "#1e1e2e"
+    mainBackground:           "#11111b"
+    mainText:                 "#cdd6f4"
+    accentColor:              "#cba6f7"
+    highlightColor:           "#cba6f7"

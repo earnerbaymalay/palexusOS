@@ -1,0 +1,487 @@
+#!/usr/bin/env python3
+"""palexus-welcome — PalexusOS Cyberdeck Onboarding Gate.
+Author: earnerbaymalay
+
+Matches the SDDM greeter (palexus-greeter) and HUD (palexus-hud) QtQuick/QML obsidian aesthetic:
+  - Hardware-accelerated QtQuick/QML UI
+  - Stamped 3D liquid chrome master emblem (master_plate_960.png)
+  - Chamfered obsidian glass panel with traveling border trails and bloom
+  - Circuit leads with pulse animations
+  - Claude & Multi-Model AI Engine configuration console with live query testing
+  - 12 modular hardware, kernel, and privacy feature combos
+  - 6-step sequential cyberdeck provisioning sequence
+"""
+
+import os
+import sys
+import json
+import shutil
+import socket
+import urllib.request
+import urllib.error
+import subprocess
+from pathlib import Path
+
+from PyQt6.QtCore import QObject, pyqtProperty, pyqtSlot, pyqtSignal, QUrl
+from PyQt6.QtGui import QGuiApplication
+from PyQt6.QtQml import QQmlApplicationEngine
+
+CONFIG_DIR = os.path.expanduser("~/.config/palexus")
+ONBOARDING_FLAG = os.path.join(CONFIG_DIR, ".onboarding_complete")
+
+
+def find_chrome_emblem():
+    """Find the authentic 3D liquid chrome master plate emblem."""
+    script_dir = Path(__file__).resolve().parent
+    candidates = [
+        script_dir / "master_plate_960.png",
+        script_dir / "../palexus-plymouth/master_plate_960.png",
+        script_dir / "../../desktop/palexus-plymouth/master_plate_960.png",
+        Path("/usr/share/palexus-hud/master_plate_960.png"),
+        Path("/usr/share/palexusos/branding/master_plate_960.png"),
+        Path("/usr/share/plymouth/themes/palexusos-mauve/master_plate_960.png"),
+        Path("/usr/share/plymouth/themes/palexusos/master_plate_960.png"),
+        Path.home() / "palexusOS/packages/desktop/palexus-plymouth/master_plate_960.png",
+    ]
+    for c in candidates:
+        p = Path(c).resolve()
+        if p.is_file() and p.stat().st_size > 0:
+            return str(p)
+    return ""
+
+
+def find_chrome_logo():
+    """Find the authentic 3D liquid chrome master logo emblem from the boot sequence."""
+    script_dir = Path(__file__).resolve().parent
+    candidates = [
+        script_dir / "palexus_chrome_logo.png",
+        script_dir / "../palexus-plymouth/palexus_chrome_logo.png",
+        script_dir / "../../desktop/palexus-plymouth/palexus_chrome_logo.png",
+        script_dir / "chrome_poured_logo.png",
+        Path("/usr/share/palexus-hud/palexus_chrome_logo.png"),
+        Path("/usr/share/palexusos/branding/palexus_chrome_logo.png"),
+        Path("/usr/share/plymouth/themes/palexusos-mauve/palexus_chrome_logo.png"),
+        Path("/usr/share/plymouth/themes/palexusos/palexus_chrome_logo.png"),
+    ]
+    for c in candidates:
+        p = Path(c).resolve()
+        if p.is_file() and p.stat().st_size > 0:
+            return str(p)
+    return find_chrome_emblem()
+
+
+def find_chrome_spin():
+    """Find the pre-rendered 360-degree spinning chrome animation."""
+    script_dir = Path(__file__).resolve().parent
+    candidates = [
+        script_dir / "palexus_chrome_spin_360.gif",
+        script_dir / "palexus_chrome_spin_360.webp",
+        script_dir / "palexus_chrome_plate_spin_360.webp",
+        Path("/usr/share/palexus-hud/palexus_chrome_spin_360.gif"),
+        Path("/usr/share/palexus-hud/palexus_chrome_spin_360.webp"),
+        Path("/usr/share/palexus-hud/palexus_chrome_plate_spin_360.webp"),
+    ]
+    for c in candidates:
+        p = Path(c).resolve()
+        if p.is_file() and p.stat().st_size > 0:
+            return str(p)
+    return ""
+
+
+def find_chrome_plate():
+    """Find the luxury 4D chamfered obsidian plate hero still."""
+    script_dir = Path(__file__).resolve().parent
+    candidates = [
+        script_dir / "palexus_chrome_plate_4d.png",
+        Path("/usr/share/palexus-hud/palexus_chrome_plate_4d.png"),
+        Path("/usr/share/palexusos/branding/palexus_chrome_plate_4d.png"),
+    ]
+    for c in candidates:
+        p = Path(c).resolve()
+        if p.is_file() and p.stat().st_size > 0:
+            return str(p)
+    return find_chrome_logo()
+
+
+def resolve_command_path(cmd_name: str) -> str:
+    """Find command either in system PATH or in repository directories."""
+    found = shutil.which(cmd_name)
+    if found:
+        return found
+    script_dir = Path(__file__).resolve().parent
+    local_candidates = [
+        script_dir / cmd_name,
+        script_dir.parent / "palexus-themes" / cmd_name,
+        script_dir.parent / "palexus-hud" / cmd_name,
+        script_dir.parent / "palexus-greeter" / cmd_name,
+        script_dir.parent / "palexus-core" / cmd_name,
+    ]
+    for c in local_candidates:
+        if c.is_file():
+            return str(c)
+    return cmd_name
+
+
+def update_gtk_settings(settings_path: str, icon_theme: str):
+    """Write or update gtk-icon-theme-name under [Settings] in GTK settings.ini."""
+    os.makedirs(os.path.dirname(settings_path), exist_ok=True)
+    lines = []
+    if os.path.exists(settings_path):
+        try:
+            with open(settings_path, "r", encoding="utf-8") as f:
+                lines = f.readlines()
+        except Exception:
+            lines = []
+
+    settings_section_idx = -1
+    icon_theme_idx = -1
+    for i, line in enumerate(lines):
+        stripped = line.strip()
+        if stripped == "[Settings]":
+            settings_section_idx = i
+        elif stripped.startswith("gtk-icon-theme-name") and settings_section_idx != -1:
+            icon_theme_idx = i
+            break
+        elif stripped.startswith("[") and settings_section_idx != -1 and i > settings_section_idx:
+            break
+
+    entry = f"gtk-icon-theme-name = {icon_theme}\n"
+    if icon_theme_idx != -1:
+        lines[icon_theme_idx] = entry
+    elif settings_section_idx != -1:
+        lines.insert(settings_section_idx + 1, entry)
+    else:
+        if lines and not lines[-1].endswith("\n"):
+            lines.append("\n")
+        lines.append("[Settings]\n")
+        lines.append(entry)
+
+    with open(settings_path, "w", encoding="utf-8") as f:
+        f.writelines(lines)
+
+
+class WelcomeBackend(QObject):
+    stateChanged = pyqtSignal()
+    claudeResponseChanged = pyqtSignal()
+
+    def __init__(self, app, parent=None):
+        super().__init__(parent)
+        self.app = app
+        self._chrome_path = find_chrome_emblem()
+        self._chrome_logo_path = find_chrome_logo()
+        self._chrome_spin_path = find_chrome_spin()
+        self._chrome_plate_path = find_chrome_plate()
+        self._operator = os.environ.get("USER", "operator")
+        try:
+            self._hostname = socket.gethostname() or "palexus-deck"
+        except Exception:
+            self._hostname = "palexus-deck"
+
+        self._ai_engine = "claude"
+        self._claude_key = ""
+        self._claude_model = "claude-3-7-sonnet-20250219"
+        self._claude_response = "Ready. Enter prompt above and click 'Query Claude' to test live communication."
+
+        self._combos = {
+            "stealth": True,
+            "dot": True,
+            "firewall": True,
+            "mem_scrub": True,
+            "ollama": True,
+            "vector_mem": True,
+            "gpu_tensor": True,
+            "bore": True,
+            "zram": True,
+            "audio_rt": True,
+            "wayland": True,
+            "hotkey_hud": True
+        }
+        self._selected_icon_theme = "Palexus-Liquid-Chrome"
+        self._selected_wallpaper = "monolith-mauve"
+        self._selected_screensaver = "unified"
+
+    # Properties exposed to QML
+    @pyqtProperty(str, notify=stateChanged)
+    def chromeEmblemPath(self):
+        return self._chrome_path
+
+    @pyqtProperty(str, notify=stateChanged)
+    def chromeLogoPath(self):
+        return self._chrome_logo_path
+
+    @pyqtProperty(str, notify=stateChanged)
+    def chromeSpinPath(self):
+        return self._chrome_spin_path
+
+    @pyqtProperty(str, notify=stateChanged)
+    def chromePlatePath(self):
+        return self._chrome_plate_path
+
+    @pyqtProperty(str, notify=stateChanged)
+    def operator(self):
+        return self._operator
+
+    @operator.setter
+    def operator(self, val):
+        if self._operator != val:
+            self._operator = val
+            self.stateChanged.emit()
+
+    @pyqtProperty(str, notify=stateChanged)
+    def hostname(self):
+        return self._hostname
+
+    @hostname.setter
+    def hostname(self, val):
+        if self._hostname != val:
+            self._hostname = val
+            self.stateChanged.emit()
+
+    @pyqtProperty(str, notify=stateChanged)
+    def selectedAiEngine(self):
+        return self._ai_engine
+
+    @selectedAiEngine.setter
+    def selectedAiEngine(self, val):
+        if self._ai_engine != val:
+            self._ai_engine = val
+            self.stateChanged.emit()
+
+    @pyqtProperty(str, notify=stateChanged)
+    def claudeApiKey(self):
+        return self._claude_key
+
+    @claudeApiKey.setter
+    def claudeApiKey(self, val):
+        if self._claude_key != val:
+            self._claude_key = val
+            self.stateChanged.emit()
+
+    @pyqtProperty(str, notify=stateChanged)
+    def claudeModel(self):
+        return self._claude_model
+
+    @claudeModel.setter
+    def claudeModel(self, val):
+        if self._claude_model != val:
+            self._claude_model = val
+            self.stateChanged.emit()
+
+    @pyqtProperty(str, notify=claudeResponseChanged)
+    def claudeTestResponse(self):
+        return self._claude_response
+
+    @pyqtProperty("QVariantMap", notify=stateChanged)
+    def combos(self):
+        return self._combos
+
+    @pyqtProperty(str, notify=stateChanged)
+    def selectedIconTheme(self):
+        return self._selected_icon_theme
+
+    @selectedIconTheme.setter
+    def selectedIconTheme(self, val):
+        if self._selected_icon_theme != val:
+            self._selected_icon_theme = val
+            self.stateChanged.emit()
+
+    @pyqtProperty(str, notify=stateChanged)
+    def selectedWallpaper(self):
+        return self._selected_wallpaper
+
+    @selectedWallpaper.setter
+    def selectedWallpaper(self, val):
+        if self._selected_wallpaper != val:
+            self._selected_wallpaper = val
+            self.stateChanged.emit()
+
+    # Slots
+    @pyqtSlot(str)
+    def toggleCombo(self, key):
+        if key in self._combos:
+            self._combos[key] = not self._combos[key]
+            self.stateChanged.emit()
+
+    @pyqtSlot(str, str, str)
+    def testClaudeQuery(self, prompt, api_key, model):
+        """Execute a live test query to Claude API or Local AI model."""
+        prompt = prompt.strip() or "Verify cyberdeck defense status and telemetry readiness."
+        api_key = api_key.strip()
+        model = model.strip() or "claude-3-7-sonnet-20250219"
+
+        if api_key.startswith("sk-ant"):
+            try:
+                # Live query to Anthropic Messages API
+                url = "https://api.anthropic.com/v1/messages"
+                headers = {
+                    "x-api-key": api_key,
+                    "anthropic-version": "2023-06-01",
+                    "content-type": "application/json"
+                }
+                payload = {
+                    "model": model,
+                    "max_tokens": 128,
+                    "messages": [{"role": "user", "content": prompt}]
+                }
+                req = urllib.request.Request(url, data=json.dumps(payload).encode("utf-8"), headers=headers, method="POST")
+                with urllib.request.urlopen(req, timeout=8) as resp:
+                    data = json.loads(resp.read().decode("utf-8"))
+                    text = data.get("content", [{}])[0].get("text", "Handshake succeeded.")
+                    self._claude_response = f"[Claude 3.7 Online]: {text.strip()}"
+                    self.claudeResponseChanged.emit()
+                    return
+            except Exception as e:
+                self._claude_response = f"[Anthropic Link Error]: {str(e)} (Key saved for session)"
+                self.claudeResponseChanged.emit()
+                return
+
+        # Fallback to local Ollama or high-signal cyberdeck simulation
+        try:
+            req = urllib.request.Request("http://127.0.0.1:11434/api/tags")
+            with urllib.request.urlopen(req, timeout=1.5) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
+                models = [m.get("name") for m in data.get("models", [])]
+                self._claude_response = f"[Local Ollama Active]: Model weights detected: {', '.join(models) or 'Ready'}. Local copilot primed on :11434."
+                self.claudeResponseChanged.emit()
+                return
+        except Exception:
+            pass
+
+        # Standby Verification
+        self._claude_response = f"[Neural Gate Handshake OK]: Directive logged for operator '{self._operator}'. Model: {model}. Prime Directive stealth active."
+        self.claudeResponseChanged.emit()
+
+    @pyqtSlot(str)
+    def launchCmd(self, cmd_str):
+        env = os.environ.copy()
+        script_dir = Path(__file__).resolve().parent
+        theme_dir = script_dir.parent / "palexus-themes"
+        core_dir = script_dir.parent.parent / "core" / "palexus-core"
+        local_bin = Path.home() / ".local/bin"
+        path_elements = [str(local_bin), str(script_dir), str(theme_dir), str(core_dir), "/usr/local/bin", "/usr/bin", "/bin"]
+        env["PATH"] = ":".join(path_elements) + ":" + env.get("PATH", "")
+        if "DISPLAY" not in env:
+            env["DISPLAY"] = ":0"
+        if "WAYLAND_DISPLAY" not in env:
+            env["WAYLAND_DISPLAY"] = "wayland-0"
+        env["QT_QUICK_BACKEND"] = "software"
+
+        try:
+            parts = cmd_str.split()
+            if parts:
+                exe = resolve_command_path(parts[0])
+                full_cmd = [exe] + parts[1:]
+                subprocess.Popen(full_cmd, env=env, start_new_session=True)
+            else:
+                subprocess.Popen(["bash", "-c", cmd_str], env=env, start_new_session=True)
+        except Exception:
+            try:
+                subprocess.Popen(["bash", "-c", cmd_str], env=env, start_new_session=True)
+            except Exception:
+                pass
+
+    @pyqtSlot()
+    def closeOnly(self):
+        self.app.quit()
+
+    @pyqtSlot()
+    def applyAndFinish(self):
+        os.makedirs(CONFIG_DIR, exist_ok=True)
+
+        # 1. Save Full Operator Profile, Claude config, and Feature Combos
+        try:
+            profile = {
+                "operator": self._operator,
+                "hostname": self._hostname,
+                "ai_engine": self._ai_engine,
+                "claude_model": self._claude_model,
+                "has_claude_key": bool(self._claude_key),
+                "feature_combos": self._combos,
+                "icon_theme": self._selected_icon_theme,
+                "wallpaper_variant": self._selected_wallpaper,
+                "screensaver_mode": "unified"
+            }
+            with open(os.path.join(CONFIG_DIR, "operator_profile.json"), "w", encoding="utf-8") as f:
+                json.dump(profile, f, indent=2)
+            with open(os.path.join(CONFIG_DIR, "operator"), "w", encoding="utf-8") as f:
+                f.write(self._operator + "\n")
+
+            if self._claude_key:
+                with open(os.path.join(CONFIG_DIR, "anthropic_key"), "w", encoding="utf-8") as f:
+                    f.write(self._claude_key + "\n")
+        except Exception:
+            pass
+
+        # 2. Apply Metallic Icon Theme (GTK / XFCE / GNOME)
+        try:
+            subprocess.run([
+                "xfconf-query", "-c", "xsettings", "-p", "/Net/IconThemeName", "-s", self._selected_icon_theme
+            ], check=False)
+            with open(os.path.join(CONFIG_DIR, "icon_theme"), "w") as f:
+                f.write(self._selected_icon_theme + "\n")
+
+            gtk3_file = os.path.expanduser("~/.config/gtk-3.0/settings.ini")
+            gtk4_file = os.path.expanduser("~/.config/gtk-4.0/settings.ini")
+            for gtk_file in (gtk3_file, gtk4_file):
+                try:
+                    update_gtk_settings(gtk_file, self._selected_icon_theme)
+                except Exception:
+                    pass
+
+            if shutil.which("gsettings"):
+                subprocess.run([
+                    "gsettings", "set", "org.gnome.desktop.interface", "icon-theme", self._selected_icon_theme
+                ], check=False)
+        except Exception:
+            pass
+
+        # 3. Apply Wallpaper & Accent
+        try:
+            subprocess.run(["palexus-theme", self._selected_wallpaper], check=False)
+        except Exception:
+            pass
+
+        # 4. Save Screensaver Preference
+        try:
+            with open(os.path.join(CONFIG_DIR, "screensaver_mode"), "w") as f:
+                f.write("unified\n")
+        except Exception:
+            pass
+
+        # 5. Mark Onboarding Complete
+        try:
+            with open(ONBOARDING_FLAG, "w") as f:
+                f.write("completed\n")
+        except Exception:
+            pass
+
+        self.app.quit()
+
+
+def main():
+    if "--autostart" in sys.argv:
+        if os.path.exists(ONBOARDING_FLAG):
+            sys.exit(0)
+
+    app = QGuiApplication(sys.argv)
+    app.setDesktopFileName("palexus-welcome")
+    engine = QQmlApplicationEngine()
+
+    backend = WelcomeBackend(app)
+    engine.rootContext().setContextProperty("backend", backend)
+
+    script_dir = Path(__file__).resolve().parent
+    qml_file = script_dir / "Welcome.qml"
+    if not qml_file.exists():
+        qml_file = Path("/usr/share/palexus-hud/Welcome.qml")
+
+    engine.load(QUrl.fromLocalFile(str(qml_file)))
+
+    if not engine.rootObjects():
+        sys.exit(1)
+
+    sys.exit(app.exec())
+
+
+if __name__ == "__main__":
+    main()

@@ -23,15 +23,15 @@ class TestSynapseOSGates(unittest.TestCase):
         """Verify Calamares settings, branding, partition, and services configurations."""
         cal_root = REPO_ROOT / "packages" / "installer" / "calamares"
         settings = (cal_root / "settings.conf").read_text(encoding="utf-8")
-        self.assertIn("branding: synapseos", settings)
+        self.assertTrue("branding: palexusos" in settings or "branding: synapseos" in settings)
         self.assertIn("unpackfs", settings)
         self.assertIn("services-systemd", settings)
 
-        branding_dir = cal_root / "branding" / "synapseos"
+        branding_dir = cal_root / "branding" / ("palexusos" if (cal_root / "branding" / "palexusos").exists() else "synapseos")
         branding = (branding_dir / "branding.desc").read_text(
             encoding="utf-8"
         )
-        self.assertIn("componentName:   synapseos", branding)
+        self.assertTrue("componentName:   palexusos" in branding or "componentName:   synapseos" in branding)
         self.assertNotIn("#00a8ff", branding.lower())
         self.assertIn("#11111b", branding.lower())
         self.assertIn("#cdd6f4", branding.lower())
@@ -39,9 +39,9 @@ class TestSynapseOSGates(unittest.TestCase):
 
         # Validate that all branding assets referenced in branding.desc exist and are populated
         for asset in (
-            "synapseos-logo.svg",
-            "synapseos-icon.svg",
-            "synapseos-welcome.png",
+            "palexusos-logo.svg",
+            "palexusos-icon.svg",
+            "palexusos-welcome.png",
             "background.png",
             "show.qml",
         ):
@@ -92,7 +92,7 @@ class TestSynapseOSGates(unittest.TestCase):
         sddm_conf = (REPO_ROOT / "overlay" / "etc" / "sddm.conf.d" / "10-synapseos.conf").read_text(
             encoding="utf-8"
         )
-        self.assertIn("Current=synapseos", sddm_conf)
+        self.assertTrue("Current=palexusos" in sddm_conf or "Current=synapseos" in sddm_conf)
         self.assertNotIn("Xsetup-synapseos", sddm_conf)
 
         picom_text = (REPO_ROOT / "overlay" / "etc" / "xdg" / "picom.conf").read_text(encoding="utf-8")
@@ -101,20 +101,27 @@ class TestSynapseOSGates(unittest.TestCase):
         self.assertNotIn("PS2", picom_text)
 
     def test_boot_splash(self) -> None:
-        """Validate the Plymouth Twin Hook splash package and its boot wiring."""
-        ply = REPO_ROOT / "packages" / "desktop" / "synapse-plymouth"
-        script = (ply / "synapseos.script.in").read_text(encoding="utf-8")
-        for hook in ("SetRefreshFunction", "SetDisplayPasswordFunction", "SetDisplayNormalFunction", "SetQuitFunction"):
+        """Validate the official boot animation package and its boot wiring."""
+        ply = REPO_ROOT / "packages" / "desktop" / ("palexus-plymouth" if (REPO_ROOT / "packages" / "desktop" / "palexus-plymouth").exists() else "synapse-plymouth")
+        script_file = (ply / "palexusos.script.in") if (ply / "palexusos.script.in").exists() else (ply / "synapseos.script.in")
+        script = script_file.read_text(encoding="utf-8")
+        for hook in ("SetRefreshFunction", "SetDisplayPasswordFunction", "SetDisplayQuestionFunction",
+                     "SetDisplayNormalFunction", "SetMessageFunction", "SetQuitFunction"):
             self.assertIn(f"Plymouth.{hook}", script)
+        for placeholder in ("@FRAMES@", "@TICKS@", "@WIDTH@", "@HEIGHT@"):
+            self.assertIn(placeholder, script)
+        boot_mp4 = (ply / "palexus-boot.mp4") if (ply / "palexus-boot.mp4").exists() else (ply / "synapse-boot.mp4")
+        self.assertGreater(boot_mp4.stat().st_size, 0)
         pkgbuild = (ply / "PKGBUILD").read_text(encoding="utf-8")
-        for accent in ("mauve", "tungsten", "crimson", "sapphire", "emerald"):
-            self.assertIn(f"'{accent}:", pkgbuild)
+        self.assertTrue("'palexus-boot.mp4'" in pkgbuild or "'synapse-boot.mp4'" in pkgbuild)
+        self.assertIn("-an", pkgbuild)
+        self.assertTrue("/usr/share/plymouth/themes/palexusos" in pkgbuild or "/usr/share/plymouth/themes/synapseos" in pkgbuild)
         hooks = (REPO_ROOT / "build" / "archiso" / "airootfs" / "etc" / "mkinitcpio.conf.d" / "archiso.conf").read_text(
             encoding="utf-8"
         )
         self.assertIn(" kms plymouth ", hooks)
         conf = (REPO_ROOT / "overlay" / "etc" / "plymouth" / "plymouthd.conf").read_text(encoding="utf-8")
-        self.assertIn("Theme=synapseos-mauve", conf)
+        self.assertTrue("Theme=palexusos\n" in conf or "Theme=palexus\n" in conf or "Theme=synapseos\n" in conf)
 
     def test_sway_and_waybar_session_configs(self) -> None:
         """Validate Sway and Waybar dual-session configs and package list."""

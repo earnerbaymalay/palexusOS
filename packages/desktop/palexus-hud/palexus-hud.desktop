@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=Palexus Command HUD
+Comment=Unified AI Command Center, Local LLM Launcher & Quickfire Cockpit
+Exec=/usr/bin/palexus-hud
+Icon=utilities-terminal
+Terminal=false
+Type=Application
+Categories=System;Utility;
+Keywords=quickfire;hud;palexus;ai;palette;
