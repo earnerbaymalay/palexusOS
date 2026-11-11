@@ -433,6 +433,16 @@ check_file_contains "${CAL_BRANDING_DIR}/show.qml" "BORE" "Calamares show.qml sh
 check_file_contains "${CAL_BRANDING_DIR}/show.qml" "Ollama" "Calamares show.qml showcases local Ollama AI engine"
 check_file_contains "${CAL_BRANDING_DIR}/show.qml" "Quad9" "Calamares show.qml showcases Quad9 DNS-over-TLS"
 check_file_contains "${CAL_PARTITION}" 'defaultFileSystemType:[[:space:]]*"btrfs"' "Calamares partition.conf defaults to Btrfs"
+# Every filesystem offered on the partition page needs its mkfs tool on the live ISO
+declare -A FS_TOOL=([btrfs]=btrfs-progs [ext4]=e2fsprogs [xfs]=xfsprogs [f2fs]=f2fs-tools)
+for fs in $(grep -oP '^availableFileSystemTypes:.*' "${CAL_PARTITION}" | grep -oP '"\K[a-z0-9]+(?=")'); do
+    tool="${FS_TOOL[$fs]:-}"
+    if [[ -n "${tool}" ]] && grep -qx "${tool}" "${REPO_ROOT}/build/archiso/packages.x86_64"; then
+        pass "Installer can format ${fs} (${tool} on the ISO)"
+    else
+        fail "Installer can format ${fs} (${tool:-no known tool} on the ISO)"
+    fi
+done
 check_file_contains "${CAL_PARTITION}" "/@snapshots" "Calamares partition.conf defines @snapshots subvolume"
 check_file_contains "${CAL_SERVICES}" "synapse" "Calamares services-systemd.conf enables synapse service"
 check_file_contains "${CAL_SERVICES}" "sddm" "Calamares services-systemd.conf enables sddm service"
