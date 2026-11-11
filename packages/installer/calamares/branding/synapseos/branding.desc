@@ -15,7 +15,7 @@ strings:
     shortProductName:    "SynapseOS"
     version:             "0.1.0-alpha (Obsidian Mauve)"
     shortVersion:        "0.1.0"
-    versionedName:       "SynapseOS 0.1.0-alpha (Catppuccin Mauve)"
+    versionedName:       "SynapseOS 0.1.0-alpha (Obsidian Mauve)"
     shortVersionedName:  "SynapseOS 0.1.0"
     bootloaderEntryName: "SynapseOS"
     productUrl:          "https://github.com/earnerbaymalay/synapseOS"

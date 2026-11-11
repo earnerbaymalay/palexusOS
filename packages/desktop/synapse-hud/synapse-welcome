@@ -1,22 +1,28 @@
 #!/usr/bin/env python3
-"""synapse-welcome — SynapseOS Cyberdeck Onboarding Gate.
+"""synapse-welcome — SynapseOS first-run setup.
 Author: earnerbaymalay
 
-Matches the SDDM greeter (synapse-greeter) and HUD (synapse-hud) QtQuick/QML obsidian aesthetic:
-  - Hardware-accelerated QtQuick/QML UI
-  - Stamped 3D liquid chrome master emblem (master_plate_960.png)
-  - Chamfered obsidian glass panel with traveling border trails and bloom
-  - Circuit leads with pulse animations
-  - Claude & Multi-Model AI Engine configuration console with live query testing
-  - 12 modular hardware, kernel, and privacy feature combos
-  - 6-step sequential cyberdeck provisioning sequence
+A short, linear QtQuick wizard that runs once per user after the first login:
+
+  First boot (--oobe) : Welcome -> Account -> Look -> Assistant -> Ready
+                        then hands off to the login screen with the new account selected
+  Live ISO            : Welcome (Try / Install) -> Look -> Ready
+  In session          : Welcome -> Look -> Assistant -> Ready   (Super+W, or first login)
+
+Design rules:
+  - Nothing is downloaded or sent off-device without an explicit choice on screen.
+  - Status shown to the user is read from the running system, never hard-coded.
+  - Skipping is always possible and never applies hidden changes.
 """
 
 import os
 import sys
 import json
+import re
+import pwd
 import shutil
 import socket
+import threading
 import urllib.request
 import urllib.error
 import subprocess
@@ -28,79 +34,61 @@ from PyQt6.QtQml import QQmlApplicationEngine
 
 CONFIG_DIR = os.path.expanduser("~/.config/synapse")
 ONBOARDING_FLAG = os.path.join(CONFIG_DIR, ".onboarding_complete")
+# Read by `synapse-setup --first-boot`; its absence means "do not download models"
+AI_MODELS_FILE = os.path.join(CONFIG_DIR, "ai_models")
+LIVE_MARKER = "/etc/sudoers.d/00-synapse-live"
+OOBE_SEED_DIR = "/var/lib/synapse/oobe-seed"
+OOBE_HELPER = "/usr/lib/synapse/synapse-oobe-apply"
+USERNAME_RE = re.compile(r"^[a-z_][a-z0-9_-]{0,31}$")
+HOSTNAME_RE = re.compile(r"^(?!-)[a-zA-Z0-9-]{1,63}(?<!-)$")
+RESERVED_USERS = {"root", "synapse", "synapse-oobe", "sddm", "ollama", "git", "synapse-daemon", "nobody"}
+WALLPAPER_DIR = Path("/usr/share/backgrounds/synapseos")
+ICON_DIR = Path("/usr/share/icons")
 
+CLAUDE_MODEL = "claude-opus-5-5"
 
-def find_chrome_emblem():
-    """Find the authentic 3D liquid chrome master plate emblem."""
-    script_dir = Path(__file__).resolve().parent
-    candidates = [
-        script_dir / "master_plate_960.png",
-        script_dir / "../synapse-plymouth/master_plate_960.png",
-        script_dir / "../../desktop/synapse-plymouth/master_plate_960.png",
-        Path("/usr/share/synapse-hud/master_plate_960.png"),
-        Path("/usr/share/synapseos/branding/master_plate_960.png"),
-        Path("/usr/share/plymouth/themes/synapseos-mauve/master_plate_960.png"),
-        Path("/usr/share/plymouth/themes/synapseos/master_plate_960.png"),
-        Path.home() / "synapseOS/packages/desktop/synapse-plymouth/master_plate_960.png",
-    ]
-    for c in candidates:
-        p = Path(c).resolve()
-        if p.is_file() and p.stat().st_size > 0:
-            return str(p)
-    return ""
+# Mirrors THEMES in synapse-theme; monolith has no crimson plate
+SCENES = ["monolith", "tower", "carbon"]
+ACCENTS = ["mauve", "tungsten", "crimson", "sapphire", "emerald"]
+VARIANTS = {f"{s}-{a}" for s in SCENES for a in ACCENTS} - {"monolith-crimson"}
+DEFAULT_VARIANT = "monolith-mauve"
+
+ICON_THEMES = ["Synapse-Liquid-Chrome", "Synapse-Smoked-Obsidian",
+               "Synapse-Radial-Tungsten", "Synapse-Aerospace-Billet"]
+ICON_SAMPLES = ["utilities-terminal", "system-file-manager", "web-browser", "synapse-settings"]
+
+# Local model tiers, kept in step with synapse-setup
+MODEL_TIERS = {
+    "light":    {"models": ["nomic-embed-text:latest", "qwen2.5-coder:1.5b", "llama3.2:latest"], "size_gb": 3.3},
+    "standard": {"models": ["nomic-embed-text:latest", "qwen2.5-coder:latest", "llama3.2:latest"], "size_gb": 7.0},
+}
+
+# Tools the wizard may open; QML never passes a raw command line
+TOOLS = {
+    "installer": ["sudo", "-E", "calamares"],
+    "audit": ["sec-status"],
+    "shortcuts": ["synapse-shortcuts"],
+    "settings": ["synapse-settings"],
+    "hud": ["synapse-hud"],
+}
 
 
 def find_chrome_logo():
-    """Find the authentic 3D liquid chrome master logo emblem from the boot sequence."""
+    """Find the liquid chrome logo used by the boot splash and greeter."""
     script_dir = Path(__file__).resolve().parent
     candidates = [
         script_dir / "synapse_chrome_logo.png",
         script_dir / "../synapse-plymouth/synapse_chrome_logo.png",
-        script_dir / "../../desktop/synapse-plymouth/synapse_chrome_logo.png",
-        script_dir / "chrome_poured_logo.png",
         Path("/usr/share/synapse-hud/synapse_chrome_logo.png"),
         Path("/usr/share/synapseos/branding/synapse_chrome_logo.png"),
-        Path("/usr/share/plymouth/themes/synapseos-mauve/synapse_chrome_logo.png"),
-        Path("/usr/share/plymouth/themes/synapseos/synapse_chrome_logo.png"),
-    ]
-    for c in candidates:
-        p = Path(c).resolve()
-        if p.is_file() and p.stat().st_size > 0:
-            return str(p)
-    return find_chrome_emblem()
-
-
-def find_chrome_spin():
-    """Find the pre-rendered 360-degree spinning chrome animation."""
-    script_dir = Path(__file__).resolve().parent
-    candidates = [
-        script_dir / "synapse_chrome_spin_360.gif",
-        script_dir / "synapse_chrome_spin_360.webp",
-        script_dir / "synapse_chrome_plate_spin_360.webp",
-        Path("/usr/share/synapse-hud/synapse_chrome_spin_360.gif"),
-        Path("/usr/share/synapse-hud/synapse_chrome_spin_360.webp"),
-        Path("/usr/share/synapse-hud/synapse_chrome_plate_spin_360.webp"),
+        script_dir / "master_plate_960.png",
+        Path("/usr/share/synapse-hud/master_plate_960.png"),
     ]
     for c in candidates:
         p = Path(c).resolve()
         if p.is_file() and p.stat().st_size > 0:
             return str(p)
     return ""
-
-
-def find_chrome_plate():
-    """Find the luxury 4D chamfered obsidian plate hero still."""
-    script_dir = Path(__file__).resolve().parent
-    candidates = [
-        script_dir / "synapse_chrome_plate_4d.png",
-        Path("/usr/share/synapse-hud/synapse_chrome_plate_4d.png"),
-        Path("/usr/share/synapseos/branding/synapse_chrome_plate_4d.png"),
-    ]
-    for c in candidates:
-        p = Path(c).resolve()
-        if p.is_file() and p.stat().st_size > 0:
-            return str(p)
-    return find_chrome_logo()
 
 
 def resolve_command_path(cmd_name: str) -> str:
@@ -113,13 +101,146 @@ def resolve_command_path(cmd_name: str) -> str:
         script_dir / cmd_name,
         script_dir.parent / "synapse-themes" / cmd_name,
         script_dir.parent / "synapse-hud" / cmd_name,
-        script_dir.parent / "synapse-greeter" / cmd_name,
-        script_dir.parent / "synapse-core" / cmd_name,
     ]
     for c in local_candidates:
         if c.is_file():
             return str(c)
     return cmd_name
+
+
+def wallpaper_path(variant: str) -> str:
+    name = f"synapse-{variant}.jpg"
+    for d in (WALLPAPER_DIR, Path(__file__).resolve().parent.parent / "synapse-themes"):
+        p = d / name
+        if p.is_file():
+            return str(p)
+    return ""
+
+
+def icon_path(theme: str, icon: str) -> str:
+    for d in (ICON_DIR, Path(__file__).resolve().parent / "icons"):
+        p = d / theme / "scalable" / "apps" / f"{icon}.svg"
+        if p.is_file() and p.stat().st_size > 0:
+            return str(p)
+    return ""
+
+
+def read_pref(name: str, allowed, default: str, dirs) -> str:
+    for d in dirs:
+        try:
+            v = Path(d, name).read_text().strip()
+            if v in allowed:
+                return v
+        except OSError:
+            pass
+    return default
+
+
+def username_from_name(name: str) -> str:
+    first = re.sub(r"[^a-z0-9]", "", (name.strip().split() or [""])[0].lower())
+    if first and not first[0].isalpha():
+        first = "u" + first
+    return first[:32]
+
+
+def account_errors(full_name: str, username: str, password: str, confirm: str, hostname: str) -> dict:
+    """Field -> message for everything wrong with the account form (empty when valid)."""
+    errors = {}
+    if any(c in full_name for c in ":,\n"):
+        errors["fullName"] = "Your name can't contain commas or colons."
+    if not username:
+        errors["username"] = "Pick a username."
+    elif not USERNAME_RE.match(username):
+        errors["username"] = "Use lowercase letters, digits, - or _, starting with a letter."
+    elif username in RESERVED_USERS:
+        errors["username"] = "That name is reserved by the system."
+    else:
+        try:
+            pwd.getpwnam(username)
+            errors["username"] = "That username is already taken."
+        except KeyError:
+            pass
+    if len(password) < 6:
+        errors["password"] = "Use at least 6 characters."
+    elif confirm != password:
+        errors["confirm"] = "The passwords don't match."
+    if not HOSTNAME_RE.match(hostname):
+        errors["hostname"] = "Letters, digits and dashes only."
+    return errors
+
+
+def total_ram_gb() -> float:
+    try:
+        with open("/proc/meminfo", encoding="utf-8") as f:
+            for line in f:
+                if line.startswith("MemTotal:"):
+                    return int(line.split()[1]) / (1024 * 1024)
+    except OSError:
+        pass
+    return 0.0
+
+
+def display_name() -> str:
+    user = os.environ.get("USER", "")
+    try:
+        import pwd
+        gecos = pwd.getpwnam(user).pw_gecos.split(",")[0].strip()
+        if gecos:
+            return gecos.split()[0]
+    except (KeyError, ImportError):
+        pass
+    return user or "there"
+
+
+def file_contains(path: str, *needles: str) -> bool:
+    try:
+        text = Path(path).read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return False
+    return all(n in text for n in needles)
+
+
+def unit_active(unit: str) -> bool:
+    if not shutil.which("systemctl"):
+        return False
+    try:
+        return subprocess.run(["systemctl", "is-active", "--quiet", unit], timeout=3).returncode == 0
+    except (OSError, subprocess.TimeoutExpired):
+        return False
+
+
+def security_checks() -> list:
+    """Read the actual protection state; mirrors the checks in sec-status."""
+    firewall = unit_active("firewalld")
+    dot = file_contains("/etc/systemd/resolved.conf.d/quad9-dot.conf", "9.9.9.9", "DNSOverTLS=yes")
+    mac = file_contains("/etc/NetworkManager/conf.d/00-synapseos-stealth.conf",
+                        "wifi.scan-rand-mac-address=yes", "wifi.cloned-mac-address=random")
+    ipv6 = file_contains("/etc/NetworkManager/conf.d/00-synapseos-stealth.conf", "ipv6.ip6-privacy=2") \
+        or file_contains("/etc/sysctl.d/99-synapseos.conf", "use_tempaddr = 2")
+    return [
+        {"label": "Firewall", "ok": firewall,
+         "detail": "firewalld is running and drops unsolicited incoming traffic." if firewall
+                   else "firewalld is not running. Open the audit for details."},
+        {"label": "Encrypted DNS", "ok": dot,
+         "detail": "DNS lookups go to Quad9 over TLS (port 853)." if dot
+                   else "DNS-over-TLS config not found; lookups may be unencrypted."},
+        {"label": "MAC randomization", "ok": mac,
+         "detail": "Wi-Fi scans and connections use a random hardware address." if mac
+                   else "MAC randomization config not found."},
+        {"label": "IPv6 privacy addresses", "ok": ipv6,
+         "detail": "Temporary IPv6 addresses (RFC 4941) are preferred." if ipv6
+                   else "IPv6 privacy extensions not configured."},
+        {"label": "No telemetry", "ok": True,
+         "detail": "SynapseOS ships no usage reporting. The AI assistant only goes online if you pick a cloud engine."},
+    ]
+
+
+def write_private(path: str, content: str):
+    """Write a file readable only by the owner (API keys)."""
+    fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+    with os.fdopen(fd, "w", encoding="utf-8") as f:
+        f.write(content)
+    os.chmod(path, 0o600)
 
 
 def update_gtk_settings(settings_path: str, icon_theme: str):
@@ -160,92 +281,273 @@ def update_gtk_settings(settings_path: str, icon_theme: str):
         f.writelines(lines)
 
 
+def check_claude_key(api_key: str) -> tuple:
+    """Validate a key with a model lookup (no tokens spent). Returns (ok, message)."""
+    req = urllib.request.Request(
+        f"https://api.anthropic.com/v1/models/{CLAUDE_MODEL}",
+        headers={"x-api-key": api_key, "anthropic-version": "2023-06-01"},
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=8) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+            return True, f"Key works. {data.get('display_name', CLAUDE_MODEL)} is available."
+    except urllib.error.HTTPError as e:
+        if e.code in (401, 403):
+            return False, "The key was rejected. Check it was copied in full."
+        if e.code == 404:
+            return False, f"The key works but this account can't use {CLAUDE_MODEL}."
+        return False, f"Anthropic returned HTTP {e.code}. Try again in a moment."
+    except (urllib.error.URLError, socket.timeout, OSError):
+        return False, "Couldn't reach api.anthropic.com. Check your network connection."
+
+
 class WelcomeBackend(QObject):
     stateChanged = pyqtSignal()
-    claudeResponseChanged = pyqtSignal()
+    keyTestChanged = pyqtSignal()
+    finished = pyqtSignal()
+    _keyResult = pyqtSignal(bool, str)
+    accountChanged = pyqtSignal()
+    applyChanged = pyqtSignal()
+    _applyResult = pyqtSignal(bool, str)
 
-    def __init__(self, app, parent=None):
+    def __init__(self, app, parent=None, oobe=False):
         super().__init__(parent)
         self.app = app
-        self._chrome_path = find_chrome_emblem()
+        self._is_oobe = oobe
+        self._is_live = os.path.exists(LIVE_MARKER) and not oobe
         self._chrome_logo_path = find_chrome_logo()
-        self._chrome_spin_path = find_chrome_spin()
-        self._chrome_plate_path = find_chrome_plate()
         self._operator = os.environ.get("USER", "operator")
+        self._display_name = display_name()
         try:
-            self._hostname = socket.gethostname() or "synapse-deck"
+            self._hostname = socket.gethostname() or "synapse"
         except Exception:
-            self._hostname = "synapse-deck"
+            self._hostname = "synapse"
+        self._ram_gb = total_ram_gb()
+        self._reduce_motion = os.environ.get("SYNAPSE_REDUCE_MOTION", "") not in ("", "0")
 
-        self._ai_engine = "claude"
+        pref_dirs = [OOBE_SEED_DIR] if oobe else [CONFIG_DIR]
+        self._original_variant = read_pref("theme", VARIANTS, DEFAULT_VARIANT, pref_dirs)
+        self._variant = self._original_variant
+        self._icon_theme = read_pref("icon_theme", ICON_THEMES, "Synapse-Liquid-Chrome", pref_dirs)
+
+        # First-boot account form
+        self._full_name = ""
+        self._username = ""
+        self._username_edited = False
+        self._password = ""
+        self._confirm = ""
+        self._new_hostname = "synapse"
+        self._hostname_edited = False
+        self._apply_state = "idle"   # idle | working | done | error
+        self._apply_message = ""
+
+        # Local-first: nothing leaves the device unless the user picks the cloud engine
+        self._ai_engine = "local"
+        self._model_tier = "standard" if self._ram_gb >= 12 else "light"
+        self._download_models = not self._is_live
         self._claude_key = ""
-        self._claude_model = "claude-3-7-sonnet-20250219"
-        self._claude_response = "Ready. Enter prompt above and click 'Query Claude' to test live communication."
+        self._key_state = "idle"   # idle | testing | ok | error
+        self._key_message = ""
+        self._security = security_checks()
 
-        self._combos = {
-            "stealth": True,
-            "dot": True,
-            "firewall": True,
-            "mem_scrub": True,
-            "ollama": True,
-            "vector_mem": True,
-            "gpu_tensor": True,
-            "bore": True,
-            "zram": True,
-            "audio_rt": True,
-            "wayland": True,
-            "hotkey_hud": True
-        }
-        self._selected_icon_theme = "Synapse-Liquid-Chrome"
-        self._selected_wallpaper = "monolith-mauve"
-        self._selected_screensaver = "unified"
+        self._keyResult.connect(self._on_key_result)
+        self._applyResult.connect(self._on_apply_result)
 
-    # Properties exposed to QML
-    @pyqtProperty(str, notify=stateChanged)
-    def chromeEmblemPath(self):
-        return self._chrome_path
+    # ---- Identity & environment ----
+    @pyqtProperty(bool, constant=True)
+    def isLive(self):
+        return self._is_live
 
-    @pyqtProperty(str, notify=stateChanged)
+    @pyqtProperty(bool, constant=True)
+    def isOobe(self):
+        return self._is_oobe
+
+    # ---- First-boot account ----
+    @pyqtProperty(str, notify=accountChanged)
+    def fullName(self):
+        return self._full_name
+
+    @fullName.setter
+    def fullName(self, val):
+        if val != self._full_name:
+            self._full_name = val
+            if not self._username_edited:
+                self._username = username_from_name(val)
+            if not self._hostname_edited and self._username:
+                self._new_hostname = f"{self._username}-synapse"[:63]
+            self.accountChanged.emit()
+
+    @pyqtProperty(str, notify=accountChanged)
+    def username(self):
+        return self._username
+
+    @username.setter
+    def username(self, val):
+        if val != self._username:
+            self._username = val
+            self._username_edited = val != ""
+            self.accountChanged.emit()
+
+    @pyqtProperty(str, notify=accountChanged)
+    def password(self):
+        return self._password
+
+    @password.setter
+    def password(self, val):
+        if val != self._password:
+            self._password = val
+            self.accountChanged.emit()
+
+    @pyqtProperty(str, notify=accountChanged)
+    def passwordConfirm(self):
+        return self._confirm
+
+    @passwordConfirm.setter
+    def passwordConfirm(self, val):
+        if val != self._confirm:
+            self._confirm = val
+            self.accountChanged.emit()
+
+    @pyqtProperty(str, notify=accountChanged)
+    def newHostname(self):
+        return self._new_hostname
+
+    @newHostname.setter
+    def newHostname(self, val):
+        if val != self._new_hostname:
+            self._new_hostname = val
+            self._hostname_edited = True
+            self.accountChanged.emit()
+
+    @pyqtProperty("QVariantMap", notify=accountChanged)
+    def accountErrors(self):
+        return account_errors(self._full_name, self._username, self._password, self._confirm, self._new_hostname)
+
+    @pyqtProperty(str, notify=applyChanged)
+    def applyState(self):
+        return self._apply_state
+
+    @pyqtProperty(str, notify=applyChanged)
+    def applyMessage(self):
+        return self._apply_message
+
+    @pyqtProperty(bool, constant=True)
+    def reduceMotion(self):
+        return self._reduce_motion
+
+    @pyqtProperty(str, constant=True)
     def chromeLogoPath(self):
         return self._chrome_logo_path
 
-    @pyqtProperty(str, notify=stateChanged)
-    def chromeSpinPath(self):
-        return self._chrome_spin_path
-
-    @pyqtProperty(str, notify=stateChanged)
-    def chromePlatePath(self):
-        return self._chrome_plate_path
-
-    @pyqtProperty(str, notify=stateChanged)
+    @pyqtProperty(str, constant=True)
     def operator(self):
         return self._operator
 
-    @operator.setter
-    def operator(self, val):
-        if self._operator != val:
-            self._operator = val
-            self.stateChanged.emit()
+    @pyqtProperty(str, constant=True)
+    def displayName(self):
+        return self._display_name
 
-    @pyqtProperty(str, notify=stateChanged)
+    @pyqtProperty(str, constant=True)
     def hostname(self):
         return self._hostname
 
-    @hostname.setter
-    def hostname(self, val):
-        if self._hostname != val:
-            self._hostname = val
+    @pyqtProperty(float, constant=True)
+    def ramGb(self):
+        return round(self._ram_gb, 1)
+
+    @pyqtProperty("QVariantList", constant=True)
+    def securityChecks(self):
+        return self._security
+
+    # ---- Appearance ----
+    @pyqtProperty(str, notify=stateChanged)
+    def variant(self):
+        return self._variant
+
+    @pyqtProperty(str, notify=stateChanged)
+    def scene(self):
+        return self._variant.split("-")[0]
+
+    @pyqtProperty(str, notify=stateChanged)
+    def accentName(self):
+        return self._variant.split("-")[1]
+
+    @pyqtSlot(str, str, result=bool)
+    def variantExists(self, scene, accent):
+        return f"{scene}-{accent}" in VARIANTS
+
+    @pyqtSlot(str, result=str)
+    def wallpaperUrl(self, variant):
+        p = wallpaper_path(variant)
+        return QUrl.fromLocalFile(p).toString() if p else ""
+
+    @pyqtSlot(str, str)
+    def chooseVariant(self, scene, accent):
+        v = f"{scene}-{accent}"
+        if v not in VARIANTS:
+            # Keep the scene, fall back to its first available accent
+            v = next(f"{scene}-{a}" for a in ACCENTS if f"{scene}-{a}" in VARIANTS)
+        if v != self._variant:
+            self._variant = v
+            self._preview_wallpaper(v)
+            self.stateChanged.emit()
+
+    @pyqtProperty("QStringList", constant=True)
+    def iconThemes(self):
+        return ICON_THEMES
+
+    @pyqtProperty(str, notify=stateChanged)
+    def iconTheme(self):
+        return self._icon_theme
+
+    @iconTheme.setter
+    def iconTheme(self, val):
+        if val in ICON_THEMES and val != self._icon_theme:
+            self._icon_theme = val
+            self.stateChanged.emit()
+
+    @pyqtSlot(str, result="QStringList")
+    def iconSamples(self, theme):
+        return [QUrl.fromLocalFile(p).toString() for p in (icon_path(theme, i) for i in ICON_SAMPLES) if p]
+
+    # ---- AI assistant ----
+    @pyqtProperty(str, notify=stateChanged)
+    def aiEngine(self):
+        return self._ai_engine
+
+    @aiEngine.setter
+    def aiEngine(self, val):
+        if val in ("local", "claude", "none") and val != self._ai_engine:
+            self._ai_engine = val
             self.stateChanged.emit()
 
     @pyqtProperty(str, notify=stateChanged)
-    def selectedAiEngine(self):
-        return self._ai_engine
+    def modelTier(self):
+        return self._model_tier
 
-    @selectedAiEngine.setter
-    def selectedAiEngine(self, val):
-        if self._ai_engine != val:
-            self._ai_engine = val
+    @modelTier.setter
+    def modelTier(self, val):
+        if val in MODEL_TIERS and val != self._model_tier:
+            self._model_tier = val
             self.stateChanged.emit()
+
+    @pyqtSlot(str, result=float)
+    def tierSizeGb(self, tier):
+        return MODEL_TIERS.get(tier, {}).get("size_gb", 0.0)
+
+    @pyqtProperty(bool, notify=stateChanged)
+    def downloadModels(self):
+        return self._download_models
+
+    @downloadModels.setter
+    def downloadModels(self, val):
+        if bool(val) != self._download_models:
+            self._download_models = bool(val)
+            self.stateChanged.emit()
+
+    @pyqtProperty(str, constant=True)
+    def claudeModel(self):
+        return CLAUDE_MODEL
 
     @pyqtProperty(str, notify=stateChanged)
     def claudeApiKey(self):
@@ -253,224 +555,240 @@ class WelcomeBackend(QObject):
 
     @claudeApiKey.setter
     def claudeApiKey(self, val):
-        if self._claude_key != val:
+        val = val.strip()
+        if val != self._claude_key:
             self._claude_key = val
+            self._key_state, self._key_message = "idle", ""
             self.stateChanged.emit()
+            self.keyTestChanged.emit()
 
-    @pyqtProperty(str, notify=stateChanged)
-    def claudeModel(self):
-        return self._claude_model
+    @pyqtProperty(str, notify=keyTestChanged)
+    def keyTestState(self):
+        return self._key_state
 
-    @claudeModel.setter
-    def claudeModel(self, val):
-        if self._claude_model != val:
-            self._claude_model = val
-            self.stateChanged.emit()
-
-    @pyqtProperty(str, notify=claudeResponseChanged)
-    def claudeTestResponse(self):
-        return self._claude_response
-
-    @pyqtProperty("QVariantMap", notify=stateChanged)
-    def combos(self):
-        return self._combos
-
-    @pyqtProperty(str, notify=stateChanged)
-    def selectedIconTheme(self):
-        return self._selected_icon_theme
-
-    @selectedIconTheme.setter
-    def selectedIconTheme(self, val):
-        if self._selected_icon_theme != val:
-            self._selected_icon_theme = val
-            self.stateChanged.emit()
-
-    @pyqtProperty(str, notify=stateChanged)
-    def selectedWallpaper(self):
-        return self._selected_wallpaper
-
-    @selectedWallpaper.setter
-    def selectedWallpaper(self, val):
-        if self._selected_wallpaper != val:
-            self._selected_wallpaper = val
-            self.stateChanged.emit()
-
-    # Slots
-    @pyqtSlot(str)
-    def toggleCombo(self, key):
-        if key in self._combos:
-            self._combos[key] = not self._combos[key]
-            self.stateChanged.emit()
-
-    @pyqtSlot(str, str, str)
-    def testClaudeQuery(self, prompt, api_key, model):
-        """Execute a live test query to Claude API or Local AI model."""
-        prompt = prompt.strip() or "Verify cyberdeck defense status and telemetry readiness."
-        api_key = api_key.strip()
-        model = model.strip() or "claude-3-7-sonnet-20250219"
-
-        if api_key.startswith("sk-ant"):
-            try:
-                # Live query to Anthropic Messages API
-                url = "https://api.anthropic.com/v1/messages"
-                headers = {
-                    "x-api-key": api_key,
-                    "anthropic-version": "2023-06-01",
-                    "content-type": "application/json"
-                }
-                payload = {
-                    "model": model,
-                    "max_tokens": 128,
-                    "messages": [{"role": "user", "content": prompt}]
-                }
-                req = urllib.request.Request(url, data=json.dumps(payload).encode("utf-8"), headers=headers, method="POST")
-                with urllib.request.urlopen(req, timeout=8) as resp:
-                    data = json.loads(resp.read().decode("utf-8"))
-                    text = data.get("content", [{}])[0].get("text", "Handshake succeeded.")
-                    self._claude_response = f"[Claude 3.7 Online]: {text.strip()}"
-                    self.claudeResponseChanged.emit()
-                    return
-            except Exception as e:
-                self._claude_response = f"[Anthropic Link Error]: {str(e)} (Key saved for session)"
-                self.claudeResponseChanged.emit()
-                return
-
-        # Fallback to local Ollama or high-signal cyberdeck simulation
-        try:
-            req = urllib.request.Request("http://127.0.0.1:11434/api/tags")
-            with urllib.request.urlopen(req, timeout=1.5) as resp:
-                data = json.loads(resp.read().decode("utf-8"))
-                models = [m.get("name") for m in data.get("models", [])]
-                self._claude_response = f"[Local Ollama Active]: Model weights detected: {', '.join(models) or 'Ready'}. Local copilot primed on :11434."
-                self.claudeResponseChanged.emit()
-                return
-        except Exception:
-            pass
-
-        # Standby Verification
-        self._claude_response = f"[Neural Gate Handshake OK]: Directive logged for operator '{self._operator}'. Model: {model}. Prime Directive stealth active."
-        self.claudeResponseChanged.emit()
-
-    @pyqtSlot(str)
-    def launchCmd(self, cmd_str):
-        env = os.environ.copy()
-        script_dir = Path(__file__).resolve().parent
-        theme_dir = script_dir.parent / "synapse-themes"
-        core_dir = script_dir.parent.parent / "core" / "synapse-core"
-        local_bin = Path.home() / ".local/bin"
-        path_elements = [str(local_bin), str(script_dir), str(theme_dir), str(core_dir), "/usr/local/bin", "/usr/bin", "/bin"]
-        env["PATH"] = ":".join(path_elements) + ":" + env.get("PATH", "")
-        if "DISPLAY" not in env:
-            env["DISPLAY"] = ":0"
-        if "WAYLAND_DISPLAY" not in env:
-            env["WAYLAND_DISPLAY"] = "wayland-0"
-        env["QT_QUICK_BACKEND"] = "software"
-
-        try:
-            parts = cmd_str.split()
-            if parts:
-                exe = resolve_command_path(parts[0])
-                full_cmd = [exe] + parts[1:]
-                subprocess.Popen(full_cmd, env=env, start_new_session=True)
-            else:
-                subprocess.Popen(["bash", "-c", cmd_str], env=env, start_new_session=True)
-        except Exception:
-            try:
-                subprocess.Popen(["bash", "-c", cmd_str], env=env, start_new_session=True)
-            except Exception:
-                pass
+    @pyqtProperty(str, notify=keyTestChanged)
+    def keyTestMessage(self):
+        return self._key_message
 
     @pyqtSlot()
-    def applyAndFinish(self):
-        os.makedirs(CONFIG_DIR, exist_ok=True)
+    def testClaudeKey(self):
+        if not self._claude_key:
+            self._key_state, self._key_message = "error", "Paste an API key first."
+            self.keyTestChanged.emit()
+            return
+        if self._key_state == "testing":
+            return
+        self._key_state, self._key_message = "testing", "Checking key with Anthropic…"
+        self.keyTestChanged.emit()
+        key = self._claude_key
+        threading.Thread(target=lambda: self._keyResult.emit(*check_claude_key(key)), daemon=True).start()
 
-        # 1. Save Full Operator Profile, Claude config, and Feature Combos
+    def _on_key_result(self, ok, message):
+        self._key_state = "ok" if ok else "error"
+        self._key_message = message
+        self.keyTestChanged.emit()
+
+    # ---- Actions ----
+    @pyqtSlot(str)
+    def openTool(self, name):
+        cmd = TOOLS.get(name)
+        if not cmd:
+            return
         try:
-            profile = {
-                "operator": self._operator,
-                "hostname": self._hostname,
-                "ai_engine": self._ai_engine,
-                "claude_model": self._claude_model,
-                "has_claude_key": bool(self._claude_key),
-                "feature_combos": self._combos,
-                "icon_theme": self._selected_icon_theme,
-                "wallpaper_variant": self._selected_wallpaper,
-                "screensaver_mode": "unified"
-            }
+            subprocess.Popen([resolve_command_path(cmd[0])] + cmd[1:], start_new_session=True)
+        except OSError:
+            pass
+
+    @pyqtSlot()
+    def startInstaller(self):
+        """Hand over to Calamares. Live choices so far are kept and migrated on install."""
+        self._save_profile()
+        self._apply_appearance()
+        self.openTool("installer")
+        self._quit()
+
+    @pyqtSlot()
+    def skip(self):
+        """Leave without applying anything; restore the wallpaper if it was previewed."""
+        if self._variant != self._original_variant:
+            self._preview_wallpaper(self._original_variant)
+        self._mark_complete("skipped")
+        self._quit()
+
+    @pyqtSlot()
+    def finish(self):
+        if self._is_oobe:
+            self._finish_oobe()
+            return
+        os.makedirs(CONFIG_DIR, exist_ok=True)
+        self._save_profile()
+        self._apply_appearance()
+        self._apply_ai()
+        self._mark_complete("completed")
+        self._quit()
+
+    # ---- First boot ----
+    def oobe_request(self) -> dict:
+        local = self._ai_engine == "local" and self._download_models
+        return {
+            "full_name": self._full_name.strip(),
+            "username": self._username,
+            "password": self._password,
+            "hostname": self._new_hostname,
+            "variant": self._variant,
+            "icon_theme": self._icon_theme,
+            "ai_engine": self._ai_engine,
+            "ai_models": MODEL_TIERS[self._model_tier]["models"] if local else [],
+            "anthropic_key": self._claude_key if self._ai_engine == "claude" else "",
+            "profile": {
+                "claude_model": CLAUDE_MODEL if self._ai_engine == "claude" else "",
+                "local_model_tier": self._model_tier if self._ai_engine == "local" else "",
+            },
+        }
+
+    def _finish_oobe(self):
+        if self._apply_state in ("working", "done"):
+            return
+        errors = self.accountErrors
+        if errors:
+            self._apply_state, self._apply_message = "error", next(iter(errors.values()))
+            self.applyChanged.emit()
+            return
+        self._apply_state, self._apply_message = "working", "Creating your account…"
+        self.applyChanged.emit()
+        payload = json.dumps(self.oobe_request())
+        threading.Thread(target=lambda: self._applyResult.emit(*self._run_helper(payload)), daemon=True).start()
+
+    @staticmethod
+    def _run_helper(payload: str) -> tuple:
+        try:
+            proc = subprocess.run(["sudo", "-n", OOBE_HELPER], input=payload, text=True,
+                                  capture_output=True, timeout=120)
+            out = proc.stdout.strip()
+            result = json.loads(out.splitlines()[-1]) if out else {}
+        except (OSError, subprocess.TimeoutExpired, ValueError, IndexError):
+            return False, "Setup couldn't run its system helper. Restart the computer to try again."
+        if result.get("ok"):
+            return True, "Account created. Taking you to the login screen…"
+        return False, result.get("error") or "Setup failed. Restart the computer to try again."
+
+    def _on_apply_result(self, ok, message):
+        self._apply_state = "done" if ok else "error"
+        self._apply_message = message
+        if ok:
+            # Don't keep the password in memory longer than needed
+            self._password = self._confirm = ""
+        self.applyChanged.emit()
+
+    # ---- Internals ----
+    def _quit(self):
+        self.finished.emit()
+        self.app.quit()
+
+    def _preview_wallpaper(self, variant):
+        """Swap the wallpaper behind the wizard without persisting anything."""
+        image = wallpaper_path(variant)
+        if self._is_oobe:
+            return  # the full-screen wizard paints the wallpaper itself
+        if image and os.environ.get("SWAYSOCK") and shutil.which("swaymsg"):
+            try:
+                subprocess.Popen(["swaymsg", "-q", "output", "*", "bg", image, "fill"])
+            except OSError:
+                pass
+
+    def _save_profile(self):
+        os.makedirs(CONFIG_DIR, exist_ok=True)
+        profile = {
+            "operator": self._operator,
+            "hostname": self._hostname,
+            "ai_engine": self._ai_engine,
+            "claude_model": CLAUDE_MODEL if self._ai_engine == "claude" else "",
+            "local_model_tier": self._model_tier if self._ai_engine == "local" else "",
+            "icon_theme": self._icon_theme,
+            "wallpaper_variant": self._variant,
+            "screensaver_mode": "unified",
+        }
+        try:
             with open(os.path.join(CONFIG_DIR, "operator_profile.json"), "w", encoding="utf-8") as f:
                 json.dump(profile, f, indent=2)
             with open(os.path.join(CONFIG_DIR, "operator"), "w", encoding="utf-8") as f:
                 f.write(self._operator + "\n")
-
-            if self._claude_key:
-                with open(os.path.join(CONFIG_DIR, "anthropic_key"), "w", encoding="utf-8") as f:
-                    f.write(self._claude_key + "\n")
-        except Exception:
+            with open(os.path.join(CONFIG_DIR, "screensaver_mode"), "w", encoding="utf-8") as f:
+                f.write("unified\n")
+        except OSError:
             pass
 
-        # 2. Apply Metallic Icon Theme (GTK / XFCE / GNOME)
+    def _apply_appearance(self):
         try:
-            subprocess.run([
-                "xfconf-query", "-c", "xsettings", "-p", "/Net/IconThemeName", "-s", self._selected_icon_theme
-            ], check=False)
-            with open(os.path.join(CONFIG_DIR, "icon_theme"), "w") as f:
-                f.write(self._selected_icon_theme + "\n")
+            subprocess.Popen([resolve_command_path("synapse-theme"), self._variant], start_new_session=True)
+        except OSError:
+            pass
 
-            gtk3_file = os.path.expanduser("~/.config/gtk-3.0/settings.ini")
-            gtk4_file = os.path.expanduser("~/.config/gtk-4.0/settings.ini")
-            for gtk_file in (gtk3_file, gtk4_file):
+        try:
+            with open(os.path.join(CONFIG_DIR, "icon_theme"), "w", encoding="utf-8") as f:
+                f.write(self._icon_theme + "\n")
+        except OSError:
+            pass
+        for gtk_file in ("~/.config/gtk-3.0/settings.ini", "~/.config/gtk-4.0/settings.ini"):
+            try:
+                update_gtk_settings(os.path.expanduser(gtk_file), self._icon_theme)
+            except OSError:
+                pass
+        for cmd in (["xfconf-query", "-c", "xsettings", "-p", "/Net/IconThemeName", "-s", self._icon_theme],
+                    ["gsettings", "set", "org.gnome.desktop.interface", "icon-theme", self._icon_theme]):
+            if shutil.which(cmd[0]):
                 try:
-                    update_gtk_settings(gtk_file, self._selected_icon_theme)
-                except Exception:
+                    subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                except OSError:
                     pass
 
-            if shutil.which("gsettings"):
-                subprocess.run([
-                    "gsettings", "set", "org.gnome.desktop.interface", "icon-theme", self._selected_icon_theme
-                ], check=False)
-        except Exception:
-            pass
-
-        # 3. Apply Wallpaper & Accent
+    def _apply_ai(self):
+        key_file = os.path.join(CONFIG_DIR, "anthropic_key")
         try:
-            subprocess.run(["synapse-theme", self._selected_wallpaper], check=False)
-        except Exception:
+            if self._ai_engine == "claude" and self._claude_key:
+                write_private(key_file, self._claude_key + "\n")
+            elif os.path.exists(key_file):
+                os.remove(key_file)
+        except OSError:
             pass
 
-        # 4. Save Screensaver Preference
+        if self._ai_engine == "local" and self._download_models and not self._is_live:
+            try:
+                with open(AI_MODELS_FILE, "w", encoding="utf-8") as f:
+                    f.write("\n".join(MODEL_TIERS[self._model_tier]["models"]) + "\n")
+                # Runs in the background with desktop notifications; resumes on next login if interrupted
+                subprocess.Popen([resolve_command_path("synapse-setup"), "--first-boot"],
+                                 stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                                 start_new_session=True)
+            except OSError:
+                pass
+        elif os.path.exists(AI_MODELS_FILE):
+            try:
+                os.remove(AI_MODELS_FILE)
+            except OSError:
+                pass
+
+    def _mark_complete(self, state):
+        # Live sessions run from RAM and the live user is deleted on install, so the flag
+        # never blocks the installed system's own first run unless Calamares migrates it.
         try:
-            with open(os.path.join(CONFIG_DIR, "screensaver_mode"), "w") as f:
-                f.write("unified\n")
-        except Exception:
+            os.makedirs(CONFIG_DIR, exist_ok=True)
+            with open(ONBOARDING_FLAG, "w", encoding="utf-8") as f:
+                f.write(state + "\n")
+        except OSError:
             pass
-
-        # 5. Mark Onboarding Complete
-        try:
-            with open(ONBOARDING_FLAG, "w") as f:
-                f.write("completed\n")
-        except Exception:
-            pass
-
-        # 6. Launch Command HUD Cockpit
-        try:
-            hud_exe = resolve_command_path("synapse-hud")
-            subprocess.Popen([hud_exe], start_new_session=True)
-        except Exception:
-            pass
-
-        self.app.quit()
 
 
 def main():
-    if "--autostart" in sys.argv:
-        if os.path.exists(ONBOARDING_FLAG):
-            sys.exit(0)
+    oobe = "--oobe" in sys.argv
+    if "--autostart" in sys.argv and os.path.exists(ONBOARDING_FLAG):
+        sys.exit(0)
 
     app = QGuiApplication(sys.argv)
     app.setDesktopFileName("synapse-welcome")
     engine = QQmlApplicationEngine()
 
-    backend = WelcomeBackend(app)
+    backend = WelcomeBackend(app, oobe=oobe)
     engine.rootContext().setContextProperty("backend", backend)
 
     script_dir = Path(__file__).resolve().parent

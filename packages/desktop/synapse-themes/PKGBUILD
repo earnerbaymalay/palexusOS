@@ -33,7 +33,7 @@ source=(
   'synapse-tower-sapphire.jpg'
   'synapse-tower-tungsten.jpg'
 )
-sha256sums=('5beab0bd863d9c653c76143505c96c2eeb61a8c0f9117cd30b0c7fdd78136ad5'
+sha256sums=('80ea8f2d5d80fd1888c67f48eb587e85bde69bde58461362dfc08cd4297a9284'
             '2552879115ebd5e719c463a307aa88166d2ad555c1d92fbe318b338af367865d'
             '3edb549f83489e57d50dd0c0fed2ec09675459621848d7a50f09822b2986be10'
             '72456c7558db818fb155071c4686e83e1f03f97aa1de6826ac9eec2f943893a2'

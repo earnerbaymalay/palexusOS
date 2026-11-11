@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# synapse-oobe-session — SDDM autologin session for first-boot setup.
+# A bare sway with nothing but the full-screen setup wizard; ends when the wizard exits.
+set -u
+
+# Sway ignores the X11 keyboard config Calamares wrote; reuse it so the password is typed in the right layout
+kbd=/etc/X11/xorg.conf.d/00-keyboard.conf
+if [[ -f $kbd ]]; then
+    layout=$(awk '/XkbLayout/ {gsub(/"/, "", $3); print $3}' "$kbd")
+    variant=$(awk '/XkbVariant/ {gsub(/"/, "", $3); print $3}' "$kbd")
+    [[ -n $layout ]] && export XKB_DEFAULT_LAYOUT=$layout
+    [[ -n $variant ]] && export XKB_DEFAULT_VARIANT=$variant
+fi
+
+export QT_QPA_PLATFORM=wayland
+exec sway --config /usr/share/synapse-hud/oobe-sway.conf

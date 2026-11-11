@@ -1,54 +1,57 @@
 # Maintainer: SynapseOS Engineering Team <maintainers@synapseos.org>
 pkgname=synapse-plymouth
-pkgver=0.1.0
-pkgrel=4
-pkgdesc="SynapseOS Plymouth boot splash: authentic 3D embossed liquid chrome emblem, one theme per accent"
+pkgver=0.2.0
+pkgrel=2
+install=synapse-plymouth.install
+pkgdesc="SynapseOS Plymouth boot splash: the official SynapseOS boot animation"
 arch=('any')
 url="https://github.com/earnerbaymalay/synapseOS"
 license=('MIT')
 depends=('plymouth')
-makedepends=('python' 'python-pillow' 'python-numpy')
-source=('render_frames.py' 'synapseos.script.in' 'master_plate_960.png')
+makedepends=('ffmpeg')
+source=('synapse-boot.mp4' 'synapseos.script.in' '95-synapse-plymouth.hook')
 sha256sums=('SKIP' 'SKIP' 'SKIP')
 
-_accents=(
-  'mauve:cba6f7:Mauve'
-  'tungsten:fab387:Tungsten'
-  'crimson:f38ba8:Crimson'
-  'sapphire:74c7ec:Sapphire'
-  'emerald:a6e3a1:Emerald'
-)
+# The frames end up in the initramfs, so keep the sequence small:
+# 720x405 (Plymouth scales it to fit), 128-colour palette PNG (the footage is
+# mostly near-black chrome plus one purple; ~22 MB vs 127 MB for RGB), and
+# 50/3 fps so each frame spans exactly 3 of Plymouth's 50 Hz refresh ticks.
+# Playback keeps the video's real 10 s duration.
+_width=720
+_height=405
+_ticks=3
 
 build() {
-  local entry name hex
-  for entry in "${_accents[@]}"; do
-    IFS=: read -r name hex _ <<< "$entry"
-    python3 render_frames.py "themes/synapseos-$name" "$hex"
-  done
+  rm -rf frames
+  mkdir frames
+  ffmpeg -v error -i synapse-boot.mp4 -an \
+    -filter_complex "fps=50/${_ticks},scale=${_width}:${_height}:flags=lanczos,split[a][b];[a]palettegen=max_colors=128:stats_mode=full[p];[b][p]paletteuse=dither=sierra2_4a" \
+    -pix_fmt pal8 -compression_level 9 -start_number 0 frames/frame-%04d.png
+  # Full-colour last frame, held on screen until the login screen appears
+  ffmpeg -v error -sseof -0.5 -i synapse-boot.mp4 -an \
+    -vf "scale=${_width}:${_height}:flags=lanczos" -update 1 -compression_level 9 frames/final.png
 }
 
 package() {
-  local entry name hex label dir frames
-  for entry in "${_accents[@]}"; do
-    IFS=: read -r name hex label <<< "$entry"
-    dir="$pkgdir/usr/share/plymouth/themes/synapseos-$name"
-    install -dm755 "$dir"
-    install -m644 "themes/synapseos-$name"/*.png "$dir/"
-    frames=$(find "themes/synapseos-$name" -name 'frame-*.png' | wc -l)
-    sed -e "s/@FRAMES@/$frames/" \
-        -e "s/@ACCENT_R@/$(awk -v v=$(( 16#${hex:0:2} )) 'BEGIN{printf "%.3f", v/255}')/" \
-        -e "s/@ACCENT_G@/$(awk -v v=$(( 16#${hex:2:2} )) 'BEGIN{printf "%.3f", v/255}')/" \
-        -e "s/@ACCENT_B@/$(awk -v v=$(( 16#${hex:4:2} )) 'BEGIN{printf "%.3f", v/255}')/" \
-        synapseos.script.in > "$dir/synapseos.script"
-    cat > "$dir/synapseos-$name.plymouth" << PLY
+  install -Dm644 95-synapse-plymouth.hook "$pkgdir/usr/share/libalpm/hooks/95-synapse-plymouth.hook"
+  local dir="$pkgdir/usr/share/plymouth/themes/synapseos"
+  local frames
+  install -dm755 "$dir"
+  install -m644 frames/*.png "$dir/"
+  frames=$(find frames -name 'frame-*.png' | wc -l)
+  sed -e "s/@FRAMES@/$frames/" \
+      -e "s/@TICKS@/${_ticks}/" \
+      -e "s/@WIDTH@/${_width}/" \
+      -e "s/@HEIGHT@/${_height}/" \
+      synapseos.script.in > "$dir/synapseos.script"
+  cat > "$dir/synapseos.plymouth" << PLY
 [Plymouth Theme]
-Name=SynapseOS ($label)
-Description=Authentic 3D Liquid Chrome Monolith — SynapseOS boot splash, $label accent
+Name=SynapseOS
+Description=The official SynapseOS boot animation
 ModuleName=script
 
 [script]
-ImageDir=/usr/share/plymouth/themes/synapseos-$name
-ScriptFile=/usr/share/plymouth/themes/synapseos-$name/synapseos.script
+ImageDir=/usr/share/plymouth/themes/synapseos
+ScriptFile=/usr/share/plymouth/themes/synapseos/synapseos.script
 PLY
-  done
 }

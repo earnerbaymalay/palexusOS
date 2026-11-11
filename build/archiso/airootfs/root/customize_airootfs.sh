@@ -39,6 +39,15 @@ cat << 'EOF' > /etc/sudoers.d/00-synapse-live
 EOF
 chmod 0440 /etc/sudoers.d/00-synapse-live
 
+# Boot straight into the live desktop, no login prompt for the passwordless live user
+install -d -m 0755 /etc/sddm.conf.d
+cat << 'EOF' > /etc/sddm.conf.d/00-synapse-live.conf
+[Autologin]
+User=synapse
+Session=sway.desktop
+Relogin=false
+EOF
+
 # Ensure /etc/skel is synced into /home/synapse
 if [[ -d /etc/skel ]]; then
     cp -af /etc/skel/. /home/synapse/

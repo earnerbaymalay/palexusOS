@@ -1,0 +1,27 @@
+# Only selects the theme; 95-synapse-plymouth.hook rebuilds the initramfs after the
+# transaction, so mkinitcpio never runs mid-upgrade.
+_retired='synapseos-mauve synapseos-tungsten synapseos-crimson synapseos-sapphire synapseos-emerald'
+
+_select_synapseos() {
+    command -v plymouth-set-default-theme >/dev/null 2>&1 || return 0
+    if ! plymouth-set-default-theme synapseos; then
+        echo ":: WARNING: couldn't select the SynapseOS boot animation."
+        echo "   Run: sudo plymouth-set-default-theme -R synapseos"
+    fi
+}
+
+post_install() {
+    [ "$(plymouth-set-default-theme 2>/dev/null)" = synapseos ] || _select_synapseos
+}
+
+post_upgrade() {
+    if [ -r /etc/plymouth/plymouthd.conf ]; then
+        current="$(grep -E '^Theme=' /etc/plymouth/plymouthd.conf 2>/dev/null | cut -d= -f2)"
+    fi
+    for old in $_retired; do
+        if [ "$current" = "$old" ]; then
+            echo ":: Replacing retired boot theme $old with the SynapseOS boot animation"
+            _select_synapseos
+        fi
+    done
+}

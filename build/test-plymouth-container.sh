@@ -9,7 +9,7 @@
 set -euo pipefail
 
 ROOTFS="${ROOTFS:-/var/tmp/synapseos-archiso-work/x86_64/airootfs}"
-THEME="${1:-synapseos-mauve}"
+THEME="${1:-synapseos}"
 DISPLAY="${DISPLAY:-:0.0}"
 
 if [[ ! -d "$ROOTFS" ]]; then

@@ -1,0 +1,14 @@
+# Rebuild the initramfs whenever the SynapseOS boot animation changes. The theme's
+# frames live inside the initramfs, and mkinitcpio's own hook doesn't watch them.
+# Runs after 90-mkinitcpio-install.hook so a kernel upgraded in the same
+# transaction is already in place.
+[Trigger]
+Type = Path
+Operation = Install
+Operation = Upgrade
+Target = usr/share/plymouth/themes/synapseos/*
+
+[Action]
+Description = Rebuilding initramfs with the SynapseOS boot animation...
+When = PostTransaction
+Exec = /usr/bin/mkinitcpio -P

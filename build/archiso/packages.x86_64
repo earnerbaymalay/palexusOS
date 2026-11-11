@@ -12,8 +12,10 @@ dosfstools
 e2fsprogs
 efibootmgr
 exfatprogs
+f2fs-tools
 gptfdisk
 grub
+xfsprogs
 intel-ucode
 amd-ucode
 linux-firmware
@@ -148,7 +150,7 @@ cryptsetup
 gnupg
 
 # --- Installer & Live System Utilities ---
-calamares
+cachyos-calamares
 polkit
 polkit-gnome
 gvfs

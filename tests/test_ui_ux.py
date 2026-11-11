@@ -2,8 +2,8 @@
 
 Executes offscreen automated testing across all SynapseOS desktop user interfaces:
 - synapse-hud: QML engine loading, signal/slot bindings, findFirstMatch command search, search box hotkeys.
-- synapse-welcome: OnboardingWizard initialization, navigation across 4 onboarding steps,
-                   page indicator updates, icon/wallpaper/screensaver selection, GTK settings updater.
+- synapse-welcome: local-first defaults, variant fallback, consent-gated model download,
+                   private key storage, skip path, QML load in live + installed modes, GTK settings updater.
 - synapse-settings: SynapseSettingsWindow initialization, tab structure, accent buttons, Ollama toggles.
 - synapse-notes: SynapseNotesWindow scratchpad initialization, Markdown highlighter, auto-sync, word counter, hotkeys.
 - synapse-screensaver: Argument parsing, command mode options, and cyberdeck glyph validation.
@@ -156,33 +156,197 @@ class TestSynapseWelcome:
     def welcome_mod(self):
         return load_script_module("synapse_welcome_mod", HUD_DIR / "synapse-welcome")
 
-    def test_welcome_backend_initialization(self, qapp, welcome_mod):
-        """Verify WelcomeBackend initializes with correct default values and properties."""
-        backend = welcome_mod.WelcomeBackend(qapp)
-        assert backend.selectedIconTheme == "Synapse-Liquid-Chrome"
-        assert backend.selectedWallpaper == "monolith-mauve"
-        assert backend.selectedAiEngine == "claude"
-        assert isinstance(backend.combos, dict)
-        assert backend.combos.get("stealth") is True
-        assert backend.combos.get("dot") is True
-        assert backend.combos.get("firewall") is True
+    @pytest.fixture
+    def sandbox(self, welcome_mod, tmp_path, monkeypatch):
+        """Point the backend at a temp config dir and stop it launching real programs."""
+        cfg = tmp_path / "synapse"
+        monkeypatch.setattr(welcome_mod, "CONFIG_DIR", str(cfg))
+        monkeypatch.setattr(welcome_mod, "ONBOARDING_FLAG", str(cfg / ".onboarding_complete"))
+        monkeypatch.setattr(welcome_mod, "AI_MODELS_FILE", str(cfg / "ai_models"))
+        monkeypatch.setattr(welcome_mod, "LIVE_MARKER", str(tmp_path / "no-live-marker"))
+        monkeypatch.setenv("HOME", str(tmp_path))
+        monkeypatch.setattr(welcome_mod, "unit_active", lambda unit: False)
+        popen = MagicMock()
+        monkeypatch.setattr(welcome_mod.subprocess, "Popen", popen)
+        return cfg, popen
 
-    def test_welcome_backend_toggle_and_qml_loading(self, qapp, welcome_mod):
-        """Verify combo toggling and QtQuick Welcome.qml load integrity."""
-        from PyQt6.QtQml import QQmlApplicationEngine
-        from PyQt6.QtCore import QUrl
+    @staticmethod
+    def make_backend(welcome_mod):
+        return welcome_mod.WelcomeBackend(MagicMock())
 
-        backend = welcome_mod.WelcomeBackend(qapp)
-        initial_stealth = backend.combos["stealth"]
-        backend.toggleCombo("stealth")
-        assert backend.combos["stealth"] != initial_stealth
+    def test_welcome_backend_defaults_are_local_first(self, qapp, welcome_mod, sandbox):
+        """Nothing should leave the device by default; state must come from the system."""
+        backend = self.make_backend(welcome_mod)
+        assert backend.aiEngine == "local"
+        assert backend.iconTheme == "Synapse-Liquid-Chrome"
+        assert backend.variant in welcome_mod.VARIANTS
+        assert backend.keyTestState == "idle"
+        assert backend.isLive is False
+        checks = backend.securityChecks
+        assert {c["label"] for c in checks} >= {"Firewall", "Encrypted DNS", "MAC randomization"}
+        assert all(isinstance(c["ok"], bool) and c["detail"] for c in checks)
+
+    def test_variant_selection_skips_missing_combinations(self, qapp, welcome_mod, sandbox):
+        """Monolith has no crimson plate; choosing it must fall back to a real variant."""
+        backend = self.make_backend(welcome_mod)
+        assert backend.variantExists("tower", "crimson")
+        assert not backend.variantExists("monolith", "crimson")
+        backend.chooseVariant("monolith", "crimson")
+        assert backend.variant == "monolith-mauve"
+        backend.chooseVariant("carbon", "sapphire")
+        assert backend.variant == "carbon-sapphire"
+
+    def test_finish_writes_profile_and_consented_models(self, qapp, welcome_mod, sandbox):
+        cfg, popen = sandbox
+        backend = self.make_backend(welcome_mod)
+        backend.chooseVariant("tower", "emerald")
+        backend.modelTier = "light"
+        backend.downloadModels = True
+        backend.finish()
+
+        assert (cfg / ".onboarding_complete").read_text().strip() == "completed"
+        import json
+        profile = json.loads((cfg / "operator_profile.json").read_text())
+        assert profile["wallpaper_variant"] == "tower-emerald"
+        assert profile["ai_engine"] == "local"
+        assert (cfg / "ai_models").read_text().split() == welcome_mod.MODEL_TIERS["light"]["models"]
+        assert not (cfg / "anthropic_key").exists()
+        launched = [c.args[0][0] for c in popen.call_args_list]
+        assert any(p.endswith("synapse-setup") for p in launched)
+
+    def test_claude_key_is_private_and_no_models_downloaded(self, qapp, welcome_mod, sandbox):
+        cfg, _ = sandbox
+        backend = self.make_backend(welcome_mod)
+        backend.aiEngine = "claude"
+        backend.claudeApiKey = "  sk-ant-test  "
+        backend.finish()
+        key = cfg / "anthropic_key"
+        assert key.read_text().strip() == "sk-ant-test"
+        assert (key.stat().st_mode & 0o777) == 0o600
+        assert not (cfg / "ai_models").exists()
+
+    def test_skip_applies_nothing(self, qapp, welcome_mod, sandbox):
+        cfg, popen = sandbox
+        backend = self.make_backend(welcome_mod)
+        backend.skip()
+        assert (cfg / ".onboarding_complete").read_text().strip() == "skipped"
+        assert not (cfg / "operator_profile.json").exists()
+        assert not (cfg / "ai_models").exists()
+        popen.assert_not_called()
+
+    def test_key_check_reports_failure_honestly(self, welcome_mod, monkeypatch):
+        import urllib.error
+
+        def reject(*_a, **_k):
+            raise urllib.error.HTTPError("u", 401, "unauthorized", {}, None)
+
+        monkeypatch.setattr(welcome_mod.urllib.request, "urlopen", reject)
+        ok, msg = welcome_mod.check_claude_key("sk-ant-bad")
+        assert ok is False and "rejected" in msg
+
+    @pytest.mark.parametrize("mode,expected", [("session", 4), ("live", 3), ("oobe", 5)])
+    def test_welcome_qml_loads_cleanly(self, qapp, welcome_mod, sandbox, monkeypatch, mode, expected):
+        """Welcome.qml must load in every mode with no QML warnings and reach the last step."""
+        if mode == "live":
+            marker = Path(welcome_mod.CONFIG_DIR).parent / "live-marker"
+            marker.write_text("")
+            monkeypatch.setattr(welcome_mod, "LIVE_MARKER", str(marker))
+        backend = welcome_mod.WelcomeBackend(MagicMock(), oobe=(mode == "oobe"))
 
         engine = QQmlApplicationEngine()
+        warnings = []
+        engine.warnings.connect(lambda ws: warnings.extend(w.toString() for w in ws))
         engine.rootContext().setContextProperty("backend", backend)
-        qml_path = HUD_DIR / "Welcome.qml"
-        assert qml_path.exists()
-        engine.load(QUrl.fromLocalFile(str(qml_path)))
-        assert len(engine.rootObjects()) > 0
+        engine.load(QUrl.fromLocalFile(str(HUD_DIR / "Welcome.qml")))
+        assert engine.rootObjects()
+        root = engine.rootObjects()[0]
+        steps = root.property("steps")
+        steps = steps.toVariant() if hasattr(steps, "toVariant") else steps
+        assert len(steps) == expected
+        assert ("account" in steps) == (mode == "oobe")
+
+        for _ in range(expected - 1):
+            root.setProperty("stepIndex", root.property("stepIndex") + 1)
+            qapp.processEvents()
+        assert root.property("step") == "done"
+        assert warnings == []
+
+    def test_oobe_account_validation_and_request(self, qapp, welcome_mod, sandbox, monkeypatch):
+        backend = welcome_mod.WelcomeBackend(MagicMock(), oobe=True)
+        assert backend.isOobe and not backend.isLive
+        assert set(backend.accountErrors) >= {"username", "password"}
+
+        backend.fullName = "Ada Lovelace"
+        assert backend.username == "ada"
+        assert backend.newHostname == "ada-synapse"
+        backend.password = "secret1"
+        backend.passwordConfirm = "secret2"
+        assert backend.accountErrors == {"confirm": "The passwords don't match."}
+        backend.passwordConfirm = "secret1"
+        assert backend.accountErrors == {}
+
+        backend.username = "Bad Name"
+        assert "username" in backend.accountErrors
+        backend.username = "root"
+        assert "reserved" in backend.accountErrors["username"]
+        backend.username = "ada"
+
+        req = backend.oobe_request()
+        assert req["username"] == "ada" and req["password"] == "secret1"
+        assert req["ai_engine"] == "local"
+
+        # finish() hands the request to the root helper via sudo, never writing locally
+        run = MagicMock(return_value=MagicMock(stdout='{"ok": true}\n'))
+        monkeypatch.setattr(welcome_mod.subprocess, "run", run)
+        ok, _ = welcome_mod.WelcomeBackend._run_helper('{"x": 1}')
+        assert ok
+        assert run.call_args.args[0] == ["sudo", "-n", welcome_mod.OOBE_HELPER]
+
+
+class TestOobeHelper:
+    """The root helper must reject anything outside its allow-lists."""
+
+    @pytest.fixture
+    def helper(self):
+        return load_script_module("synapse_oobe_apply_mod", HUD_DIR / "synapse-oobe-apply")
+
+    def good(self, **over):
+        req = {"full_name": "Ada Lovelace", "username": "zz-oobe-test", "password": "secret1",
+               "hostname": "ada-synapse", "variant": "tower-emerald", "icon_theme": "Synapse-Liquid-Chrome",
+               "ai_engine": "local", "ai_models": ["qwen2.5-coder:1.5b"], "anthropic_key": "", "profile": {}}
+        req.update(over)
+        return req
+
+    def test_accepts_valid_request(self, helper):
+        r = helper.validate(self.good())
+        assert r["username"] == "zz-oobe-test" and r["ai_models"] == ["qwen2.5-coder:1.5b"]
+
+    @pytest.mark.parametrize("field,value", [
+        ("username", "root"), ("username", "Has Space"), ("username", "../etc"),
+        ("full_name", "Evil:0:0"), ("password", "short"), ("password", "a\nroot:x"),
+        ("hostname", "-bad"), ("variant", "monolith-crimson"), ("icon_theme", "../../x"),
+        ("ai_engine", "shell"), ("ai_models", ["$(rm -rf /)"]),
+    ])
+    def test_rejects_bad_fields(self, helper, field, value):
+        with pytest.raises(helper.Invalid):
+            helper.validate(self.good(**{field: value}))
+
+    def test_key_only_kept_for_claude(self, helper):
+        assert helper.validate(self.good(anthropic_key="sk-ant-abcdefghijklmnopqrstuvwxyz"))["anthropic_key"] == ""
+        r = helper.validate(self.good(ai_engine="claude", anthropic_key="sk-ant-abcdefghijklmnopqrstuvwxyz"))
+        assert r["anthropic_key"].startswith("sk-ant-") and r["ai_models"] == []
+
+    def test_refuses_after_setup_finished(self, helper, monkeypatch, tmp_path, capsys):
+        monkeypatch.setattr(helper, "MARKER", str(tmp_path / "gone"))
+        with pytest.raises(SystemExit):
+            helper.apply()
+        assert "already finished" in capsys.readouterr().out
+
+
+class TestSynapseWelcomeGtk:
+    @pytest.fixture
+    def welcome_mod(self):
+        return load_script_module("synapse_welcome_mod", HUD_DIR / "synapse-welcome")
 
     def test_update_gtk_settings_function(self, welcome_mod, tmp_path):
         """Verify update_gtk_settings writes and updates gtk-icon-theme-name under [Settings]."""

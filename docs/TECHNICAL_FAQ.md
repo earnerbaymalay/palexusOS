@@ -83,7 +83,7 @@
 > - 🌊 **Sapphire** (`#74c7ec`) — Deep Space Subsurface
 > - 🍃 **Emerald** (`#a6e3a1`) — Low-Power Tactical
 > 
-> Running `synapse-theme --sync-boot` or `synapse-theme --sync-greeter` synchronizes the selected accent across Plymouth boot splash frames and SDDM login greeters.
+> Running `synapse-theme --sync-greeter` applies the selected accent to the SDDM login greeter. The boot animation is fixed: every SynapseOS system plays the same official animation.
 
 ---
 

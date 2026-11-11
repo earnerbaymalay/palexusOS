@@ -60,8 +60,11 @@ class TestSynapseOSGates(unittest.TestCase):
 
         partition = (cal_root / "modules" / "partition.conf").read_text(encoding="utf-8")
         self.assertIn('defaultFileSystemType:  "btrfs"', partition)
+        # Calamares 3.3+ reads the subvolume layout from mount.conf only
+        mount = (cal_root / "modules" / "mount.conf").read_text(encoding="utf-8")
         for subvol in ("/@", "/@home", "/@snapshots", "/@var_log"):
-            self.assertIn(subvol, partition)
+            self.assertIn(subvol, mount)
+        self.assertNotIn("btrfsSubvolumes", partition)
 
         services = (cal_root / "modules" / "services-systemd.conf").read_text(
             encoding="utf-8"
@@ -101,20 +104,26 @@ class TestSynapseOSGates(unittest.TestCase):
         self.assertNotIn("PS2", picom_text)
 
     def test_boot_splash(self) -> None:
-        """Validate the Plymouth Twin Hook splash package and its boot wiring."""
+        """Validate the official boot animation package and its boot wiring."""
         ply = REPO_ROOT / "packages" / "desktop" / "synapse-plymouth"
         script = (ply / "synapseos.script.in").read_text(encoding="utf-8")
-        for hook in ("SetRefreshFunction", "SetDisplayPasswordFunction", "SetDisplayNormalFunction", "SetQuitFunction"):
+        for hook in ("SetRefreshFunction", "SetDisplayPasswordFunction", "SetDisplayQuestionFunction",
+                     "SetDisplayNormalFunction", "SetMessageFunction", "SetQuitFunction"):
             self.assertIn(f"Plymouth.{hook}", script)
+        for placeholder in ("@FRAMES@", "@TICKS@", "@WIDTH@", "@HEIGHT@"):
+            self.assertIn(placeholder, script)
+        self.assertGreater((ply / "synapse-boot.mp4").stat().st_size, 0)
         pkgbuild = (ply / "PKGBUILD").read_text(encoding="utf-8")
-        for accent in ("mauve", "tungsten", "crimson", "sapphire", "emerald"):
-            self.assertIn(f"'{accent}:", pkgbuild)
+        self.assertIn("'synapse-boot.mp4'", pkgbuild)
+        self.assertIn("-an", pkgbuild)
+        self.assertIn("/usr/share/plymouth/themes/synapseos", pkgbuild)
+        self.assertNotIn("synapseos-$name", pkgbuild)
         hooks = (REPO_ROOT / "build" / "archiso" / "airootfs" / "etc" / "mkinitcpio.conf.d" / "archiso.conf").read_text(
             encoding="utf-8"
         )
         self.assertIn(" kms plymouth ", hooks)
         conf = (REPO_ROOT / "overlay" / "etc" / "plymouth" / "plymouthd.conf").read_text(encoding="utf-8")
-        self.assertIn("Theme=synapseos-mauve", conf)
+        self.assertIn("Theme=synapseos\n", conf)
 
     def test_sway_and_waybar_session_configs(self) -> None:
         """Validate Sway and Waybar dual-session configs and package list."""
@@ -149,7 +158,8 @@ class TestSynapseOSGates(unittest.TestCase):
         self.assertIn("Mod4+Return", sway_conf)
         self.assertIn("Mod4+i", sway_conf)
         self.assertIn("Mod4+slash", sway_conf)
-        self.assertIn("calamares -d", sway_conf)
+        self.assertIn("sudo -E /usr/bin/calamares", sway_conf)
+        self.assertNotIn("calamares -d", sway_conf)
         self.assertIn("swaybg -i", sway_conf)
         self.assertIn("Mod4+Ctrl+t", sway_conf)
         self.assertIn("Mod4+Shift+q", sway_conf)

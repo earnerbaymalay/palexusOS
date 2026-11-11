@@ -60,8 +60,8 @@ bindsym Mod4+Shift+Return exec foot
 bindsym Mod4+b exec chromium
 bindsym Mod4+f exec thunar
 bindsym Mod4+n exec /usr/bin/synapse-notes
-bindsym Mod4+c exec [ -x /usr/bin/calamares ] && calamares -d || /usr/bin/galculator
-bindsym Mod4+i exec calamares -d
+bindsym Mod4+c exec /usr/bin/galculator
+bindsym Mod4+i exec [ -d /run/archiso ] && sudo -E /usr/bin/calamares
 bindsym Mod4+a exec /usr/bin/audio-switch
 bindsym Mod4+w exec /usr/bin/synapse-welcome
 bindsym Mod4+slash exec /usr/bin/synapse-shortcuts
@@ -206,7 +206,9 @@ bar {
 
 # --- Autostart Services & Onboarding ---
 
-# In live sessions or initial login, autostart synapse-welcome centered so user has an immediate cockpit
-exec [ -f /etc/sudoers.d/00-synapse-live ] || [ -x /usr/bin/calamares ] || [ ! -f ~/.config/synapse/.onboarding_complete ] && /usr/bin/synapse-welcome --autostart
+# First-run setup: --autostart exits at once when ~/.config/synapse/.onboarding_complete exists
+exec /usr/bin/synapse-welcome --autostart
+# Resumes a local-model download the user agreed to in setup; no-op otherwise
+exec /usr/bin/synapse-setup --first-boot
 
 include /etc/sway/config.d/*

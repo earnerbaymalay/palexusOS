@@ -205,7 +205,14 @@ WAYBAR_STYLE="${REPO_ROOT}/overlay/etc/skel/.config/waybar/style.css"
 check_file_contains "${SWAY_CONF}" "Mod4\+space.*(/usr/bin/(quickfire|synapse-hud)|\$menu)" "Sway config binds Mod4+space to /usr/bin/synapse-hud or quickfire"
 check_file_contains "${SWAY_CONF}" "Mod4\+d.*(/usr/bin/(quickfire|synapse-hud)|\$menu)" "Sway config binds Mod4+d to /usr/bin/synapse-hud or quickfire"
 check_file_contains "${SWAY_CONF}" "Mod4\+Return.*(kitty|foot|\$term)" "Sway config binds Mod4+Return to kitty/foot"
-check_file_contains "${SWAY_CONF}" "Mod4\+i.*calamares" "Sway config binds Mod4+i to calamares"
+check_file_contains "${SWAY_CONF}" "Mod4\+i exec \[ -d /run/archiso \] && sudo -E /usr/bin/calamares" "Sway Mod4+i launches Calamares as root, live session only"
+# Calamares requires root (welcome.conf); -d is its debug mode
+if grep -RqsE "calamares -d|\"calamares\", \"-d\"" "${REPO_ROOT}/overlay" "${REPO_ROOT}/packages/desktop/synapse-hud/synapse-welcome"; then
+    fail "No launcher starts Calamares unprivileged in debug mode (calamares -d)"
+else
+    pass "No launcher starts Calamares unprivileged in debug mode (calamares -d)"
+fi
+check_file_lacks "${WAYBAR_CONF}" 'x /usr/bin/calamares' "Waybar install button is keyed to the live session, not to Calamares being installed"
 check_file_contains "${SWAY_CONF}" "Mod4\+slash.*synapse-shortcuts" "Sway config binds Mod4+slash to cheat sheet"
 check_file_contains "${SWAY_CONF}" "for_window.*calamares.*floating" "Sway config floats Calamares installer"
 check_file_contains "${SWAY_CONF}" "for_window.*synapse-welcome.*floating" "Sway config floats Synapse welcome onboarding"
@@ -426,7 +433,17 @@ check_file_contains "${CAL_BRANDING_DIR}/show.qml" "BORE" "Calamares show.qml sh
 check_file_contains "${CAL_BRANDING_DIR}/show.qml" "Ollama" "Calamares show.qml showcases local Ollama AI engine"
 check_file_contains "${CAL_BRANDING_DIR}/show.qml" "Quad9" "Calamares show.qml showcases Quad9 DNS-over-TLS"
 check_file_contains "${CAL_PARTITION}" 'defaultFileSystemType:[[:space:]]*"btrfs"' "Calamares partition.conf defaults to Btrfs"
-check_file_contains "${CAL_PARTITION}" "/@snapshots" "Calamares partition.conf defines @snapshots subvolume"
+# Every filesystem offered on the partition page needs its mkfs tool on the live ISO
+declare -A FS_TOOL=([btrfs]=btrfs-progs [ext4]=e2fsprogs [xfs]=xfsprogs [f2fs]=f2fs-tools)
+while read -r fs; do
+    tool="${FS_TOOL[$fs]:-}"
+    if [[ -n "${tool}" ]] && grep -qx "${tool}" "${REPO_ROOT}/build/archiso/packages.x86_64"; then
+        pass "Installer can format ${fs} (${tool} on the ISO)"
+    else
+        fail "Installer can format ${fs} (${tool:-no known tool} on the ISO)"
+    fi
+done < <(grep -oP '^availableFileSystemTypes:.*' "${CAL_PARTITION}" | grep -oP '"\K[a-z0-9]+(?=")')
+check_file_lacks "${CAL_PARTITION}" "btrfsSubvolumes" "Subvolume layout lives only in mount.conf (partition.conf copy is ignored by Calamares 3.3+)"
 check_file_contains "${CAL_SERVICES}" "synapse" "Calamares services-systemd.conf enables synapse service"
 check_file_contains "${CAL_SERVICES}" "sddm" "Calamares services-systemd.conf enables sddm service"
 check_file_contains "${CAL_SERVICES}" "firewalld" "Calamares services-systemd.conf enables firewalld service"
@@ -442,7 +459,18 @@ check_file_contains "${REPO_ROOT}/build/archiso/airootfs/root/customize_airootfs
 check_file_contains "${REPO_ROOT}/packages/installer/calamares/settings.conf" 'shellprocess@cleanup' "Calamares runs live-session cleanup"
 check_file_contains "${REPO_ROOT}/packages/installer/calamares/modules/shellprocess@cleanup.conf" '00-synapse-live' "Calamares cleanup removes live NOPASSWD sudoers"
 check_file_contains "${REPO_ROOT}/packages/installer/calamares/modules/shellprocess@cleanup.conf" 'userdel -r synapse' "Calamares cleanup removes passwordless live user"
-check_file_contains "${REPO_ROOT}/packages/installer/calamares/modules/users.conf" '^sudoersGroup: wheel' "Installed users get password-protected wheel sudo"
+check_file_contains "${REPO_ROOT}/packages/desktop/synapse-hud/synapse-oobe-apply" '%wheel ALL=\(ALL:ALL\) ALL' "First-boot account gets password-protected wheel sudo"
+check_file_contains "${REPO_ROOT}/packages/installer/calamares/settings.conf" 'shellprocess@oobe' "Calamares arms first-boot account setup"
+check_file_contains "${REPO_ROOT}/packages/desktop/synapse-hud/synapse-oobe-arm" 'synapse-oobe-apply ""' "First-boot sudo rule allows only the argument-less helper"
+check_file_contains "${REPO_ROOT}/packages/desktop/synapse-hud/synapse-oobe-apply" 'os\.remove\(MARKER\)' "First-boot helper disarms itself after one use"
+check_file_contains "${REPO_ROOT}/packages/desktop/synapse-hud/synapse-oobe-arm" 'systemctl enable synapse-oobe-recovery\.service' "First boot has a text-mode account fallback on tty2"
+check_file_contains "${REPO_ROOT}/packages/desktop/synapse-hud/synapse-oobe-recovery.service" '^ConditionPathExists=/var/lib/synapse/oobe-pending$' "Text-mode fallback only runs while first-boot setup is pending"
+check_file_contains "${REPO_ROOT}/packages/installer/calamares/modules/shellprocess@cleanup.conf" '00-synapse-live.conf' "Calamares cleanup removes live autologin"
+check_file_contains "${REPO_ROOT}/build/archiso/packages.x86_64" '^cachyos-calamares$' "ISO pins one Calamares build (19 CachyOS packages provide 'calamares')"
+check_file_lacks "${REPO_ROOT}/build/archiso/packages.x86_64" '(?m)^calamares$' "ISO does not leave the Calamares provider to chance"
+check_file_contains "${REPO_ROOT}/packages/installer/calamares/modules/shellprocess@removelive.conf" 'pacman -Rns --noconfirm cachyos-calamares' "Installed systems do not keep the installer"
+check_file_contains "${REPO_ROOT}/packages/installer/calamares/settings.conf" '^ *- shellprocess@removelive$' "Calamares runs the live-package removal step"
+check_file_contains "${REPO_ROOT}/.gitattributes" '^\* text=auto eol=lf$' "Checkouts keep LF line endings (scripts and PKGBUILDs break with CRLF)"
 check_file_contains "${REPO_ROOT}/build/build-iso.sh" 'mkarchiso -v -C' "ISO build uses isolated build pacman.conf/keyring"
 
 # Package file-ownership conflicts (pacstrap aborts on these)
@@ -520,22 +548,42 @@ check_file_lacks "${REPO_ROOT}/packages/core/synapse-core/synapse.service" 'Exec
 check_file_lacks "${REPO_ROOT}/packages/core/synapse-core/synapse.service" 'network-online\.target' "synapse.service does not wait on network-online (localhost gateway)"
 check_file_contains "${REPO_ROOT}/build/archiso/airootfs/root/customize_airootfs.sh" 'systemctl disable systemd-networkd\.service' "systemd-networkd disabled (NetworkManager owns networking)"
 
-# Boot splash (Plymouth, Twin Hook)
+# Boot splash (Plymouth, official boot animation)
 PLY_DIR="${REPO_ROOT}/packages/desktop/synapse-plymouth"
 check_file_contains "${REPO_ROOT}/build/archiso/airootfs/etc/mkinitcpio.conf.d/archiso.conf" '^HOOKS=\(.* kms plymouth .*\)$' "Live initramfs runs the plymouth hook"
-check_file_contains "${REPO_ROOT}/overlay/etc/plymouth/plymouthd.conf" '^Theme=synapseos-mauve$' "Plymouth defaults to synapseos-mauve"
+check_file_contains "${REPO_ROOT}/overlay/etc/plymouth/plymouthd.conf" '^Theme=synapseos$' "Plymouth uses the single synapseos theme"
 check_file_contains "${REPO_ROOT}/build/archiso/efiboot/loader/entries/01-synapseos-x86_64-linux.conf" '^options .* splash' "Live boot entry passes splash"
-check_file_contains "${REPO_ROOT}/packages/installer/calamares/modules/bootloader.conf" '"splash"' "Installed systems boot with splash"
+# GRUB takes its kernel line, splash and LUKS unlock from grubcfg, not bootloader.conf
+CAL_EXEC_ORDER="$(sed -n '/^  - exec:/,/^  - show:/p' "${REPO_ROOT}/packages/installer/calamares/settings.conf" | sed -n 's/^ *- //p' | tr '\n' ' ')"
+if [[ "${CAL_EXEC_ORDER}" == *" grubcfg bootloader "* ]]; then
+    pass "Calamares runs grubcfg right before bootloader (splash + LUKS on installed systems)"
+else
+    fail "Calamares runs grubcfg right before bootloader (splash + LUKS on installed systems)"
+fi
+if [[ "${CAL_EXEC_ORDER}" =~ bootloader\ .*packages ]]; then
+    pass "Calamares installs optional packs after the bootloader (a failed pack leaves a bootable disk)"
+else
+    fail "Calamares installs optional packs after the bootloader (a failed pack leaves a bootable disk)"
+fi
+check_file_contains "${REPO_ROOT}/packages/installer/calamares/modules/grubcfg.conf" '^ *- "quiet"$' "grubcfg.conf sets the installed kernel command line"
+check_file_lacks "${REPO_ROOT}/packages/installer/calamares/modules/grubcfg.conf" 'themes/cachyos' "grubcfg.conf carries no CachyOS GRUB theme"
 check_file_contains "${PLY_DIR}/synapseos.script.in" 'Plymouth\.SetDisplayPasswordFunction' "Splash handles the LUKS passphrase prompt"
 check_file_contains "${PLY_DIR}/synapseos.script.in" 'Plymouth\.SetRefreshFunction' "Splash script drives frame playback"
-check_file_contains "${REPO_ROOT}/packages/desktop/synapse-themes/synapse-theme" 'plymouth-set-default-theme -R' "synapse-theme can sync the boot splash accent"
-for accent in mauve tungsten crimson sapphire emerald; do
-    check_file_contains "${PLY_DIR}/PKGBUILD" "'${accent}:[0-9a-f]{6}:" "Boot splash renders the ${accent} accent"
-done
-if python3 -m py_compile "${PLY_DIR}/render_frames.py" 2>/dev/null; then
-    pass "render_frames.py compiles"
+check_file_contains "${PLY_DIR}/synapseos.script.in" 'Plymouth\.SetQuitFunction' "Splash holds the final frame for the login hand-off"
+check_file_contains "${PLY_DIR}/PKGBUILD" "^source=\\('synapse-boot\\.mp4'" "Boot splash is built from the official synapse-boot.mp4"
+check_file_contains "${PLY_DIR}/PKGBUILD" "ffmpeg .*-an" "Boot splash frames are extracted without audio"
+check_file_contains "${PLY_DIR}/PKGBUILD" '^install=synapse-plymouth\.install$' "Boot splash package selects its theme on install/upgrade"
+check_file_contains "${PLY_DIR}/95-synapse-plymouth.hook" '^Target = usr/share/plymouth/themes/synapseos/\*$' "Initramfs is rebuilt when the boot animation changes"
+check_file_contains "${PLY_DIR}/95-synapse-plymouth.hook" '^When = PostTransaction$' "Initramfs rebuild waits for the whole transaction"
+if bash -n "${PLY_DIR}/synapse-plymouth.install" 2>/dev/null && ! grep -q 'mkinitcpio\|-R ' <(grep -v '^ *#\|echo' "${PLY_DIR}/synapse-plymouth.install"); then
+    pass "Boot splash install scriptlet is valid and never rebuilds the initramfs mid-transaction"
 else
-    fail "render_frames.py compiles"
+    fail "Boot splash install scriptlet is valid and never rebuilds the initramfs mid-transaction"
+fi
+if [[ -s "${PLY_DIR}/synapse-boot.mp4" ]]; then
+    pass "Official boot video present"
+else
+    fail "Official boot video present"
 fi
 
 # V4 theme pack & screensaver
