@@ -1,6 +1,6 @@
 # PalexusOS Engineering Roadmap
 
-> **Note**: Formerly SynapseOS. Phases 1–8 document historical foundation prior to the PalexusOS rebrand.
+> **Note**: Formerly PalexusOS. Phases 1–8 document historical foundation prior to the PalexusOS rebrand.
 
 ## Phase 1: Native Packaging & Core Daemons (Completed)
 - [x] Establish clean, featherlight Git repository structure.
@@ -13,7 +13,7 @@
 
 ## Phase 2: Kernel Microarchitecture, Latency & Stealth Posture (Completed)
 - [x] Integrate `linux-cachyos` BORE scheduler kernel and `[cachyos-v3]` x86-64-v3 repository mirrors into `pacman.conf`.
-- [x] Configure 8 GB ZRAM `zstd` compression (`overlay/etc/systemd/zram-generator.conf`) and low-latency VM/BBR sysctl tuning (`overlay/etc/sysctl.d/99-synapseos.conf`).
+- [x] Configure 8 GB ZRAM `zstd` compression (`overlay/etc/systemd/zram-generator.conf`) and low-latency VM/BBR sysctl tuning (`overlay/etc/sysctl.d/99-palexusos.conf`).
 - [x] Configure `ananicy-cpp` rules and `ollama.service` single-parallelism CPU inference overrides.
 - [x] Enforce Prime Directive network stealth posture: full Wi-Fi scan & session MAC randomization, RFC 4941 IPv6 privacy extensions, Quad9 DNS-over-TLS (`9.9.9.9` / `149.112.112.112`), and firewalld drop posture.
 
@@ -30,12 +30,12 @@
 
 ## Phase 5: Calamares Installer & Release Automation (Completed)
 - [x] Configure Calamares installer module sequence (`packages/installer/calamares/settings.conf`).
-- [x] Author SynapseOS Calamares branding (`branding/synapseos/branding.desc`) with Catppuccin Mocha Mauve (`#cba6f7`), Liquid Silver Chrome (`#cdd6f4`), and Obsidian Crust (`#11111b`) styling.
+- [x] Author PalexusOS Calamares branding (`branding/palexusos/branding.desc`) with Catppuccin Mocha Mauve (`#cba6f7`), Liquid Silver Chrome (`#cdd6f4`), and Obsidian Crust (`#11111b`) styling.
 - [x] Configure Btrfs (`zstd` subvolumes `@`, `@home`, `@snapshots`, `@var_log`) and Ext4 (`noatime`) partitioning presets (`modules/partition.conf`) and mandatory systemd services (`modules/services-systemd.conf`).
 - [x] Build automated GitHub Actions CI/CD workflow (`.github/workflows/build-iso.yml`) running Gate G1–G4 verification, container ISO builds, `SHA256SUMS`, and tagged GitHub Releases.
 
 ## Phase 6: V4 Visual Identity & Live ISO Hardening (Completed)
-- [x] Package `synapse-themes`: 5 SynapseOS wallpapers (`/usr/share/backgrounds/synapseos/`, 1376x768 renders), `synapse-theme` switcher (`obsidian-mauve` default, `ristretto-tungsten`, `crimson-carbon`, `platinum-chrome`, `obsidian-basalt` unbranded) bound to `Super+Ctrl+T` in XFCE and Sway.
+- [x] Package `synapse-themes`: 5 PalexusOS wallpapers (`/usr/share/backgrounds/palexusos/`, 1376x768 renders), `synapse-theme` switcher (`obsidian-mauve` default, `ristretto-tungsten`, `crimson-carbon`, `platinum-chrome`, `obsidian-basalt` unbranded) bound to `Super+Ctrl+T` in XFCE and Sway.
 - [x] `synapse-screensaver`: braille geodesic torus ("The Purple Donut") + SYNAPSE brand reveal (`tte` when installed); 5-minute idle trigger via `swayidle` (Sway) and `synapse-idle` (XFCE). Not a screen lock.
 - [x] Verify CachyOS package signatures (drop `Optional TrustAll`; ship `cachyos-keyring`; isolated, fingerprint-pinned build keyring).
 - [x] Generate pacman keyring per boot (`pacman-init.service`) instead of baking a master key into the ISO.
@@ -45,9 +45,9 @@
 - [x] Installed-system bootability: restore kernels emptied from `/boot` by mkarchiso, drop archiso hooks, `initcpiocfg`/`initcpio`, GRUB `bootloader.conf` (not cachyos limine default), `mount.conf` Btrfs layout.
 - [x] Calamares privacy: own `welcome.conf`/`locale.conf` with no GeoIP lookup; fix invalid YAML in `partition.conf`.
 - [x] Wallpaper set: 3 designs x accent variants (14), Basalt Tower SYNAPSE-branded; theme ids `<design>-<accent>`.
-- [x] `synapse-greeter`: `synapseos` Qt6 SDDM theme (right-aligned clock + system readout, chamfered panel with animated accent trails); `synapse-theme --sync-greeter`.
+- [x] `synapse-greeter`: `palexusos` Qt6 SDDM theme (right-aligned clock + system readout, chamfered panel with animated accent trails); `synapse-theme --sync-greeter`.
 - [x] Remove the PlayStation 2 boot animation and greeter (`synapse-theme-ps2`).
-- [x] Boot splash: `synapse-plymouth` — the official SynapseOS boot animation (`synapse-boot.mp4`, frames extracted with ffmpeg at build), LUKS prompt.
+- [x] Boot splash: `synapse-plymouth` — the official PalexusOS boot animation (`synapse-boot.mp4`, frames extracted with ffmpeg at build), LUKS prompt.
 - [x] Verify the splash on real hardware / QEMU (verified headless QEMU/KVM boot).
 - [x] First-boot setup `synapse-welcome --oobe`: account creation before first login, look, consent-gated local model download, live privacy check, hand-off to SDDM.
 - [x] Stage C: full `mkarchiso` build + QEMU/KVM boot verification; Stage D: `v0.1.0-alpha` release with `SHA256SUMS`.
@@ -65,8 +65,8 @@
 
 ## Phase 8: Hardware Orchestration, Neural Daemon Mesh & ISO Production Release (Completed)
 - [x] **Milestone 8.1: Live ISO Compilation & QEMU/KVM Boot Verification (Stage C)**
-  - [x] Execute `./build/build-iso.sh` to compile native `[synapseos]` packages into `out/repo/synapseos.db.tar.gz`.
-  - [x] Produce `out/synapseos-2026.11.01-x86_64.iso` (2.9 GB) via `mkarchiso`.
+  - [x] Execute `./build/build-iso.sh` to compile native `[palexusos]` packages into `out/repo/palexusos.db.tar.gz`.
+  - [x] Produce `out/palexusos-2026.11.01-x86_64.iso` (2.9 GB) via `mkarchiso`.
   - [x] Validate headless QEMU/KVM boot kinematics: UEFI `systemd-boot` $\rightarrow$ `synapse-plymouth` Twin Hook laser engrave splash $\rightarrow$ `synapse-greeter` SDDM Qt6 handoff $\rightarrow$ XFCE/Sway desktop session $\rightarrow$ Calamares installation walkthrough.
 - [x] **Milestone 8.2: Synapse Core Gateway & Bidirectional Context Firewall**
   - [x] Finalize `/usr/bin/synapse` (`synapse-core` Rust daemon) loopback gateway (`127.0.0.1:8000`) with Bearer token authentication and DNS-rebinding protection.
@@ -82,7 +82,7 @@
   - [x] Resolve CI verification portability across Ubuntu runners without `makepkg`.
   - [x] Tag `v0.1.0-alpha.2` and trigger automated GitHub Actions release CI/CD workflow.
 - [x] **Milestone 8.5: PalexusOS Rebrand & v0.2.0-alpha Release Milestone (Stage E)**
-  - [x] Complete comprehensive rebrand from SynapseOS to PalexusOS across desktop, installer, core daemons, wallpapers, boot splash, and documentation.
+  - [x] Complete comprehensive rebrand from PalexusOS to PalexusOS across desktop, installer, core daemons, wallpapers, boot splash, and documentation.
   - [x] Implement deterministic reproducible ISO builds with `SOURCE_DATE_EPOCH` and `BUILD_MANIFEST.txt`.
   - [x] Implement optional GPG detached signing for repo databases, ISO images, and SHA manifests via `PALEXUS_GPG_KEY`.
   - [x] Implement headless QEMU/KVM boot smoke test harness (`build/test-iso-boot.sh`) asserting graphical interface target and `palexus.service` activation.

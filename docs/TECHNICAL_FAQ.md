@@ -1,4 +1,4 @@
-# SynapseOS — Comprehensive Technical FAQ
+# PalexusOS — Comprehensive Technical FAQ
 
 > **Surgical precision. Zero friction.**  
 > Frequently asked architectural, security, performance, and workflow questions.
@@ -7,15 +7,15 @@
 
 ## 1. Prime Directive: Security, Privacy & Zero Telemetry
 
-### Q: What is the "Prime Directive" of SynapseOS?
-> **A:** The guiding principle baked into every configuration file and build script of SynapseOS is:  
+### Q: What is the "Prime Directive" of PalexusOS?
+> **A:** The guiding principle baked into every configuration file and build script of PalexusOS is:  
 > *"System aims for minimal if not 0 telemetry and prioritises anonymisation without degradation of service."*  
-> Unlike traditional operating systems that transmit diagnostic beacons, search queries, or user telemetry to cloud servers, SynapseOS operates under a zero-outbound-telemetry default.
+> Unlike traditional operating systems that transmit diagnostic beacons, search queries, or user telemetry to cloud servers, PalexusOS operates under a zero-outbound-telemetry default.
 
-### Q: How does SynapseOS enforce network anonymization?
+### Q: How does PalexusOS enforce network anonymization?
 > **A:** Anonymization is implemented at multiple layers of the networking stack:
 > 1. **Wi-Fi MAC Address Randomization**:
->    - `/etc/NetworkManager/conf.d/00-synapseos-stealth.conf` enforces `wifi.scan-rand-mac-address=yes`. When scanning for access points, your hardware wireless card broadcasts synthetic randomized MAC addresses.
+>    - `/etc/NetworkManager/conf.d/00-palexusos-stealth.conf` enforces `wifi.scan-rand-mac-address=yes`. When scanning for access points, your hardware wireless card broadcasts synthetic randomized MAC addresses.
 >    - Active connections use `cloned-mac-address=random`, meaning every Wi-Fi network receives a completely unique, rotating synthetic MAC address.
 > 2. **RFC 4941 IPv6 Privacy Extensions**:
 >    - Configured with `ipv6.ip6-privacy=2`. Network interfaces generate rotating temporary IPv6 addresses for outbound connections rather than deriving your IP from the hardware interface token (EUI-64).
@@ -31,7 +31,7 @@
 ## 2. Synapse AI Engine & Offline Intelligence
 
 ### Q: Can I run local AI workflows completely disconnected from the Internet?
-> **A:** Yes. SynapseOS is designed as an offline-first cyberdeck:
+> **A:** Yes. PalexusOS is designed as an offline-first cyberdeck:
 > - `ollama.service` runs as a native systemd unit bound to `127.0.0.1:11434` with an extended `24h` memory keep-alive.
 > - The native First-Boot Wizard (`palexus-welcome`) downloads high-performance local coding models (such as `qwen2.5-coder:latest` 7B Q4_K_M).
 > - Once downloaded, all model inference runs 100% locally on your CPU/GPU. No prompts, code snippets, or user data ever leave your machine.
@@ -59,14 +59,14 @@
 > Setting `vm.swappiness = 180` and `vm.page-cluster = 0` instructs the Linux virtual memory manager to aggressively compress cold, idle memory pages into ZRAM rather than discarding useful filesystem inode/dentry caches (`vm.vfs_cache_pressure = 50`). This provides the equivalent of **24 GB+ usable RAM on a 16 GB machine** without disk wear.
 
 ### Q: What is `x86-64-v3` microarchitecture optimization?
-> **A:** Upstream Linux distributions compile packages for generic `x86_64` (baseline from 2003) to ensure compatibility with ancient processors. SynapseOS integrates CachyOS `x86-64-v3` package repositories compiled specifically with **AVX, AVX2, BMI1, BMI2, FMA, and MOVBE** instruction sets. This delivers a **10% to 25% throughput speedup** in mathematical operations, cryptographic hashing, and tensor computations.
+> **A:** Upstream Linux distributions compile packages for generic `x86_64` (baseline from 2003) to ensure compatibility with ancient processors. PalexusOS integrates CachyOS `x86-64-v3` package repositories compiled specifically with **AVX, AVX2, BMI1, BMI2, FMA, and MOVBE** instruction sets. This delivers a **10% to 25% throughput speedup** in mathematical operations, cryptographic hashing, and tensor computations.
 
 ---
 
 ## 4. Desktop Compositor & Cyberdeck Interface
 
 ### Q: How do I switch between the traditional desktop (XFCE) and the tiling session (Sway)?
-> **A:** SynapseOS ships with two fully tuned environments:
+> **A:** PalexusOS ships with two fully tuned environments:
 > 1. **Default: XFCE 4.20 + Picom**: Optimized for stability, multi-monitor docking, and classic workflows. Features `dual_kawase` background glass blur, Catppuccin Mocha Mauve GTK styling, and custom titlebar buttons.
 > 2. **Optional: Sway Wayland**: Configured at `/etc/skel/.config/sway/config` with matching `waybar` statusbars, animations, and zero-tearing Wayland pipewire screensharing.
 > 
@@ -83,13 +83,13 @@
 > - 🌊 **Sapphire** (`#74c7ec`) — Deep Space Subsurface
 > - 🍃 **Emerald** (`#a6e3a1`) — Low-Power Tactical
 > 
-> Running `synapse-theme --sync-greeter` applies the selected accent to the SDDM login greeter. The boot animation is fixed: every SynapseOS system plays the same official animation.
+> Running `synapse-theme --sync-greeter` applies the selected accent to the SDDM login greeter. The boot animation is fixed: every PalexusOS system plays the same official animation.
 
 ---
 
 ## 5. Updates & System Maintenance
 
-### Q: How do I update SynapseOS safely?
+### Q: How do I update PalexusOS safely?
 > **A:** As an Arch Linux rolling release derivative, you update packages using `pacman`:
 > ```bash
 > sudo pacman -Syu

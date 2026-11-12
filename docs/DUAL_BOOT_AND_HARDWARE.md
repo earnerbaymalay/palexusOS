@@ -1,7 +1,7 @@
-# SynapseOS — Installation & Hardware Setup Guide
+# PalexusOS — Installation & Hardware Setup Guide
 
 > **Surgical precision. Zero friction.**  
-> Definitive instructions for installing SynapseOS either as a standalone primary operating system or side-by-side alongside existing operating systems (Windows 11/10 / Linux).
+> Definitive instructions for installing PalexusOS either as a standalone primary operating system or side-by-side alongside existing operating systems (Windows 11/10 / Linux).
 
 ---
 
@@ -59,7 +59,7 @@ Before booting the installer, review these vendor-specific requirements to avoid
 
 ## 3. Preparing Windows for Dual-Boot Coexistence
 
-If you plan to install SynapseOS alongside an existing Windows installation, complete these steps in Windows first:
+If you plan to install PalexusOS alongside an existing Windows installation, complete these steps in Windows first:
 
 ### Step 1: Disable Windows Fast Startup
 Windows "Fast Startup" puts the filesystem into a hibernated, locked state that prevents Linux from safely reading partitions or mounting storage:
@@ -95,7 +95,7 @@ If your Dell or laptop was set to RAID/Intel RST by default:
 ### Step 4: Shrink Windows Partition
 1. Press `Win + X` and select **Disk Management** (`diskmgmt.msc`).
 2. Right-click your main Windows volume (`C:`) and select **Shrink Volume...**.
-3. Allocate unallocated space for SynapseOS:
+3. Allocate unallocated space for PalexusOS:
    - Minimum: `64 GB` (65536 MB)
    - Recommended: `128 GB+` (131072 MB) for local LLM weights and container builds.
 4. Click **Shrink**. Leave the resulting space as **Unallocated**.
@@ -104,7 +104,7 @@ If your Dell or laptop was set to RAID/Intel RST by default:
 
 ## 4. Calamares Installation Walkthrough
 
-Boot your Ventoy or installation media and open the **Install SynapseOS** shortcut from the desktop or HUD (`Super+i`).
+Boot your Ventoy or installation media and open the **Install PalexusOS** shortcut from the desktop or HUD (`Super+i`).
 
 ```
 ┌────────────────────────────────────────────────────────────────────────┐
@@ -119,7 +119,7 @@ Boot your Ventoy or installation media and open the **Install SynapseOS** shortc
 1. In the **Partitions** screen, select **Erase disk**.
 2. Choose **Btrfs** filesystem.
 3. Select whether to enable **Encrypt system** (LUKS full-disk encryption with passphrase prompt at Plymouth boot splash).
-4. Calamares will automatically construct the optimized SynapseOS subvolume scheme:
+4. Calamares will automatically construct the optimized PalexusOS subvolume scheme:
    ```
    /dev/nvme0n1p1   1024 MB   FAT32   /boot/efi    (boot, esp)
    /dev/nvme0n1p2   Rest      Btrfs   /            (zstd:3)
@@ -150,7 +150,7 @@ Boot your Ventoy or installation media and open the **Install SynapseOS** shortc
    - Flags: leave default.
 4. Set the **Boot Loader Location** dropdown to the drive's master MBR or EFI System Partition (e.g. `/dev/nvme0n1`).
 5. Proceed through User Setup and begin installation.
-6. Calamares will install SynapseOS and configure GRUB with `os-prober`, automatically adding a **Windows Boot Manager** boot option.
+6. Calamares will install PalexusOS and configure GRUB with `os-prober`, automatically adding a **Windows Boot Manager** boot option.
 
 ---
 
@@ -169,8 +169,8 @@ reg add "HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\TimeZoneInformation
 ```
 Both operating systems will now agree on UTC timestamps.
 
-### Alternative: Configure SynapseOS to use Local Time
-If you cannot modify Windows registry keys, run this command in SynapseOS:
+### Alternative: Configure PalexusOS to use Local Time
+If you cannot modify Windows registry keys, run this command in PalexusOS:
 ```bash
 timedatectl set-local-rtc 1 --adjust-system-clock
 ```
@@ -179,9 +179,9 @@ timedatectl set-local-rtc 1 --adjust-system-clock
 
 ## 6. Snapshot Rollback Safety
 
-All SynapseOS installations configured with Btrfs include automated pre-update snapshots (`snap-pac` + `snapper`). If any rolling update or kernel experiment ever destabilizes your configuration:
+All PalexusOS installations configured with Btrfs include automated pre-update snapshots (`snap-pac` + `snapper`). If any rolling update or kernel experiment ever destabilizes your configuration:
 
-1. In GRUB, choose **SynapseOS Snapshots** to boot into any read-only snapshot directly.
+1. In GRUB, choose **PalexusOS Snapshots** to boot into any read-only snapshot directly.
 2. Or from a terminal:
    ```bash
    # List existing snapshots:

@@ -1,12 +1,12 @@
 # Comparative Analysis: CachyOS, EndeavourOS, and Omarchy Inspirations
 
-This document breaks down the specific components, architectures, and philosophies to adopt from each inspirational source for **SynapseOS**.
+This document breaks down the specific components, architectures, and philosophies to adopt from each inspirational source for **PalexusOS**.
 
 ---
 
 ## 1. CachyOS Inspirations: Extreme Performance & Responsiveness
 
-CachyOS is renowned as the highest-performance Arch-based distribution. For SynapseOS, we adopt:
+CachyOS is renowned as the highest-performance Arch-based distribution. For PalexusOS, we adopt:
 
 1. **CPU Schedulers**:
    - **BORE (Burst-Oriented Response Enhancer)**: Prioritizes bursty interactive tasks (typing in terminal, rendering UI, IPC messaging) over sustained batch compute.
@@ -22,10 +22,10 @@ CachyOS is renowned as the highest-performance Arch-based distribution. For Syna
 
 ## 2. EndeavourOS Inspirations: Cleanliness, Transparency & Base Stability
 
-EndeavourOS succeeded because it stayed close to upstream Arch Linux without breaking transparency. For SynapseOS, we adopt:
+EndeavourOS succeeded because it stayed close to upstream Arch Linux without breaking transparency. For PalexusOS, we adopt:
 
 1. **Upstream Rolling Foundation**:
-   - Direct compatibility with standard Arch Linux package mirrors. SynapseOS does not fork all packages; it maintains a surgical overlay repository (`[synapseos]`) for distribution-specific packages.
+   - Direct compatibility with standard Arch Linux package mirrors. PalexusOS does not fork all packages; it maintains a surgical overlay repository (`[palexusos]`) for distribution-specific packages.
 2. **Clean Systemd System Integration**:
    - No custom init systems or opaque wrapper scripts. All system services are native systemd units, easily inspected via standard `systemctl` and `journalctl`.
 3. **User-Friendly Maintenance Utilities**:
@@ -50,11 +50,11 @@ Omarchy provides a distinctive, developer-centric aesthetic that avoids bloated 
 
 ---
 
-## 4. The Synthesis: The SynapseOS Advantage
+## 4. The Synthesis: The PalexusOS Advantage
 
 ```
 ┌────────────────────────────────────────────────────────┐
-│                      SynapseOS                         │
+│                      PalexusOS                         │
 │                                                        │
 │  Fast like CachyOS      (BORE kernel + x86-64-v3 + ZRAM)
 │  Clean like EndeavourOS (Arch upstream + systemd + pacman)

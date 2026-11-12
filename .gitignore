@@ -74,3 +74,4 @@ docs/assets/videos/
 packages/core/palexus-core/synapse/
 packages/desktop/llm-quickfire-panel/llm-quickfire-panel/
 
+build/blender/*.mp4

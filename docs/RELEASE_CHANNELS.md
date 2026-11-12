@@ -60,7 +60,7 @@ The package repository stream is governed by `/etc/pacman.conf`:
 ```ini
 [palexusos]
 SigLevel = Required DatabaseOptional
-Server = https://raw.githubusercontent.com/earnerbaymalay/synapseOS/main/out/repo
+Server = https://raw.githubusercontent.com/earnerbaymalay/palexusOS/main/out/repo
 
 [cachyos-v3]
 Include = /etc/pacman.d/cachyos-v3-mirrorlist
@@ -73,11 +73,11 @@ Include = /etc/pacman.d/cachyos-mirrorlist
 ```ini
 [palexusos-testing]
 SigLevel = Optional TrustAll
-Server = https://raw.githubusercontent.com/earnerbaymalay/synapseOS/canary/out/repo
+Server = https://raw.githubusercontent.com/earnerbaymalay/palexusOS/canary/out/repo
 
 [palexusos]
 SigLevel = Required DatabaseOptional
-Server = https://raw.githubusercontent.com/earnerbaymalay/synapseOS/main/out/repo
+Server = https://raw.githubusercontent.com/earnerbaymalay/palexusOS/main/out/repo
 ```
 
 ---

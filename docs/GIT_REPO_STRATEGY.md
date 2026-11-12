@@ -2,7 +2,7 @@
 
 Building a Linux distribution involves managing multiple distinct layers: upstream source code, package recipes, root filesystem overlays, installer images, and documentation. If not structured properly, OS git repositories quickly swell into gigabytes of bloated history.
 
-This document outlines the **Clean Git Architecture** for SynapseOS.
+This document outlines the **Clean Git Architecture** for PalexusOS.
 
 ---
 
@@ -19,10 +19,10 @@ This document outlines the **Clean Git Architecture** for SynapseOS.
 
 ## 2. The Clean Repository Structure
 
-SynapseOS strictly adopts the **Metadata-as-Code** pattern used by Arch Linux, Debian, and Fedora:
+PalexusOS strictly adopts the **Metadata-as-Code** pattern used by Arch Linux, Debian, and Fedora:
 
 ```
-synapseOS/
+palexusOS/
 ├── .agents/                    # Antigravity agent rules & skills
 │   └── rules/
 ├── .vscode/                    # Antigravity IDE workspace configuration
@@ -58,10 +58,10 @@ To keep the repository featherlight (< 10 MB total size):
 
 ```mermaid
 flowchart LR
-    REPO["synapseOS Git Repo (<10MB)"] -->|Tag: v0.1.0| CI["CI / Local Build Runner"]
+    REPO["palexusOS Git Repo (<10MB)"] -->|Tag: v0.1.0| CI["CI / Local Build Runner"]
     CI -->|makepkg in arch-nspawn| PKG["Binary Packages (.pkg.tar.zst)"]
-    CI -->|mkarchiso| ISO["SynapseOS Bootable ISO (.iso)"]
-    PKG --> R2["External Package Repository ([synapseos])"]
+    CI -->|mkarchiso| ISO["PalexusOS Bootable ISO (.iso)"]
+    PKG --> R2["External Package Repository ([palexusos])"]
     ISO --> GH["GitHub Releases / Object Storage CDN"]
 ```
 

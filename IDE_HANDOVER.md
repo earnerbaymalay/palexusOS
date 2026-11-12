@@ -1,6 +1,6 @@
 # Antigravity IDE Handover Brief — PalexusOS
 
-**Project:** PalexusOS (`https://github.com/earnerbaymalay/synapseOS`) *(formerly SynapseOS)*  
+**Project:** PalexusOS (`https://github.com/earnerbaymalay/palexusOS`) *(formerly SynapseOS)*  
 **Workspace Root:** `/home/ebaymlay/Desktop/AI BRAIN/synapseOS`  
 **Maintainer:** earnerbaymalay  
 **Handover Status:** Rebrand to PalexusOS in Progress (**269/269 Gates Passing** | **17/17 pytest UI/UX Passing**); Laser Monolith Plymouth Splash & Branding Review Ready (see [`docs/BRANDING_LASER_BOOT_REVIEW.md`](docs/BRANDING_LASER_BOOT_REVIEW.md))

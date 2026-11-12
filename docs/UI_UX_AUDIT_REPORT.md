@@ -1,6 +1,6 @@
 # PalexusOS UI/UX Engineering & Functional Audit Report
 **Operating System:** PalexusOS (`palexus` / `PalexusOS`)  
-**Workspace:** `/home/ebaymlay/Desktop/AI BRAIN/synapseOS`  
+**Workspace:** `/home/ebaymlay/Desktop/AI BRAIN/palexusOS`  
 **Audit Date:** 2026-11-11  
 **Auditors:** Antigravity (Gemini Lead Architect) & Claude Code Multi-Agent Delegation  
 **Status:** **261/261 Engineering Gates Passing** | **17/17 UI/UX Automated Tests Passing (100%)**
@@ -128,8 +128,8 @@ platform linux -- Python 3.11.15, pytest-9.2.0, pluggy-1.7.0
 rootdir: /home/ebaymlay
 collected 17 items
 
-Desktop/AI BRAIN/synapseOS/tests/test_iso_profile.py ......              [ 35%]
-Desktop/AI BRAIN/synapseOS/tests/test_ui_ux.py ...........               [100%]
+Desktop/AI BRAIN/palexusOS/tests/test_iso_profile.py ......              [ 35%]
+Desktop/AI BRAIN/palexusOS/tests/test_ui_ux.py ...........               [100%]
 
 ============================== 17 passed in 2.28s ==============================
 ```

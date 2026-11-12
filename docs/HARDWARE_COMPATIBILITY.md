@@ -1,4 +1,4 @@
-# SynapseOS — Hardware Compatibility & Platform Matrix
+# PalexusOS — Hardware Compatibility & Platform Matrix
 
 > **Surgical precision. Zero friction.**  
 > Official hardware compatibility tiers, benchmarked platforms, and hardware daemon orchestration guide.
@@ -7,7 +7,7 @@
 
 ## 1. Hardware Compatibility Tiers
 
-SynapseOS is engineered from the ground up to squeeze maximum deterministic throughput out of modern `x86_64` microarchitectures while maintaining full operational resilience.
+PalexusOS is engineered from the ground up to squeeze maximum deterministic throughput out of modern `x86_64` microarchitectures while maintaining full operational resilience.
 
 ```markdown
 | Tier | Architecture Profile | Target Hardware Platforms | Supported Subsystems | Validation Status |
@@ -22,9 +22,9 @@ SynapseOS is engineered from the ground up to squeeze maximum deterministic thro
 
 ## 2. Platform Specifics: The Reference Platform (Dell Latitude 7490)
 
-The Dell Latitude 7490 serves as the primary development and reference hardware for SynapseOS:
+The Dell Latitude 7490 serves as the primary development and reference hardware for PalexusOS:
 - **Processor**: Intel Core i5-8350U / i7-8650U (4 cores / 8 threads, 15W nominal TDP).
-- **Thermal Envelope Expansion**: In standard Linux, Dell EC limits the CPU to 15W sustained power (PL1). SynapseOS deploys `throttled` (formerly `lenovo-throttling-fix` ported to Dell Latitude platforms), unlocking sustained **25W PL1 / 44W PL2** power limits. This results in up to a **38% speedup** in local LLM inference token generation and Rust compile times without thermal throttling.
+- **Thermal Envelope Expansion**: In standard Linux, Dell EC limits the CPU to 15W sustained power (PL1). PalexusOS deploys `throttled` (formerly `lenovo-throttling-fix` ported to Dell Latitude platforms), unlocking sustained **25W PL1 / 44W PL2** power limits. This results in up to a **38% speedup** in local LLM inference token generation and Rust compile times without thermal throttling.
 - **Audio Subsystem**: Realtek ALC3246 HD Audio managed via PipeWire + WirePlumber with custom low-latency quantum configurations (`audio-switch`).
 - **Network Posture**: Dual-interface setup (Intel I219-LM Gigabit Ethernet for primary low-jitter operations, and Intel Wireless-AC 8265 with full MAC randomization and RFC 4941 IPv6 privacy extensions).
 
@@ -32,7 +32,7 @@ The Dell Latitude 7490 serves as the primary development and reference hardware 
 
 ## 3. The `synapse-hardware` CLI Orchestrator
 
-SynapseOS ships with a native hardware CLI utility located at `/usr/bin/synapse-hardware`. It exposes unified terminal commands and JSON output for statusbars (Waybar and polybar):
+PalexusOS ships with a native hardware CLI utility located at `/usr/bin/synapse-hardware`. It exposes unified terminal commands and JSON output for statusbars (Waybar and polybar):
 
 ```
 ┌────────────────────────────────────────────────────────────────────────┐
