@@ -501,7 +501,7 @@ def run_unified(term, accent, mesh):
             frame_start = time.monotonic()
             cols, rows = term.size()
             targets, top, left, lines = logo_targets(cols, rows)
-            subtitle = "S Y N A P S E   O S"
+            subtitle = "P A L E X U S   O S"
             buf = ["\x1b[2J\x1b[H\x1b[48;2;0;0;0m"]
             rain.tick(dt)
             for rr, rc, rch, rcol in rain.render(alpha=1.0):

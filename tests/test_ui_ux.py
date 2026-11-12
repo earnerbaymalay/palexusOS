@@ -17,14 +17,26 @@ from pathlib import Path
 from importlib.machinery import SourceFileLoader
 from unittest.mock import ANY, patch, MagicMock
 
-import pytest
+import unittest
+
+try:
+    import pytest
+except ImportError:
+    pytest = None
 
 # Ensure headless offscreen platform for Qt prior to GUI imports
 os.environ["QT_QPA_PLATFORM"] = "offscreen"
 
-from PyQt6.QtCore import Qt, QUrl
-from PyQt6.QtWidgets import QApplication, QPushButton, QRadioButton
-from PyQt6.QtQml import QQmlApplicationEngine
+try:
+    from PyQt6.QtCore import Qt, QUrl
+    from PyQt6.QtWidgets import QApplication, QPushButton, QRadioButton
+    from PyQt6.QtQml import QQmlApplicationEngine
+    HAS_PYQT6 = True
+except ImportError:
+    HAS_PYQT6 = False
+
+if pytest is None or not HAS_PYQT6:
+    raise unittest.SkipTest("pytest and PyQt6 are required for UI/UX tests")
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 HUD_DIR = REPO_ROOT / "packages" / "desktop" / "palexus-hud"

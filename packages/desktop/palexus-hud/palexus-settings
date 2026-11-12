@@ -8,6 +8,7 @@ and Dell 7490 thermal override.
 
 import os
 import sys
+import json
 import subprocess
 from pathlib import Path
 from PyQt6.QtCore import Qt, QTimer
@@ -274,6 +275,122 @@ class PalexusSettingsWindow(QMainWindow):
         hbox.addWidget(btn_manage)
 
         vbox.addLayout(hbox)
+
+        # Vulkan iGPU Acceleration Section
+        vulkan_card = QFrame()
+        vulkan_card.setStyleSheet("""
+            QFrame {
+                background-color: #181825;
+                border: 1px solid #313244;
+                border-radius: 12px;
+                padding: 12px;
+            }
+        """)
+        vulkan_layout = QVBoxLayout(vulkan_card)
+        vulkan_layout.setSpacing(8)
+
+        vulkan_header = QLabel("🎮 Vulkan iGPU AI Acceleration (Ollama / llama.cpp)")
+        vulkan_header.setStyleSheet(f"color: {self.accent}; font-family: 'JetBrainsMono Nerd Font'; font-weight: 700; font-size: 12px;")
+        vulkan_layout.addWidget(vulkan_header)
+
+        # Probe hardware using palexus-vulkan-probe
+        vulkan_data = {}
+        try:
+            probe_cmd = "palexus-vulkan-probe"
+            local_probe = Path(__file__).resolve().parent / "palexus-vulkan-probe"
+            if local_probe.is_file() and os.access(local_probe, os.X_OK):
+                probe_cmd = str(local_probe)
+            res = subprocess.run([probe_cmd, "json"], capture_output=True, text=True, timeout=3)
+            if res.returncode == 0:
+                vulkan_data = json.loads(res.stdout)
+        except Exception:
+            pass
+
+        gpu_name = vulkan_data.get("device_name", "Scanning...")
+        gpu_type = vulkan_data.get("device_type", "Unknown")
+        is_vul_supported = vulkan_data.get("vulkan_supported", False)
+        compute_ok = vulkan_data.get("compute_reachable", False)
+        rec = vulkan_data.get("recommended_profile", {})
+        layers = rec.get("ollama_num_gpu", 0)
+
+        gpu_lbl = QLabel(f"Detected Hardware:  {gpu_name}  [{gpu_type}]")
+        gpu_lbl.setStyleSheet("color: #cdd6f4; font-family: 'JetBrainsMono Nerd Font'; font-size: 11px;")
+        vulkan_layout.addWidget(gpu_lbl)
+
+        status_text = "Supported & Active ✔" if (is_vul_supported and compute_ok) else "CPU Fallback Mode ⚠"
+        status_color = "#a6e3a1" if (is_vul_supported and compute_ok) else "#fab387"
+        accel_lbl = QLabel(f"Compute Reachability:  {status_text}  (Layers: {layers})")
+        accel_lbl.setStyleSheet(f"color: {status_color}; font-family: 'JetBrainsMono Nerd Font'; font-weight: 700; font-size: 11px;")
+        vulkan_layout.addWidget(accel_lbl)
+
+        vulkan_btn_row = QHBoxLayout()
+        btn_apply_igpu = QPushButton("⚡ Apply iGPU Offload")
+        btn_apply_igpu.setCursor(Qt.CursorShape.PointingHandCursor)
+        btn_apply_igpu.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {self.accent};
+                color: #11111b;
+                font-family: 'JetBrainsMono Nerd Font';
+                font-weight: 700;
+                padding: 6px 14px;
+                border-radius: 12px;
+                border: none;
+            }}
+            QPushButton:hover {{ background-color: #ffffff; }}
+        """)
+
+        def on_apply_vulkan():
+            probe_cmd = "palexus-vulkan-probe"
+            local_probe = Path(__file__).resolve().parent / "palexus-vulkan-probe"
+            if local_probe.is_file() and os.access(local_probe, os.X_OK):
+                probe_cmd = str(local_probe)
+            try:
+                proc = subprocess.run([probe_cmd, "apply"], capture_output=True, text=True, timeout=5)
+                if proc.returncode == 0:
+                    QMessageBox.information(self, "Vulkan Acceleration", f"Optimal iGPU profile applied!\n\n{proc.stdout}")
+                else:
+                    QMessageBox.warning(self, "Vulkan Acceleration", f"Failed to apply:\n{proc.stderr or proc.stdout}")
+            except Exception as e:
+                QMessageBox.critical(self, "Vulkan Acceleration", f"Error invoking {probe_cmd}: {e}")
+
+        btn_apply_igpu.clicked.connect(on_apply_vulkan)
+        vulkan_btn_row.addWidget(btn_apply_igpu)
+
+        btn_test_vulkan = QPushButton("🔍 Test Vulkan Reachability")
+        btn_test_vulkan.setCursor(Qt.CursorShape.PointingHandCursor)
+        btn_test_vulkan.setStyleSheet("""
+            QPushButton {{
+                background-color: #11111b;
+                color: #89b4fa;
+                font-family: 'JetBrainsMono Nerd Font';
+                font-weight: 700;
+                padding: 6px 14px;
+                border-radius: 12px;
+                border: 1px solid #89b4fa;
+            }}
+            QPushButton:hover {{ background-color: #89b4fa; color: #11111b; }}
+        """)
+
+        def on_test_vulkan():
+            probe_cmd = "palexus-vulkan-probe"
+            local_probe = Path(__file__).resolve().parent / "palexus-vulkan-probe"
+            if local_probe.is_file() and os.access(local_probe, os.X_OK):
+                probe_cmd = str(local_probe)
+            try:
+                proc = subprocess.run([probe_cmd, "test"], capture_output=True, text=True, timeout=5)
+                msg = proc.stdout if proc.returncode == 0 else (proc.stderr or proc.stdout)
+                if proc.returncode == 0:
+                    QMessageBox.information(self, "Vulkan Reachability", f"{msg}")
+                else:
+                    QMessageBox.warning(self, "Vulkan Reachability", f"{msg}")
+            except Exception as e:
+                QMessageBox.critical(self, "Vulkan Reachability", f"Error invoking {probe_cmd}: {e}")
+
+        btn_test_vulkan.clicked.connect(on_test_vulkan)
+        vulkan_btn_row.addWidget(btn_test_vulkan)
+        vulkan_layout.addLayout(vulkan_btn_row)
+
+        vbox.addWidget(vulkan_card)
 
         vbox.addStretch()
         return widget

@@ -191,4 +191,3 @@ All PalexusOS installations configured with Btrfs include automated pre-update s
    sudo snapper rollback <snapshot_number>
    sudo reboot
    ```
-

@@ -160,6 +160,7 @@ build_local_packages() {
 
     local pkg_dirs=(
         "${REPO_ROOT}/packages/core/palexus-core"
+        "${REPO_ROOT}/packages/core/palexus-ebpf-guard"
         "${REPO_ROOT}/packages/desktop/llm-quickfire-panel"
         "${REPO_ROOT}/packages/desktop/palexus-themes"
         "${REPO_ROOT}/packages/desktop/palexus-greeter"
@@ -271,6 +272,27 @@ generate_build_manifest() {
 
 # 5. Dry-run check mode (non-root safe)
 if [[ "${DRY_RUN}" -eq 1 ]]; then
+    echo "==> [DRY-RUN] Validating SOURCE_DATE_EPOCH and BUILD_MANIFEST.txt output path..."
+    if [[ -z "${SOURCE_DATE_EPOCH:-}" ]] || [[ ! "${SOURCE_DATE_EPOCH}" =~ ^[0-9]+$ ]]; then
+        echo "[ERROR] Invalid SOURCE_DATE_EPOCH: '${SOURCE_DATE_EPOCH:-}' (must be a valid integer epoch timestamp)" >&2
+        exit 1
+    fi
+    echo "    SOURCE_DATE_EPOCH: ${SOURCE_DATE_EPOCH}"
+
+    MANIFEST_TARGET="${OUT_DIR}/BUILD_MANIFEST.txt"
+    mkdir -p "${OUT_DIR}"
+    if ! touch "${MANIFEST_TARGET}" 2>/dev/null; then
+        echo "[ERROR] Cannot write to BUILD_MANIFEST.txt path: ${MANIFEST_TARGET}" >&2
+        exit 1
+    fi
+    echo "    BUILD_MANIFEST.txt output path validated: ${MANIFEST_TARGET}"
+
+    if [[ -z "${PALEXUS_GPG_KEY:-}" ]]; then
+        echo "==> [WARN] PALEXUS_GPG_KEY unset: repository and ISO will be unsigned (development mode)"
+    else
+        echo "==> [DRY-RUN] PALEXUS_GPG_KEY is set: ${PALEXUS_GPG_KEY}"
+    fi
+
     echo "==> [DRY-RUN] Validating profiledef.sh and customize_airootfs.sh syntax..."
     bash -n "${PROFILE_DIR}/profiledef.sh"
     bash -n "${AIROOTFS_DIR}/root/customize_airootfs.sh"
@@ -316,6 +338,57 @@ prepare_host_build_env() {
         "${priv_cmd[@]}" mkdir -p "${SYSTEM_REPO_DIR}"
         "${priv_cmd[@]}" cp -af "${LOCAL_REPO_DIR}/." "${SYSTEM_REPO_DIR}/"
     fi
+}
+
+generate_build_manifest() {
+    local manifest_file="${OUT_DIR}/BUILD_MANIFEST.txt"
+    echo "==> Generating build manifest at ${manifest_file}..."
+    mkdir -p "${OUT_DIR}"
+
+    local git_commit git_commit_time build_datetime target_arch target_profile kernel_version mkarchiso_version
+    git_commit="$(git -C "${REPO_ROOT}" rev-parse HEAD 2>/dev/null || echo "unknown")"
+    git_commit_time="$(git -C "${REPO_ROOT}" log -1 --format=%ci 2>/dev/null || echo "unknown")"
+    build_datetime="$(date -u +"%Y-%m-%d %H:%M:%S UTC")"
+    target_arch="$(uname -m)"
+    target_profile="$(basename "${PROFILE_DIR}")"
+    kernel_version="$(uname -r)"
+
+    if command -v mkarchiso >/dev/null 2>&1; then
+        mkarchiso_version="$(mkarchiso --version 2>&1 | head -n 1 || true)"
+        if [[ -z "${mkarchiso_version}" ]] && command -v pacman >/dev/null 2>&1; then
+            mkarchiso_version="$(pacman -Q archiso 2>/dev/null || true)"
+        fi
+    else
+        mkarchiso_version="not installed"
+    fi
+    mkarchiso_version="${mkarchiso_version:-unknown}"
+
+    {
+        echo "PalexusOS Build Manifest"
+        echo "========================"
+        echo "PalexusOS Git Commit: ${git_commit}"
+        echo "Commit Timestamp: ${git_commit_time}"
+        echo "SOURCE_DATE_EPOCH: ${SOURCE_DATE_EPOCH}"
+        echo "Build Timestamp: ${build_datetime}"
+        echo "Target Architecture: ${target_arch}"
+        echo "Target Profile: ${target_profile}"
+        echo "Kernel Version: ${kernel_version}"
+        echo "mkarchiso Version: ${mkarchiso_version}"
+        echo ""
+        echo "Built Repository Packages (${LOCAL_REPO_DIR}):"
+        if compgen -G "${LOCAL_REPO_DIR}/*.pkg.tar.*" > /dev/null; then
+            for pkg in "${LOCAL_REPO_DIR}"/*.pkg.tar.*; do
+                local pkg_name pkg_size
+                pkg_name="$(basename "${pkg}")"
+                pkg_size="$(du -h "${pkg}" | cut -f1)"
+                echo "- ${pkg_name} (${pkg_size})"
+            done
+        else
+            echo "- (no built packages found in local repository)"
+        fi
+    } > "${manifest_file}"
+
+    echo "==> Build manifest successfully written to ${manifest_file}"
 }
 
 # 7. Execute mkarchiso (requires root privileges)

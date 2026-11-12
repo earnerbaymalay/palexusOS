@@ -15,7 +15,7 @@ permissions:
 
 jobs:
   verify-gates:
-    name: "Gate G1–G4 Verification Harness"
+    name: "Gate G1–G5 Verification Harness"
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
@@ -28,9 +28,9 @@ jobs:
 
       - name: Run ShellCheck on Build Scripts
         run: |
-          shellcheck build/build-iso.sh build/verify-gates.sh build/archiso/profiledef.sh build/archiso/airootfs/root/customize_airootfs.sh
+          shellcheck build/*.sh build/archiso/profiledef.sh build/archiso/airootfs/root/customize_airootfs.sh
 
-      - name: Execute Verification Gates (G1-G4)
+      - name: Execute Verification Gates (G1-G5)
         run: |
           ./build/verify-gates.sh
 

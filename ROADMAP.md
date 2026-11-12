@@ -6,10 +6,10 @@
 - [x] Establish clean, featherlight Git repository structure.
 - [x] Author comprehensive architecture specifications & comparative inspiration breakdown.
 - [x] Configure Antigravity IDE workspace rules for high-reasoning systems engineering.
-- [x] Implement `packages/core/synapse-core/PKGBUILD` for compiling and packaging the Synapse daemon (`127.0.0.1:8000` gateway + 30m Brain sync timer).
+- [x] Implement `packages/core/palexus-core/PKGBUILD` for compiling and packaging the Palexus daemon (`127.0.0.1:8000` gateway + 30m Brain sync timer).
 - [x] Implement `packages/desktop/llm-quickfire-panel/PKGBUILD` with curated color palettes (Catppuccin Mocha Mauve, Tokyo Night, Nord, Cyberpunk).
-- [x] Establish systemd service presets (`synapse.service`, `ollama.service`, `ananicy-cpp.service`, `firewalld.service`, `sddm.service`).
-- [x] Configure default user skeleton overlay (`overlay/etc/skel/`) with Synapse memory engine hooks and Quickfire HUD defaults.
+- [x] Establish systemd service presets (`palexus.service`, `ollama.service`, `ananicy-cpp.service`, `firewalld.service`, `sddm.service`).
+- [x] Configure default user skeleton overlay (`overlay/etc/skel/`) with Palexus memory engine hooks and Quickfire HUD defaults.
 
 ## Phase 2: Kernel Microarchitecture, Latency & Stealth Posture (Completed)
 - [x] Integrate `linux-cachyos` BORE scheduler kernel and `[cachyos-v3]` x86-64-v3 repository mirrors into `pacman.conf`.
@@ -21,18 +21,18 @@
 - [x] Package unified Catppuccin Mocha Mauve + Liquid Silver Chrome GTK, xfwm4, Kitty, and icon themes.
 - [x] Configure Picom compositor (`overlay/etc/xdg/picom.conf`) with `dual_kawase` blur and rounded corners.
 - [x] Configure optional Sway/Wayland tiling session (`overlay/etc/skel/.config/sway/config` & `waybar/{config.jsonc,style.css}`).
-- [x] Bind standalone Super-key HUD toggle (`xcape` / `Mod4+space` / `Mod4+d`) and autostart `llm-quickfire-panel`.
+- [x] Bind standalone Super-key HUD toggle (`xcape` / `Mod4+space` / `Mod4+d`) and autostart `llm-quickfire-panel` / `palexus-hud`.
 
 ## Phase 4: Archiso Live ISO Profile & Build Tooling (Completed)
 - [x] Create `build/archiso/` profile (`profiledef.sh`, `packages.x86_64`, `pacman.conf`, UEFI `systemd-boot` & BIOS `syslinux` bootloaders, `customize_airootfs.sh`).
 - [x] Build automated ISO builder script (`build/build-iso.sh`) with `--dry-run` / `--check` and `--build-pkgs` support.
-- [x] Implement automated Engineering Gate G1–G4 verification harness (`build/verify-gates.sh`).
+- [x] Implement automated Engineering Gate G1–G5 verification harness (`build/verify-gates.sh`).
 
 ## Phase 5: Calamares Installer & Release Automation (Completed)
 - [x] Configure Calamares installer module sequence (`packages/installer/calamares/settings.conf`).
 - [x] Author PalexusOS Calamares branding (`branding/palexusos/branding.desc`) with Catppuccin Mocha Mauve (`#cba6f7`), Liquid Silver Chrome (`#cdd6f4`), and Obsidian Crust (`#11111b`) styling.
 - [x] Configure Btrfs (`zstd` subvolumes `@`, `@home`, `@snapshots`, `@var_log`) and Ext4 (`noatime`) partitioning presets (`modules/partition.conf`) and mandatory systemd services (`modules/services-systemd.conf`).
-- [x] Build automated GitHub Actions CI/CD workflow (`.github/workflows/build-iso.yml`) running Gate G1–G4 verification, container ISO builds, `SHA256SUMS`, and tagged GitHub Releases.
+- [x] Build automated GitHub Actions CI/CD workflow (`.github/workflows/build-iso.yml`) running Gate G1–G5 verification, container ISO builds, `SHA256SUMS`, and tagged GitHub Releases.
 
 ## Phase 6: V4 Visual Identity & Live ISO Hardening (Completed)
 - [x] Package `synapse-themes`: 5 PalexusOS wallpapers (`/usr/share/backgrounds/palexusos/`, 1376x768 renders), `synapse-theme` switcher (`obsidian-mauve` default, `ristretto-tungsten`, `crimson-carbon`, `platinum-chrome`, `obsidian-basalt` unbranded) bound to `Super+Ctrl+T` in XFCE and Sway.
@@ -53,15 +53,15 @@
 - [x] Stage C: full `mkarchiso` build + QEMU/KVM boot verification; Stage D: `v0.1.0-alpha` release with `SHA256SUMS`.
 
 ## Phase 7: Material You Ecosystem & Token Optimization (Completed)
-- [x] `synapse-hud`: Native Qt6/QML Material You Command HUD bound to `Super+Space` with chamfered borders, animated border light trails, mouse-clickable category cards, and keyboard hotkeys.
-- [x] `synapse-settings`: Material You system control center (Themes & Accents, AI Engine keep-alive & concurrency, Stealth/DoT toggles, PipeWire audio latency).
-- [x] `synapse-notes`: Material You Markdown scratchpad auto-syncing to `~/AIBrain/notes/scratchpad.md` and indexed into persistent Synapse Memory embeddings.
-- [x] `synapse-setup`: Background first-boot local LLM model pull (`qwen2.5-coder:latest`) running at idle CPU/IO priority without stalling session startup.
-- [x] Metallic Reflective Icon Themes: 4 complete vector suites (`Synapse-Liquid-Chrome`, `Synapse-Smoked-Obsidian`, `Synapse-Radial-Tungsten`, `Synapse-Aerospace-Billet`) inheriting from `Hatter-Purple`.
-- [x] Lossless Token Squasher (`synapse squash` & `/usr/bin/squash`): JFrog Boost equivalent stripping ANSI escape codes, carriage return progress bars, and repetitive test noise.
+- [x] `palexus-hud`: Native Qt6/QML Material You Command HUD bound to `Super+Space` with chamfered borders, animated border light trails, mouse-clickable category cards, and keyboard hotkeys.
+- [x] `palexus-settings`: Material You system control center (Themes & Accents, AI Engine keep-alive & concurrency, Stealth/DoT toggles, PipeWire audio latency).
+- [x] `palexus-notes`: Material You Markdown scratchpad auto-syncing to `~/AIBrain/notes/scratchpad.md` and indexed into persistent Palexus Memory embeddings.
+- [x] `palexus-setup`: Background first-boot local LLM model pull (`qwen2.5-coder:latest`) running at idle CPU/IO priority without stalling session startup.
+- [x] Metallic Reflective Icon Themes: 4 complete vector suites (`Palexus-Liquid-Chrome`, `Palexus-Smoked-Obsidian`, `Palexus-Radial-Tungsten`, `Palexus-Aerospace-Billet`) inheriting from `Hatter-Purple`.
+- [x] Lossless Token Squasher (`palexus squash` & `/usr/bin/squash`): JFrog Boost equivalent stripping ANSI escape codes, carriage return progress bars, and repetitive test noise.
 - [x] Hardened Zero-Telemetry Chromium: Configured with `--disable-telemetry`, `--disable-sync`, `--disable-metrics`, `--no-default-browser-check` as default browser.
 - [x] Calamares Netinstall Feature Packs: Selectable installer modules for *Pentest Heavy*, *Creative & Office*, and *Daily Desktop*.
-- [x] Engineering Gate Harness: 279/279 automated verification checks passing (100% pass, 0 warnings, 0 failures; 17/17 pytest unit & UI tests passing).
+- [x] Engineering Gate Harness: 254/254 automated verification checks passing (100% pass, 0 warnings, 0 failures; 17/17 pytest unit & UI tests passing).
 
 ## Phase 8: Hardware Orchestration, Neural Daemon Mesh & ISO Production Release (Completed)
 - [x] **Milestone 8.1: Live ISO Compilation & QEMU/KVM Boot Verification (Stage C)**
@@ -73,10 +73,10 @@
   - [x] Implement outbound prompt secret & entropy inspection (redacting API keys, private keys, SSH certificates via `firewall.rs`).
   - [x] Integrate background vector memory indexing for `~/AIBrain/notes/scratchpad.md` into local persistent embeddings.
 - [x] **Milestone 8.3: Hardware Orchestration & Latency Profile Daemon**
-  - [x] Implement `synapse-hardware` CLI/daemon for dynamic PL1 thermal envelope switching (15W eco vs 25W performance via `throttled`).
+  - [x] Implement `palexus-hardware` CLI/daemon for dynamic PL1 thermal envelope switching (15W eco vs 25W performance via `throttled`).
   - [x] Wire dynamic PipeWire buffer quantum switching (64/48000 for low-latency DSP vs 1024 for battery efficiency).
-  - [x] Integrate Waybar warning alerts and real-time telemetry output via `synapse-hardware bar`.
-  - [x] Integrate hardware controls into `synapse-settings` Audio & Power tab.
+  - [x] Integrate Waybar warning alerts and real-time telemetry output via `palexus-hardware bar`.
+  - [x] Integrate hardware controls into `palexus-settings` Audio & Power tab.
 - [x] **Milestone 8.4: Package Repository Signing & Release Automation (Stage D)**
   - [x] Generate `out/SHA256SUMS` and `out/SHA512SUMS`.
   - [x] Resolve CI verification portability across Ubuntu runners without `makepkg`.
@@ -109,6 +109,6 @@
 - [ ] **Milestone 11.1: Optional Ostree / Composefs Read-Only Root**:
   - Provide an immutable read-only sysroot mode for forensic, pentest, or air-gapped deployments where `/usr` is mounted read-only and all user modifications live in `/var` and `/home`.
 
-## Phase 12: Synapse Cyberdeck Hardware Reference Kit (Upcoming)
+## Phase 12: Palexus Cyberdeck Hardware Reference Kit (Upcoming)
 - [ ] **Milestone 12.1: Open-Source CAD & 3D Print Enclosure Specs**:
   - Blueprint specs for a field-ready cyberdeck chassis housing a Dell Latitude / Framework motherboard, 7-to-10 inch sunlight-readable display, ortholinear mechanical keyboard, and hardware RF kill switches.

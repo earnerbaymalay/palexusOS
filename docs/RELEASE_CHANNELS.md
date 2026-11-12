@@ -12,14 +12,13 @@ PalexusOS (formerly SynapseOS) combines the rapid innovation of Arch Linux rolli
 ```
 ┌────────────────────────────────────────────────────────────────────────┐
 │                        RELEASE CHANNELS                                │
-├────────────────────────────────────────────────────────────────────────┤
+│                                                                        │
 │  [Nightly / Git CI]   -->   [Canary / Dev]   -->   [Stable Channel]    │
 │  Continuous Builds          Bi-Weekly ISOs         Quarterly Milestones│
 │  Git commit HEAD            Staged Testing         Signed SHA256 / GPG │
 └────────────────────────────────────────────────────────────────────────┘
 ```
 
-```markdown
 | Dimension | Stable Channel (`main`) | Canary / Dev Channel (`canary`) | Nightly Stream (`staging-ci`) |
 | :--- | :--- | :--- | :--- |
 | **Target Audience** | Primary development workstations, daily drivers | Testers, contributors, hardware porting | Automated headless CI test matrix |
@@ -28,7 +27,6 @@ PalexusOS (formerly SynapseOS) combines the rapid innovation of Arch Linux rolli
 | **Verification Gate** | **100% Pass** across all 269 checks + QEMU | Automated gate pass + basic smoke test | Dry-run & container compilation |
 | **Package Repository** | `[palexusos]` (GPG-signed database) | `[palexusos-testing]` | Local chroot builds |
 | **Rollback Safety** | Automated Btrfs pre-update snapshot (`snap-pac`) | Automated Btrfs pre-update snapshot | Manual volume rollback |
-```
 
 ---
 

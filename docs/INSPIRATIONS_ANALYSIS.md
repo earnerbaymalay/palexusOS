@@ -29,7 +29,7 @@ EndeavourOS succeeded because it stayed close to upstream Arch Linux without bre
 2. **Clean Systemd System Integration**:
    - No custom init systems or opaque wrapper scripts. All system services are native systemd units, easily inspected via standard `systemctl` and `journalctl`.
 3. **User-Friendly Maintenance Utilities**:
-   - Mirror ranking (`synapse-rankmirrors`), clean pacman hooks for automated cache trimming (`paccache.timer`), and native kernel maintenance (`kernel-install` / dracut / mkinitcpio hooks).
+   - Mirror ranking (`palexus-rankmirrors`), clean pacman hooks for automated cache trimming (`paccache.timer`), and native kernel maintenance (`kernel-install` / dracut / mkinitcpio hooks).
 4. **Calamares Modular Installer**:
    - Provide both offline installation (for air-gapped security labs) and online netinstall options.
 
@@ -43,7 +43,7 @@ Omarchy provides a distinctive, developer-centric aesthetic that avoids bloated 
    - Monospace typography (JetBrains Mono Nerd Font) as the primary system font for all UI elements, toolbars, and menus.
    - Catppuccin Mocha Mauve + Liquid Chrome accents: dark, non-fatiguing backgrounds (`#030308` to `#1e1e2e`) with glowing cyan/violet accents.
 2. **Keyboard-Centric Interaction**:
-   - Standalone Super-key toggle (`xcape`) invoking a searchable, instant fuzzy Command Palette (`agy-palette` / `synapse-palette`).
+   - Standalone Super-key toggle (`xcape` / `Mod4+space`) invoking a searchable, instant Command Palette (`palexus-hud` / `quickfire`).
    - Frictionless terminal summoning and workspace switching.
 3. **Live System Telemetry HUD**:
    - ASCII glyphs, single-line horizontal marquee tickers, and minimal vital signs bars directly on the desktop or terminal statusline.
@@ -59,6 +59,6 @@ Omarchy provides a distinctive, developer-centric aesthetic that avoids bloated 
 │  Fast like CachyOS      (BORE kernel + x86-64-v3 + ZRAM)
 │  Clean like EndeavourOS (Arch upstream + systemd + pacman)
 │  Aesthetic like Omarchy (Cyber monospace + palette HUD)│
-│  + AI-Native with Synapse (Gateway + Context Firewall) │
+│  + AI-Native with Palexus (Gateway + Context Firewall) │
 └────────────────────────────────────────────────────────┘
 ```

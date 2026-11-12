@@ -28,7 +28,7 @@
 
 ---
 
-## 2. Synapse AI Engine & Offline Intelligence
+## 2. Palexus AI Engine & Offline Intelligence
 
 ### Q: Can I run local AI workflows completely disconnected from the Internet?
 > **A:** Yes. PalexusOS is designed as an offline-first cyberdeck:
@@ -42,7 +42,7 @@
 > - **Inbound Rehydration**: When model completions or tool calls return, the placeholder tokens are seamlessly swapped back to their real values.
 > - This guarantees that sensitive network credentials are never leaked to external inference endpoints or cached model logs.
 
-### Q: What does `synapse squash` (`/usr/bin/squash`) do?
+### Q: What does `palexus squash` (`/usr/bin/squash`) do?
 > **A:** Local LLMs operate with limited context windows (e.g., 4,096 to 32,768 tokens). Developer terminal output is filled with ANSI color escapes, progress bars with repeated carriage returns (`\r`), and repetitive test output.  
 > `squash` is a high-speed token compression utility that losslessly strips ANSI formatting, condenses repetitive test runs, and optimizes context density, saving up to **60% of context tokens** before feeding terminal outputs into LLMs.
 
@@ -95,4 +95,3 @@
 > sudo pacman -Syu
 > ```
 > Before any package update is written to disk, `snap-pac` automatically captures a Btrfs pre-update snapshot. If an upstream update ever causes an issue, you can immediately reboot and select the prior snapshot from GRUB or execute `sudo snapper rollback`.
-

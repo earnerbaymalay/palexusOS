@@ -265,6 +265,38 @@ if [[ -f "${REPO_ROOT}/tests/test_iso_profile.py" ]]; then
     fi
 fi
 
+if [[ -f "${REPO_ROOT}/tests/test_ebpf_guard.py" ]]; then
+    if command -v pytest >/dev/null 2>&1; then
+        if pytest -q "${REPO_ROOT}/tests/test_ebpf_guard.py"; then
+            pass "Pytest eBPF guard test suite (tests/test_ebpf_guard.py)"
+        else
+            fail "Pytest suite failed (tests/test_ebpf_guard.py)"
+        fi
+    elif command -v python3 >/dev/null 2>&1; then
+        if python3 "${REPO_ROOT}/tests/test_ebpf_guard.py" >/dev/null 2>&1; then
+            pass "Python unittest eBPF guard test suite (tests/test_ebpf_guard.py)"
+        else
+            fail "Python unittest suite failed (tests/test_ebpf_guard.py)"
+        fi
+    fi
+fi
+
+if [[ -f "${REPO_ROOT}/tests/test_vulkan_probe.py" ]]; then
+    if command -v pytest >/dev/null 2>&1; then
+        if pytest -q "${REPO_ROOT}/tests/test_vulkan_probe.py"; then
+            pass "Pytest Vulkan probe test suite (tests/test_vulkan_probe.py)"
+        else
+            fail "Pytest suite failed (tests/test_vulkan_probe.py)"
+        fi
+    elif command -v python3 >/dev/null 2>&1; then
+        if python3 "${REPO_ROOT}/tests/test_vulkan_probe.py" >/dev/null 2>&1; then
+            pass "Python unittest Vulkan probe test suite (tests/test_vulkan_probe.py)"
+        else
+            fail "Python unittest suite failed (tests/test_vulkan_probe.py)"
+        fi
+    fi
+fi
+
 # ------------------------------------------------------------------------------
 # Gate G4: Archiso Profile & Calamares Installer Integrity
 # ------------------------------------------------------------------------------
@@ -275,6 +307,7 @@ PACKAGES_FILE="${REPO_ROOT}/build/archiso/packages.x86_64"
 PACMAN_CONF="${REPO_ROOT}/build/archiso/pacman.conf"
 CUSTOMIZE_SH="${REPO_ROOT}/build/archiso/airootfs/root/customize_airootfs.sh"
 BUILD_ISO_SH="${REPO_ROOT}/build/build-iso.sh"
+TEST_BOOT_SH="${REPO_ROOT}/build/test-iso-boot.sh"
 
 if bash -n "${PROFILEDEF}"; then
     pass "Archiso profiledef.sh bash syntax valid"
@@ -375,8 +408,20 @@ else
     fail "build/build-iso.sh --dry-run failed to stage airootfs"
 fi
 
+if [[ -x "${TEST_BOOT_SH}" ]] && bash -n "${TEST_BOOT_SH}"; then
+    pass "build/test-iso-boot.sh is executable and syntactically valid"
+else
+    fail "build/test-iso-boot.sh is not executable or has syntax errors"
+fi
+
+if "${TEST_BOOT_SH}" --check >/dev/null 2>&1; then
+    pass "build/test-iso-boot.sh --check verifies QEMU and firmware prerequisites"
+else
+    fail "build/test-iso-boot.sh --check failed prerequisite check"
+fi
+
 if command -v shellcheck >/dev/null 2>&1; then
-    if shellcheck "${BUILD_ISO_SH}" "${REPO_ROOT}/build/verify-gates.sh" "${PROFILEDEF}" "${CUSTOMIZE_SH}"; then
+    if shellcheck "${BUILD_ISO_SH}" "${TEST_BOOT_SH}" "${REPO_ROOT}/build/verify-gates.sh" "${PROFILEDEF}" "${CUSTOMIZE_SH}"; then
         pass "ShellCheck validation passed for all build & archiso scripts"
     else
         fail "ShellCheck reported warnings/errors in build scripts"
@@ -486,7 +531,7 @@ check_file_contains "${REPO_ROOT}/.gitattributes" '^\* text=auto eol=lf$' "Check
 check_file_contains "${REPO_ROOT}/build/build-iso.sh" 'mkarchiso -v -C' "ISO build uses isolated build pacman.conf/keyring"
 
 # Package file-ownership conflicts (pacstrap aborts on these)
-if grep -RqsiE "ps2|playstation|Xsetup-synapseos" "${REPO_ROOT}/overlay" "${REPO_ROOT}/build/archiso/packages.x86_64" "${REPO_ROOT}/build/build-iso.sh"; then
+if grep -RqsiE "ps2|playstation|Xsetup-palexusos" "${REPO_ROOT}/overlay" "${REPO_ROOT}/build/archiso/packages.x86_64" "${REPO_ROOT}/build/build-iso.sh"; then
     fail "No PS2 boot/greeter remnants in overlay, package list or build script"
 else
     pass "No PS2 boot/greeter remnants in overlay, package list or build script"
@@ -659,8 +704,8 @@ if [[ -f "${TEST_BOOT_SH}" ]] && [[ -x "${TEST_BOOT_SH}" ]]; then
         fail "test-iso-boot.sh has syntax errors"
     fi
     check_file_contains "${TEST_BOOT_SH}" "qemu-system-x86_64" "test-iso-boot.sh invokes qemu-system-x86_64"
-    check_file_contains "${TEST_BOOT_SH}" "Reached target Graphical Interface" "test-iso-boot.sh monitors Graphical Interface target"
-    check_file_contains "${TEST_BOOT_SH}" "Started palexus\.service" "test-iso-boot.sh monitors palexus.service startup"
+    check_file_contains "${TEST_BOOT_SH}" "Graphical Interface" "test-iso-boot.sh watches for the graphical/login target"
+    check_file_contains "${TEST_BOOT_SH}" "palexus\.service" "test-iso-boot.sh tracks palexus.service startup"
 
     # Execute boot smoke test if a built ISO is present
     shopt -s nullglob
@@ -668,7 +713,7 @@ if [[ -f "${TEST_BOOT_SH}" ]] && [[ -x "${TEST_BOOT_SH}" ]]; then
     shopt -u nullglob
     if [[ ${#iso_build_artifacts[@]} -gt 0 ]]; then
         echo "==> Detected built ISO: ${iso_build_artifacts[0]}. Running QEMU boot smoke test..."
-        if "${TEST_BOOT_SH}" "${iso_build_artifacts[0]}"; then
+        if "${TEST_BOOT_SH}" --iso "${iso_build_artifacts[0]}"; then
             pass "QEMU boot smoke test passed on ${iso_build_artifacts[0]}"
         else
             fail "QEMU boot smoke test failed on ${iso_build_artifacts[0]}"

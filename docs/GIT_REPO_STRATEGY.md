@@ -33,14 +33,15 @@ palexusOS/
 │   └── GIT_REPO_STRATEGY.md
 ├── build/                      # Build orchestration (Code only, no artifacts)
 │   ├── archiso/                # archiso profile (profiledef.sh, packages.x86_64)
-│   └── scripts/                # Automated chroot & ISO generation scripts
+│   ├── build-iso.sh            # Automated chroot & ISO generation script
+│   └── verify-gates.sh         # Engineering gate verification harness
 ├── packages/                   # Native Arch PKGBUILD recipes
 │   ├── core/
 │   │   └── palexus-core/       # PKGBUILD building Palexus daemon from upstream git
 │   └── desktop/                # Desktop packages (palexus-hud, palexus-greeter, palexus-plymouth, palexus-themes)
 ├── overlay/                    # System root overlay (/etc, /usr/share skeleton)
 │   ├── etc/
-│   │   ├── synapse/
+│   │   ├── palexus/
 │   │   ├── sysctl.d/
 │   │   └── systemd/
 │   └── skel/                   # Default user profile dotfiles
@@ -75,5 +76,5 @@ flowchart LR
 
 - `main`: Production-ready, verified package recipes and ISO profile definitions.
 - `staging`: Integration branch where package updates are tested in chroots before promoting to main.
-- `feat/*`: Topic branches for specific subsystems (e.g. `feat/cachy-kernel-hook`, `feat/synapse-daemon-preset`).
+- `feat/*`: Topic branches for specific subsystems (e.g. `feat/cachy-kernel-hook`, `feat/palexus-daemon-preset`).
 - **Commit Standards**: Conventional Commits (`feat(kernel):`, `fix(sddm):`, `docs(arch):`) to enable automated changelog generation and semantic release tagging.
