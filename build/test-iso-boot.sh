@@ -119,7 +119,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 # Cleanup handler on exit or signal
-# shellcheck disable=SC2317
+# shellcheck disable=SC2317,SC2329
 cleanup() {
     local exit_code=$?
     if [[ -n "${QEMU_PID}" ]] && kill -0 "${QEMU_PID}" 2>/dev/null; then
