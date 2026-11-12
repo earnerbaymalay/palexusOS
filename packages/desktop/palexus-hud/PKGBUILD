@@ -1,7 +1,7 @@
 # Maintainer: PalexusOS Engineering Team <maintainers@palexusos.org>
 pkgname=palexus-hud
 pkgver=0.1.0
-pkgrel=11
+pkgrel=12
 pkgdesc="Native Qt6/QML Material You Command HUD, Palexus Settings Control Center, Brain Notes, Metallic Icon Suites, and Neural Governor"
 arch=('any')
 url="https://github.com/earnerbaymalay/palexusOS"

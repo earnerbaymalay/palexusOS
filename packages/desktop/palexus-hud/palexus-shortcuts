@@ -11,6 +11,9 @@ show_cheatsheet() {
  [Core Navigation & AI Cockpit]
   Super + Space            Palexus Command HUD (Interactive Tiles & Launcher)
   Super + d                Palexus Command HUD (App Search & Prompt)
+  Super + Shift + d        Plain Application List (rofi)
+  Super + e  (or Super + f)File Manager (Thunar)
+  Super + c                Calculator
   Super + Return           Kitty Terminal (Modern GPU-accelerated)
   Super + Shift + Return   Foot Terminal (Fast Wayland Fallback)
   Super + i                Launch Calamares System Installer
@@ -21,13 +24,13 @@ show_cheatsheet() {
   Super + w  (or Super + q)Close Focused Window
   Super + Shift + q        Close Focused Window (Fallback)
   Super + Shift + e        Exit / Logout Sway Session
-  Super + f                Toggle Fullscreen Mode
+  Super + Shift + f / F11  Toggle Fullscreen Mode
   Super + Shift + Space    Toggle Window Floating / Tiling
   Super + h / j / k / l    Focus Left / Down / Up / Right (Vim Navigation)
   Super + Arrow Keys       Focus Left / Down / Up / Right
   Super + Shift + h/j/k/l  Move Window Left / Down / Up / Right
-  Super + b / v            Split Horizontal / Vertical
-  Super + s / w / e        Layout Stacking / Tabbed / Toggle Split
+  Super + \ / v            Split Horizontal / Vertical
+  Super + Shift + s / w / t  Layout Stacking / Tabbed / Toggle Split
   Super + 1 .. 9, 0        Switch to Workspace 1 .. 10
   Super + Shift + 1 .. 0   Move Container to Workspace 1 .. 10
 
