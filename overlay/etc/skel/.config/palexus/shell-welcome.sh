@@ -10,6 +10,8 @@ case $- in
     *i*) ;;
     *) return 0 ;;
 esac
+# "bash -ic '<command>'" is interactive too; keep scripted output clean.
+[[ -n "${BASH_EXECUTION_STRING:-}" ]] && return 0
 
 # Color definitions
 VIOLET='\033[38;2;168;85;247m'
@@ -93,9 +95,7 @@ if [[ ! -f "$PREF_SHELL_FILE" ]] && [[ -t 0 ]] && command -v fish >/dev/null 2>&
     unset SHELL_CHOICE
 fi
 if [[ -f "$PREF_SHELL_FILE" ]] && [[ "$(< "$PREF_SHELL_FILE")" == "fish" ]] \
-    && [[ -z "${PALEXUS_NO_FISH:-}" ]] && [[ -z "${BASH_EXECUTION_STRING:-}" ]] \
-    && [[ -t 0 ]] && command -v fish >/dev/null 2>&1; then
-    # Skipped for "bash -ic '...'" so scripted commands still run.
+    && [[ -z "${PALEXUS_NO_FISH:-}" ]] && [[ -t 0 ]] && command -v fish >/dev/null 2>&1; then
     # PALEXUS_NO_FISH=1 bash  → stay in Bash for this session.
     exec fish
 fi
