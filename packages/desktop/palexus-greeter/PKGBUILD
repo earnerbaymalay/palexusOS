@@ -10,7 +10,7 @@ provides=('synapse-greeter' 'palexus-greeter')
 conflicts=('synapse-greeter')
 depends=('sddm' 'qt6-declarative' 'palexus-themes' 'ttf-jetbrains-mono-nerd')
 source=('Main.qml' 'metadata.desktop' 'theme.conf')
-sha256sums=('a825fd9c4a2569b72c51d0da9da4643f2887c626f7b65d6b7a79c0e12bfcfa4f'
+sha256sums=('c65847cae86ff972bbcf6829c5d457d17e06a721515e9d92fe6b8d38813b7176'
             '3eddd24150b33e52a2fa0f0e3b4e7f5a58ac8ae590a817652401056780495b7e'
             '7d57c06f0a4378bd577235b2352c6f95504ad5f5cdc0d9b7d4c6ab77526dd61d')
 

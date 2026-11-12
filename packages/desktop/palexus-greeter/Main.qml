@@ -148,7 +148,7 @@ Item {
             }
         }
         Text {
-            text: "SYNAPSE // NEURAL INTERFACE ONLINE"
+            text: "PALEXUS // NEURAL INTERFACE ONLINE"
             color: root.subtext
             font { family: root.mono; pixelSize: 10 * root.s; letterSpacing: 2 * root.s; bold: true }
         }
@@ -182,7 +182,7 @@ Item {
                     anchors.verticalCenter: parent.verticalCenter
                 }
                 Text {
-                    text: "PALEXUS OS · KERNEL 6.x"
+                    text: "PALEXUS OS · LINUX-CACHYOS"
                     color: root.accent
                     font { family: root.mono; pixelSize: 10.5 * root.s; letterSpacing: 3 * root.s; bold: true }
                 }
@@ -445,7 +445,7 @@ Item {
                         }
                     }
                     Text {
-                        text: "BIO-AUTH ACTIVE"
+                        text: "AUTH GATE"
                         color: root.accent
                         font { family: root.mono; pixelSize: 10.5 * root.s; letterSpacing: 1 * root.s; bold: true }
                     }
