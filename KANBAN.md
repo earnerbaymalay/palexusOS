@@ -4,17 +4,6 @@ Plan the project here. Each card can start a Parallel Code task.
 
 ## Backlog
 
-- [ ] Build, verify and tag the first PalexusOS ISO
-  Run `./build/build-iso.sh --build-pkgs`, the gate harness, pytest and the QEMU smoke test, walk through a Calamares install in a VM, then update `ROADMAP.md` and tag `v0.2.0-alpha`. Remove stale `out/repo/synapse-*` packages and the old `synapseos` database first.
-  - [ ] `out/palexusos-<date>-x86_64.iso` boots to the greeter and desktop under UEFI
-  - [ ] Installed system boots, has no live user or NOPASSWD sudoers, and `palexus.service` is active
-  - [ ] Release has the ISO, checksums and signatures attached
-  depends: Rebrand the CI workflow and add release checksums
-  depends: Rebrand the pytest suites
-  depends: Sign the package repository and the ISO
-  depends: Add a scripted QEMU boot smoke test
-  depends: Rebrand docs, agent rules and editor config
-  group: release
 - [ ] Finish and test the PL1/PL2 thermal governor (Milestone 9.1)
   `packages/desktop/palexus-hud/palexus-governor` already polls Ollama `/api/ps` and switches EPP, but the roadmap item is unchecked. Add real PL1/PL2 switching (RAPL `intel-rapl` constraints, with the existing `throttled` path as fallback), distinguish inference from background compilation, make limits configurable in `/etc/palexus/governor.toml`, and harden `palexus-governor.service` (`ProtectSystem`, `NoNewPrivileges`, only the sysfs paths it writes). Add `tests/test_governor.py` using a fake sysfs tree.
   - [ ] Unit tests cover idle, inference and compile states against fake sysfs
@@ -59,6 +48,18 @@ Plan the project here. Each card can start a Parallel Code task.
 ## Review
 
 ## Done
+
+- [x] Build, verify and tag the first PalexusOS ISO
+  Run `./build/build-iso.sh --build-pkgs`, the gate harness, pytest and the QEMU smoke test, walk through a Calamares install in a VM, then update `ROADMAP.md` and tag `v0.2.0-alpha`. Remove stale `out/repo/synapse-*` packages and the old `synapseos` database first.
+  - [x] `out/palexusos-<date>-x86_64.iso` boots to the greeter and desktop under UEFI
+  - [x] Installed system boots, has no live user or NOPASSWD sudoers, and `palexus.service` is active
+  - [x] Release has the ISO, checksums and signatures attached
+  depends: Rebrand the CI workflow and add release checksums
+  depends: Rebrand the pytest suites
+  depends: Sign the package repository and the ISO
+  depends: Add a scripted QEMU boot smoke test
+  depends: Rebrand docs, agent rules and editor config
+  group: release
 
 - [x] Add a scripted QEMU boot smoke test
   Create `build/test-iso-boot.sh` that boots the newest `out/palexusos-*.iso` headless under QEMU/KVM with OVMF, watches the serial console for the graphical target and `palexus.service` becoming active, and exits non-zero on timeout. Base the approach on `build/test-plymouth-container.sh` (also rename its old-brand references). Add a matching gate entry that is skipped when no ISO is present.

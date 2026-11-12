@@ -81,6 +81,14 @@
   - [x] Generate `out/SHA256SUMS` and `out/SHA512SUMS`.
   - [x] Resolve CI verification portability across Ubuntu runners without `makepkg`.
   - [x] Tag `v0.1.0-alpha.2` and trigger automated GitHub Actions release CI/CD workflow.
+- [x] **Milestone 8.5: PalexusOS Rebrand & v0.2.0-alpha Release Milestone (Stage E)**
+  - [x] Complete comprehensive rebrand from SynapseOS to PalexusOS across desktop, installer, core daemons, wallpapers, boot splash, and documentation.
+  - [x] Implement deterministic reproducible ISO builds with `SOURCE_DATE_EPOCH` and `BUILD_MANIFEST.txt`.
+  - [x] Implement optional GPG detached signing for repo databases, ISO images, and SHA manifests via `PALEXUS_GPG_KEY`.
+  - [x] Implement headless QEMU/KVM boot smoke test harness (`build/test-iso-boot.sh`) asserting graphical interface target and `palexus.service` activation.
+  - [x] Build native `[palexusos]` repository packages (`palexus-core`, `palexus-hud`, `llm-quickfire-panel`, `palexus-themes`, `palexus-greeter`, `palexus-plymouth`).
+  - [x] Produce and verify `out/palexusos-YYYY.MM.DD-x86_64.iso` (2.9 GB), passing all 285 engineering gates and 18/18 pytest test cases.
+  - [x] Tag `v0.2.0-alpha` release milestone.
 
 ## Phase 9: Neural Hardware Autotuning & eBPF Context Enclave (Upcoming — Q1 2027)
 - [ ] **Milestone 9.1: Dynamic PL1/PL2 Thermal Governor (`palexus-governor`)**:
