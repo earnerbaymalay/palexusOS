@@ -552,6 +552,135 @@ def run_unified(term, accent, mesh):
 
 # ─── legacy modes ─────────────────────────────────────────────────────────────
 
+
+# ─── OmarchyOS-Style Dedicated Screensavers ───────────────────────────────────
+
+def run_matrix(term, accent):
+    """Omarchy-style Digital Cyber Matrix rain."""
+    cols, rows = term.size()
+    rain = MatrixRain(cols, rows)
+    dt = 1.0 / FPS
+    while True:
+        frame_start = time.monotonic()
+        cols, rows = term.size()
+        if rain.cols != cols or rain.rows != rows:
+            rain = MatrixRain(cols, rows)
+        rain.step()
+        buf = ["[H"]
+        for y in range(rows):
+            line = [" "] * cols
+            for col in rain.columns:
+                if col.x < cols:
+                    for char, cy, alpha in col.chars():
+                        if cy == y:
+                            col_rgb = scale_rgb(accent, alpha) if alpha < 0.95 else (255, 255, 255)
+                            line[col.x] = fg(col_rgb) + char + "[0m"
+            buf.append("".join(line))
+        sys.stdout.write(chr(10).join(buf))
+        sys.stdout.flush()
+        elapsed = time.monotonic() - frame_start
+        if term.key_pressed(max(0.0, dt - elapsed)):
+            return 0
+
+
+def run_pipes(term, accent):
+    """Omarchy-style 3D Terminal Pipe generator."""
+    cols, rows = term.size()
+    grid = [[False] * cols for _ in range(rows)]
+    pipes = []
+    # 4 active pipe heads
+    for _ in range(4):
+        pipes.append({
+            "x": random.randint(0, cols - 1),
+            "y": random.randint(0, rows - 1),
+            "dir": random.choice([(1,0), (-1,0), (0,1), (0,-1)]),
+            "char": random.choice("┼─│┌┐└┘"),
+            "col": scale_rgb(accent, random.uniform(0.6, 1.0))
+        })
+    dt = 1.0 / FPS
+    step_count = 0
+    sys.stdout.write("[2J")
+    while True:
+        frame_start = time.monotonic()
+        cols, rows = term.size()
+        buf = []
+        for p in pipes:
+            # Maybe turn
+            if random.random() < 0.2:
+                p["dir"] = random.choice([(1,0), (-1,0), (0,1), (0,-1)])
+            dx, dy = p["dir"]
+            p["x"] = (p["x"] + dx) % cols
+            p["y"] = (p["y"] + dy) % rows
+            p["char"] = "─" if dy == 0 else "│"
+            buf.append(f"[{p['y']+1};{p['x']+1}H{fg(p['col'])}{p['char']}[0m")
+        sys.stdout.write("".join(buf))
+        sys.stdout.flush()
+        step_count += 1
+        if step_count > 1200:
+            sys.stdout.write("[2J")
+            step_count = 0
+        elapsed = time.monotonic() - frame_start
+        if term.key_pressed(max(0.0, dt - elapsed)):
+            return 0
+
+
+def run_starfield(term, accent):
+    """Omarchy-style High-velocity 3D Starfield Warp."""
+    cols, rows = term.size()
+    stars = []
+    for _ in range(120):
+        stars.append([random.uniform(-1, 1), random.uniform(-1, 1), random.uniform(0.1, 1.0)])
+    dt = 1.0 / FPS
+    cx, cy = cols / 2, rows / 2
+    while True:
+        frame_start = time.monotonic()
+        cols, rows = term.size()
+        cx, cy = cols / 2, rows / 2
+        buf = ["[2J"]
+        for s in stars:
+            s[2] -= 0.02
+            if s[2] <= 0.05:
+                s[0] = random.uniform(-1, 1)
+                s[1] = random.uniform(-1, 1)
+                s[2] = 1.0
+            px = int(cx + (s[0] / s[2]) * cx * 0.8)
+            py = int(cy + (s[1] / s[2]) * cy * 0.8)
+            if 0 <= px < cols and 0 <= py < rows:
+                bright = 1.0 - s[2]
+                ch = "." if bright < 0.3 else ("*" if bright < 0.7 else "✦")
+                col = scale_rgb(accent, bright) if bright < 0.85 else (255, 255, 255)
+                buf.append(f"[{py+1};{px+1}H{fg(col)}{ch}[0m")
+        sys.stdout.write("".join(buf))
+        sys.stdout.flush()
+        elapsed = time.monotonic() - frame_start
+        if term.key_pressed(max(0.0, dt - elapsed)):
+            return 0
+
+
+def run_waves(term, accent):
+    """Omarchy-style Cyber Synaptic Sine Waves."""
+    cols, rows = term.size()
+    phase = 0.0
+    dt = 1.0 / FPS
+    while True:
+        frame_start = time.monotonic()
+        cols, rows = term.size()
+        cy = rows // 2
+        buf = ["[2J"]
+        for x in range(0, cols, 2):
+            for w_idx in range(3):
+                y = int(cy + math.sin(x * 0.05 + phase + w_idx * 1.2) * (rows * 0.3))
+                if 0 <= y < rows:
+                    col = scale_rgb(accent, 0.5 + w_idx * 0.25)
+                    buf.append(f"[{y+1};{x+1}H{fg(col)}≈[0m")
+        sys.stdout.write("".join(buf))
+        sys.stdout.flush()
+        phase += 0.08
+        elapsed = time.monotonic() - frame_start
+        if term.key_pressed(max(0.0, dt - elapsed)):
+            return 0
+
+
 def run_legacy(mode, term, accent, mesh):
     """Legacy torus / brand / cycle modes (backward compat)."""
     angle_a, angle_b = 0.0, 0.0
@@ -610,6 +739,14 @@ def run(mode):
     with Terminal() as term:
         if mode == "unified":
             return run_unified(term, accent, mesh)
+        elif mode == "matrix":
+            return run_matrix(term, accent)
+        elif mode == "pipes":
+            return run_pipes(term, accent)
+        elif mode == "starfield":
+            return run_starfield(term, accent)
+        elif mode == "waves":
+            return run_waves(term, accent)
         else:
             return run_legacy(mode, term, accent, mesh)
 
@@ -652,7 +789,7 @@ def main():
     parser.add_argument("--launch", action="store_true", help="open fullscreen in kitty/foot")
     parser.add_argument(
         "--mode",
-        choices=["unified", "cycle", "torus", "brand"],
+        choices=["unified", "cycle", "torus", "brand", "matrix", "pipes", "starfield", "waves"],
         default=None,
         help="screensaver mode (default: unified)",
     )

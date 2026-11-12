@@ -208,3 +208,8 @@ fi
 if command -v fastfetch >/dev/null 2>&1; then
     fastfetch
 fi
+
+# --- PalexusOS Interactive Shell Welcome & Telemetry ---
+if [[ -f "/home/ebaymlay/.config/palexus/shell-welcome.sh" ]]; then
+    source "/home/ebaymlay/.config/palexus/shell-welcome.sh"
+fi

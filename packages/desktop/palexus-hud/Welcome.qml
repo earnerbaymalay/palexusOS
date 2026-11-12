@@ -43,15 +43,16 @@ Window {
         sapphire: "#74c7ec", emerald: "#a6e3a1"
     })
     readonly property var sceneLabels: ({ monolith: "Monolith", tower: "Basalt Tower", carbon: "Forged Carbon" })
+    readonly property color deepPurpleAura: "#4d1d75"
     readonly property color accent: accents[accentName] || accents.mauve
     readonly property color accentInk: "#11111b"
-    readonly property color panelFill: Qt.rgba(14 / 255, 14 / 255, 22 / 255, 0.90)
-    readonly property color field: "#161624"
-    readonly property color fieldHover: "#1e1e30"
-    readonly property color hairline: "#2c2c40"
-    readonly property color textMain: "#e6e9f5"
+    readonly property color panelFill: Qt.rgba(13 / 255, 12 / 255, 20 / 255, 0.92)
+    readonly property color field: "#151522"
+    readonly property color fieldHover: "#1d1d2e"
+    readonly property color hairline: "#2b2a3d"
+    readonly property color textMain: "#f5f5fc"
     readonly property color textSub: "#bac2de"
-    readonly property color textMuted: "#9399b2"   // >= 6:1 on the panel
+    readonly property color textMuted: "#8990b3"
     readonly property color success: "#a6e3a1"
     readonly property color warning: "#f9e2af"
     readonly property string sans: "Noto Sans"
@@ -444,8 +445,9 @@ Window {
     Rectangle {
         anchors.fill: parent
         gradient: Gradient {
-            GradientStop { position: 0.0; color: Qt.rgba(9 / 255, 9 / 255, 13 / 255, 0.35) }
-            GradientStop { position: 1.0; color: Qt.rgba(9 / 255, 9 / 255, 13 / 255, 0.75) }
+            GradientStop { position: 0.0; color: root.withAlpha(root.deepPurpleAura, 0.40) }
+            GradientStop { position: 0.5; color: Qt.rgba(9 / 255, 9 / 255, 13 / 255, 0.55) }
+            GradientStop { position: 1.0; color: root.withAlpha(root.deepPurpleAura, 0.45) }
         }
     }
 
@@ -472,11 +474,11 @@ Window {
         Rectangle {
             id: panel
             anchors.centerIn: parent
-            width: Math.min(parent.width - 48, 820)
-            height: Math.min(parent.height - 48, 660)
+            width: Math.min(parent.width - 48, 860)
+            height: Math.min(parent.height - 48, 670)
             radius: 22
             color: root.panelFill
-            border.color: root.withAlpha(root.accent, 0.35)
+            border.color: root.withAlpha(root.accent, 0.40)
             border.width: 1
             Behavior on border.color { ColorAnimation { duration: root.motion * 2 } }
 
@@ -558,17 +560,93 @@ Window {
                                 spacing: 14
                                 Option {
                                     Layout.fillWidth: true; Layout.preferredWidth: 1
-                                    title: "Try PalexusOS"
-                                    desc: "Explore first. Install any time from the bar or with Super+I."
+                                    title: "Try PalexusOS Live"
+                                    desc: "Explore the live cyberdeck workspace. Install anytime from the panel or with Super+I."
                                     selected: !root.liveInstall
                                     onPicked: root.liveInstall = false
                                 }
                                 Option {
                                     Layout.fillWidth: true; Layout.preferredWidth: 1
-                                    title: "Install PalexusOS"
-                                    desc: "Open the installer. You'll create your account on first boot."
+                                    title: "Install to Hardware"
+                                    desc: "Launch the Calamares installer to deploy PalexusOS to persistent drive storage."
                                     selected: root.liveInstall
                                     onPicked: root.liveInstall = true
+                                }
+                            }
+
+                            // Quick Launcher Path Preview (In-session / non-live onboarding)
+                            ColumnLayout {
+                                visible: !root.isLive && !root.isOobe
+                                Layout.fillWidth: true
+                                Layout.topMargin: 8
+                                spacing: 10
+
+                                Caption {
+                                    text: "Core Cyberdeck Applications"
+                                    Layout.alignment: Qt.AlignHCenter
+                                }
+
+                                RowLayout {
+                                    Layout.fillWidth: true
+                                    spacing: 12
+
+                                    Repeater {
+                                        model: [
+                                            { name: "Command HUD", desc: "Super+Space", tool: "hud" },
+                                            { name: "Terminal", desc: "Super+Return", tool: "terminal" },
+                                            { name: "Files (Thunar)", desc: "Super+E", tool: "thunar" },
+                                            { name: "Galculator", desc: "Super+C", tool: "galculator" }
+                                        ]
+                                        delegate: Rectangle {
+                                            id: appTile
+                                            required property var modelData
+                                            Layout.fillWidth: true
+                                            Layout.preferredWidth: 1
+                                            implicitHeight: 64
+                                            radius: 12
+                                            color: atm.containsMouse ? root.fieldHover : root.field
+                                            border.width: 1
+                                            border.color: atm.containsMouse ? root.accent : root.hairline
+                                            activeFocusOnTab: true
+                                            Accessible.role: Accessible.Button
+                                            Accessible.name: "Launch " + modelData.name
+                                            Accessible.onPressAction: if (root.hasBackend) backend.openTool(modelData.tool)
+                                            Keys.onReturnPressed: if (root.hasBackend) backend.openTool(modelData.tool)
+                                            Keys.onEnterPressed: if (root.hasBackend) backend.openTool(modelData.tool)
+
+                                            ColumnLayout {
+                                                anchors.centerIn: parent
+                                                spacing: 2
+                                                T {
+                                                    text: appTile.modelData.name
+                                                    font.pixelSize: 13
+                                                    font.weight: Font.DemiBold
+                                                    color: atm.containsMouse ? root.accent : root.textMain
+                                                    Layout.alignment: Qt.AlignHCenter
+                                                    wrapMode: Text.NoWrap
+                                                }
+                                                T {
+                                                    text: appTile.modelData.desc
+                                                    font.family: root.mono
+                                                    font.pixelSize: 11
+                                                    color: root.textMuted
+                                                    Layout.alignment: Qt.AlignHCenter
+                                                    wrapMode: Text.NoWrap
+                                                }
+                                            }
+                                            MouseArea {
+                                                id: atm
+                                                anchors.fill: parent
+                                                hoverEnabled: true
+                                                cursorShape: Qt.PointingHandCursor
+                                                onClicked: {
+                                                    appTile.forceActiveFocus()
+                                                    if (root.hasBackend) backend.openTool(appTile.modelData.tool)
+                                                }
+                                            }
+                                            FocusRing { r: 12; visible: appTile.activeFocus }
+                                        }
+                                    }
                                 }
                             }
                             Item { Layout.fillHeight: true }
@@ -998,27 +1076,50 @@ Window {
                                         }
                                     }
                                 }
-                                // Three keys
+                                // Essential Navigation & Application Shortcuts
                                 ColumnLayout {
                                     Layout.fillWidth: true
                                     Layout.preferredWidth: 1
                                     Layout.alignment: Qt.AlignTop
                                     spacing: 8
-                                    Caption { text: "Three keys" }
+                                    Caption { text: "Navigation & Shortcuts" }
                                     Repeater {
                                         model: [
-                                            { k: "Space", t: "Command HUD & AI" },
-                                            { k: "Return", t: "Terminal" },
-                                            { k: "/", t: "Every shortcut" }
+                                            { k: "Space", t: "Command HUD & AI", tool: "hud" },
+                                            { k: "Return", t: "Kitty Terminal", tool: "terminal" },
+                                            { k: "E", t: "Files (Thunar)", tool: "thunar" },
+                                            { k: "C", t: "Galculator", tool: "galculator" },
+                                            { k: "/", t: "Shortcuts Cheatsheet", tool: "shortcuts" }
                                         ]
-                                        delegate: RowLayout {
+                                        delegate: Item {
+                                            id: scDelegate
                                             required property var modelData
-                                            spacing: 8
-                                            Accessible.role: Accessible.StaticText
-                                            Accessible.name: "Super plus " + modelData.k + ": " + modelData.t
-                                            Keycap { label: "Super" }
-                                            Keycap { label: modelData.k }
-                                            T { Layout.leftMargin: 6; text: modelData.t; font.pixelSize: 14; wrapMode: Text.NoWrap }
+                                            Layout.fillWidth: true
+                                            implicitHeight: scRow.implicitHeight
+                                            RowLayout {
+                                                id: scRow
+                                                anchors.fill: parent
+                                                spacing: 8
+                                                Accessible.role: Accessible.Button
+                                                Accessible.name: "Launch " + scDelegate.modelData.t + " with Super plus " + scDelegate.modelData.k
+                                                Keycap { label: "Super" }
+                                                Keycap { label: scDelegate.modelData.k }
+                                                T {
+                                                    Layout.leftMargin: 4
+                                                    Layout.fillWidth: true
+                                                    text: scDelegate.modelData.t
+                                                    font.pixelSize: 13
+                                                    color: scm.containsMouse ? root.accent : root.textMain
+                                                    wrapMode: Text.NoWrap
+                                                }
+                                            }
+                                            MouseArea {
+                                                id: scm
+                                                anchors.fill: parent
+                                                hoverEnabled: true
+                                                cursorShape: Qt.PointingHandCursor
+                                                onClicked: if (root.hasBackend && scDelegate.modelData.tool) backend.openTool(scDelegate.modelData.tool)
+                                            }
                                         }
                                     }
                                 }

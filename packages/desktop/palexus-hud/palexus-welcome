@@ -71,6 +71,9 @@ TOOLS = {
     "shortcuts": ["palexus-shortcuts"],
     "settings": ["palexus-settings"],
     "hud": ["palexus-hud"],
+    "terminal": ["kitty"],
+    "thunar": ["thunar"],
+    "galculator": ["galculator"],
 }
 
 
