@@ -6,12 +6,18 @@
 
 # Sourced from ~/.bashrc. Do nothing in non-interactive shells. (This must not
 # "exit": the file runs inside the user's own shell.)
+# "return" ends a sourced file; the "|| exit 0" only runs if someone executes
+# this file directly, where it ends that script and nothing else.
+# shellcheck disable=SC2317
 case $- in
     *i*) ;;
-    *) return 0 ;;
+    *) return 0 2>/dev/null || exit 0 ;;
 esac
 # "bash -ic '<command>'" is interactive too; keep scripted output clean.
-[[ -n "${BASH_EXECUTION_STRING:-}" ]] && return 0
+if [[ -n "${BASH_EXECUTION_STRING:-}" ]]; then
+    # shellcheck disable=SC2317
+    return 0 2>/dev/null || exit 0
+fi
 
 # Color definitions
 VIOLET='\033[38;2;168;85;247m'
@@ -76,9 +82,10 @@ if command -v fastfetch >/dev/null 2>&1; then
 fi
 
 # ─── 4. One-time shell choice ─────────────────────────────────────────────────
-# Asked once per account. Any answer, including Enter or the timeout, is
-# recorded, so later shells start without a prompt. Only shells that are
-# actually installed are offered.
+# Asked once per account, and only when fish is installed. Any answer,
+# including Enter or the timeout, is recorded so later shells start without a
+# prompt. Choosing fish switches this terminal only; making it the login shell
+# is left to chsh, so a Bash started on purpose always stays Bash.
 PREF_SHELL_FILE="${HOME}/.config/palexus/preferred_shell"
 if [[ ! -f "$PREF_SHELL_FILE" ]] && [[ -t 0 ]] && command -v fish >/dev/null 2>&1; then
     echo -e "${VIOLET}Pick your interactive shell (asked once):${RESET}"
@@ -89,13 +96,14 @@ if [[ ! -f "$PREF_SHELL_FILE" ]] && [[ -t 0 ]] && command -v fish >/dev/null 2>&
     mkdir -p "$(dirname "$PREF_SHELL_FILE")"
     if [[ "$SHELL_CHOICE" == "1" ]]; then
         echo "fish" > "$PREF_SHELL_FILE"
-    else
-        echo "bash" > "$PREF_SHELL_FILE"
+        echo -e "${MUTED}Starting fish. To use it in every terminal: chsh -s $(command -v fish)${RESET}"
+        exec fish
     fi
-    unset SHELL_CHOICE
+    echo "bash" > "$PREF_SHELL_FILE"
 fi
-if [[ -f "$PREF_SHELL_FILE" ]] && [[ "$(< "$PREF_SHELL_FILE")" == "fish" ]] \
-    && [[ -z "${PALEXUS_NO_FISH:-}" ]] && [[ -t 0 ]] && command -v fish >/dev/null 2>&1; then
-    # PALEXUS_NO_FISH=1 bash  → stay in Bash for this session.
-    exec fish
-fi
+
+# This file runs inside the user's shell: leave nothing behind in it.
+unset -f gradient_print
+unset VIOLET PURPLE MAUVE CYAN WHITE MUTED BOLD RESET \
+    CPU_MODEL LOAD_AVG RAM_TOTAL RAM_USED ZRAM_STAT DISK_FREE AI_STATUS \
+    PREF_SHELL_FILE SHELL_CHOICE
