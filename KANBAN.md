@@ -45,11 +45,11 @@ Plan the project here. Each card can start a Parallel Code task.
   depends: Rename leftover Synapse assets inside the palexus-* packages
   related: Rebrand the archiso profile and bootloader entries
   group: hardware
-- [ ] Fix desktop look: theme coverage, login screen, dead shortcuts
+- [x] Fix desktop look: theme coverage, login screen, dead shortcuts
   issue: https://github.com/earnerbaymalay/synapseOS/pull/2
   related: Rebrand the archiso profile and bootloader entries
   group: desktop
-- [ ] Fix first-boot setup recovery, live detection and HUD AI actions
+- [x] Fix first-boot setup recovery, live detection and HUD AI actions
   issue: https://github.com/earnerbaymalay/synapseOS/pull/3
   related: Rebrand the live-image customize hook and the Calamares modules together
   group: desktop
