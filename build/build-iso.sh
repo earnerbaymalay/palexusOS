@@ -149,7 +149,7 @@ build_local_packages() {
         cp -al "${PALEXUS_CORE_SRC}" "${sc_dir}/src/synapse"
     fi
     if [[ -d "${sc_dir}/src" ]]; then
-        cp -f "${sc_dir}/palexus.service" "${sc_dir}/palexus-sync.service" "${sc_dir}/palexus-sync.timer" "${sc_dir}/src/"
+        cp -af --remove-destination "${sc_dir}/palexus.service" "${sc_dir}/palexus-sync.service" "${sc_dir}/palexus-sync.timer" "${sc_dir}/src/"
     fi
 
     local qf_dir="${REPO_ROOT}/packages/desktop/llm-quickfire-panel"
