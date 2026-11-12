@@ -4,25 +4,25 @@ Plan the project here. Each card can start a Parallel Code task.
 
 ## Backlog
 
-- [ ] Design spike: eBPF secret leak interceptor (Milestone 9.2)
+- [x] Design spike: eBPF secret leak interceptor (Milestone 9.2)
   Write `docs/EBPF_SECRET_INTERCEPTOR.md` only. Decide the hook point (cgroup/skb egress, sock_ops, or LSM), how plaintext is inspected given TLS (uprobes on OpenSSL/GnuTLS versus pre-encryption only), pattern set (`sk-*`, PEM headers, OpenSSH private keys), false-positive handling, kernel config requirements on `linux-cachyos`, and how it reuses the patterns in the upstream daemon's `firewall.rs`.
-  - [ ] Document names one recommended hook point with its limits stated
-  - [ ] Lists required kernel options and the toolchain (aya or libbpf)
-  - [ ] Breaks implementation into follow-up cards
+  - [x] Document names one recommended hook point with its limits stated
+  - [x] Lists required kernel options and the toolchain (aya or libbpf)
+  - [x] Breaks implementation into follow-up cards
   related: Rebrand docs, agent rules and editor config
   group: hardware
-- [ ] Implement the eBPF secret leak interceptor package
+- [x] Implement the eBPF secret leak interceptor package
   New package `packages/core/palexus-ebpf-guard/` (PKGBUILD, loader, systemd unit) following the design document. Default mode is log-only with an enforce switch; add it to `build/archiso/packages.x86_64` and a gate check.
-  - [ ] A test that sends a fake PEM private key over a local socket is blocked in enforce mode
-  - [ ] Ordinary HTTPS traffic is unaffected
-  - [ ] Package builds in a clean chroot
+  - [x] A test that sends a fake PEM private key over a local socket is blocked in enforce mode
+  - [x] Ordinary HTTPS traffic is unaffected
+  - [x] Package builds in a clean chroot
   depends: Design spike: eBPF secret leak interceptor (Milestone 9.2)
   group: hardware
-- [ ] Vulkan offload profiler for integrated graphics (Milestone 9.3)
+- [x] Vulkan offload profiler for integrated graphics (Milestone 9.3)
   Add `packages/desktop/palexus-hud/palexus-vulkan-probe`: detect Intel/AMD integrated GPUs through `vulkaninfo`, benchmark a small quantized model with and without GPU layers through Ollama, and write the faster setting to `overlay/etc/systemd/system/ollama.service.d/` style drop-in under `/etc`. Add the Mesa Vulkan drivers to `packages.x86_64`, install the script in the HUD PKGBUILD, and expose the result in the `palexus-settings` AI Engine tab.
-  - [ ] Falls back to CPU without error when no Vulkan device exists
-  - [ ] Result is shown in settings and survives reboot
-  - [ ] Parsing logic has unit tests with recorded `vulkaninfo` output
+  - [x] Falls back to CPU without error when no Vulkan device exists
+  - [x] Result is shown in settings and survives reboot
+  - [x] Parsing logic has unit tests with recorded `vulkaninfo` output
   depends: Rename leftover Synapse assets inside the palexus-* packages
   related: Rebrand the archiso profile and bootloader entries
   group: hardware
