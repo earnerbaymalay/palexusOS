@@ -24,7 +24,7 @@
 > 4. **Firewall Default Drop**:
 >    - `firewalld` defaults to the `drop` zone. All unsolicited incoming connection attempts, ping sweeps, and port scans are silently dropped.
 > 5. **Telemetry-Stripped Chromium**:
->    - The packaged browser defaults with `--disable-telemetry`, `--disable-sync`, `--disable-metrics`, `--disable-background-networking`, and `--no-default-browser-check`.
+>    - The packaged browser defaults with `--disable-sync`, `--disable-domain-reliability` and `--no-default-browser-check`. Component updates stay on because they deliver certificate revocation lists.
 
 ---
 
@@ -83,7 +83,7 @@
 > - 🌊 **Sapphire** (`#74c7ec`) — Deep Space Subsurface
 > - 🍃 **Emerald** (`#a6e3a1`) — Low-Power Tactical
 > 
-> Running `synapse-theme --sync-boot` or `synapse-theme --sync-greeter` synchronizes the selected accent across Plymouth boot splash frames and SDDM login greeters.
+> Running `synapse-theme --sync-greeter` applies the selected accent to the SDDM login greeter. The boot animation is fixed: every SynapseOS system plays the same official animation.
 
 ---
 

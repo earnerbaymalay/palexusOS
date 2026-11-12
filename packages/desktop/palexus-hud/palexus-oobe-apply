@@ -1,0 +1,282 @@
+#!/usr/bin/env python3
+"""palexus-oobe-apply — create the first account and hand over to the login screen.
+
+Runs as root, invoked by the first-boot wizard through a single sudoers rule:
+    palexus-oobe ALL=(root) NOPASSWD: /usr/lib/palexus/palexus-oobe-apply ""
+The wizard writes a JSON request to stdin. Every field is validated against an
+allow-list because the caller is unprivileged. The helper refuses to run once
+first-boot setup has finished (the marker is gone).
+
+    palexus-oobe-apply              apply the request on stdin, then schedule --finalize
+    palexus-oobe-apply --finalize   (root, via systemd-run) tear down the setup session
+"""
+
+import json
+import os
+import pwd
+import re
+import shutil
+import subprocess
+import sys
+import time
+
+MARKER = "/var/lib/palexus/oobe-pending"
+OOBE_USER = "palexus-oobe"
+AUTOLOGIN_CONF = "/etc/sddm.conf.d/50-palexus-oobe.conf"
+SUDOERS_RULE = "/etc/sudoers.d/50-palexus-oobe"
+WHEEL_RULE = "/etc/sudoers.d/10-wheel"
+SESSION_FILE = "/usr/share/wayland-sessions/palexus-oobe.desktop"
+# Look chosen in the live session, copied by the installer (shellprocess@cleanup)
+OOBE_SEED_DIR = "/var/lib/palexus/oobe-seed"
+GREETER_CONF = "/usr/share/sddm/themes/palexusos/theme.conf.user"
+SDDM_STATE = "/var/lib/sddm/state.conf"
+GROUPS = ["users", "wheel", "audio", "video", "input", "network", "storage"]
+
+USERNAME_RE = re.compile(r"^[a-z_][a-z0-9_-]{0,31}$")
+HOSTNAME_RE = re.compile(r"^(?!-)[a-zA-Z0-9-]{1,63}(?<!-)$")
+KEY_RE = re.compile(r"^[A-Za-z0-9_-]{20,256}$")
+MODEL_RE = re.compile(r"^[a-z0-9._-]+(:[a-z0-9._-]+)?$")
+RESERVED = {"root", "palexus", OOBE_USER, "sddm", "ollama", "git", "palexus-daemon", "nobody"}
+
+SCENES = ["monolith", "tower", "carbon"]
+ACCENTS = ["mauve", "tungsten", "crimson", "sapphire", "emerald"]
+VARIANTS = {f"{s}-{a}" for s in SCENES for a in ACCENTS} - {"monolith-crimson"}
+ICON_THEMES = {"Palexus-Liquid-Chrome", "Palexus-Smoked-Obsidian",
+               "Palexus-Radial-Tungsten", "Palexus-Aerospace-Billet"}
+AI_ENGINES = {"local", "claude", "none"}
+MAX_MODELS = 8
+
+
+class Invalid(Exception):
+    pass
+
+
+def fail(msg, code=1):
+    print(json.dumps({"ok": False, "error": msg}))
+    sys.exit(code)
+
+
+def validate(req):
+    if not isinstance(req, dict):
+        raise Invalid("Malformed request.")
+
+    username = str(req.get("username", ""))
+    if not USERNAME_RE.match(username) or username in RESERVED:
+        raise Invalid("Choose a different username: lowercase letters, digits, - or _, starting with a letter.")
+    try:
+        pwd.getpwnam(username)
+        raise Invalid(f"The username '{username}' is already taken.")
+    except KeyError:
+        pass
+
+    full_name = str(req.get("full_name", "")).strip()
+    if len(full_name) > 64 or any(c in full_name for c in ":,\n\r\t\0"):
+        raise Invalid("Your name can't contain commas, colons or line breaks.")
+
+    password = str(req.get("password", ""))
+    if len(password) < 6 or len(password) > 512 or any(c in password for c in "\n\r\0"):
+        raise Invalid("The password must be at least 6 characters.")
+
+    hostname = str(req.get("hostname", ""))
+    if not HOSTNAME_RE.match(hostname):
+        raise Invalid("The computer name can use letters, digits and dashes (up to 63).")
+
+    variant = str(req.get("variant", "monolith-mauve"))
+    if variant not in VARIANTS:
+        raise Invalid("Unknown theme.")
+    icon_theme = str(req.get("icon_theme", "Palexus-Liquid-Chrome"))
+    if icon_theme not in ICON_THEMES:
+        raise Invalid("Unknown icon theme.")
+
+    ai_engine = str(req.get("ai_engine", "local"))
+    if ai_engine not in AI_ENGINES:
+        raise Invalid("Unknown AI engine.")
+    models = req.get("ai_models", []) if ai_engine == "local" else []
+    if not isinstance(models, list) or len(models) > MAX_MODELS or not all(isinstance(m, str) and MODEL_RE.match(m) for m in models):
+        raise Invalid("Invalid model list.")
+    key = str(req.get("anthropic_key", "")) if ai_engine == "claude" else ""
+    if key and not KEY_RE.match(key):
+        raise Invalid("That API key doesn't look right.")
+
+    profile = req.get("profile", {})
+    if not isinstance(profile, dict):
+        raise Invalid("Malformed profile.")
+    # Only plain scalar values survive into the profile file
+    profile = {str(k)[:64]: v for k, v in profile.items() if isinstance(v, (str, int, float, bool)) and len(str(v)) < 256}
+
+    return {
+        "username": username, "full_name": full_name, "password": password, "hostname": hostname,
+        "variant": variant, "icon_theme": icon_theme, "ai_engine": ai_engine,
+        "ai_models": models, "anthropic_key": key, "profile": profile,
+    }
+
+
+def run(*cmd, stdin=None):
+    subprocess.run(list(cmd), input=stdin, text=True, check=True,
+                   stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
+
+
+def write_owned(path, content, uid, gid, mode=0o644):
+    """Create a file inside the new home without following symlinks."""
+    fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC | os.O_NOFOLLOW, mode)
+    with os.fdopen(fd, "w", encoding="utf-8") as f:
+        f.write(content)
+    os.chown(path, uid, gid)
+    os.chmod(path, mode)
+
+
+def make_dir(path, uid, gid):
+    os.makedirs(path, mode=0o755, exist_ok=True)
+    if os.path.islink(path):
+        raise Invalid("Unexpected link in new home directory.")
+    os.chown(path, uid, gid)
+
+
+def write_root_file(path, content, mode=0o644):
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    tmp = path + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        f.write(content)
+    os.chmod(tmp, mode)
+    os.replace(tmp, path)
+
+
+def create_account(r):
+    run("useradd", "-m", "-G", ",".join(g for g in GROUPS if group_exists(g)),
+        "-s", "/bin/bash", "-c", r["full_name"], r["username"])
+    run("chpasswd", stdin=f"{r['username']}:{r['password']}\n")
+
+    if not os.path.exists(WHEEL_RULE):
+        write_root_file(WHEEL_RULE, "%wheel ALL=(ALL:ALL) ALL\n", 0o440)
+        if shutil.which("visudo") and subprocess.run(["visudo", "-cqf", WHEEL_RULE]).returncode != 0:
+            os.remove(WHEEL_RULE)
+
+
+def group_exists(name):
+    import grp
+    try:
+        grp.getgrnam(name)
+        return True
+    except KeyError:
+        return False
+
+
+def seed_home(r):
+    pw = pwd.getpwnam(r["username"])
+    uid, gid, home = pw.pw_uid, pw.pw_gid, pw.pw_dir
+    cfg = os.path.join(home, ".config")
+    syn = os.path.join(cfg, "palexus")
+    for d in (cfg, syn, os.path.join(cfg, "gtk-3.0"), os.path.join(cfg, "gtk-4.0")):
+        make_dir(d, uid, gid)
+
+    profile = dict(r["profile"])
+    profile.update({
+        "operator": r["username"], "hostname": r["hostname"], "ai_engine": r["ai_engine"],
+        "icon_theme": r["icon_theme"], "wallpaper_variant": r["variant"], "screensaver_mode": "unified",
+    })
+    write_owned(os.path.join(syn, "operator_profile.json"), json.dumps(profile, indent=2) + "\n", uid, gid)
+    write_owned(os.path.join(syn, "operator"), r["username"] + "\n", uid, gid)
+    # palexus-theme --restore (sway autostart) applies wallpaper and palettes from this file
+    write_owned(os.path.join(syn, "theme"), r["variant"] + "\n", uid, gid)
+    write_owned(os.path.join(syn, "icon_theme"), r["icon_theme"] + "\n", uid, gid)
+    write_owned(os.path.join(syn, "screensaver_mode"), "unified\n", uid, gid)
+    # Setup already happened before login; don't show the in-session wizard again
+    write_owned(os.path.join(syn, ".onboarding_complete"), "completed\n", uid, gid)
+    for gtk in ("gtk-3.0", "gtk-4.0"):
+        write_owned(os.path.join(cfg, gtk, "settings.ini"),
+                    f"[Settings]\ngtk-icon-theme-name = {r['icon_theme']}\n", uid, gid)
+    if r["ai_models"]:
+        write_owned(os.path.join(syn, "ai_models"), "\n".join(r["ai_models"]) + "\n", uid, gid)
+    if r["anthropic_key"]:
+        write_owned(os.path.join(syn, "anthropic_key"), r["anthropic_key"] + "\n", uid, gid, 0o600)
+
+
+def configure_system(r):
+    if shutil.which("hostnamectl") and subprocess.run(
+            ["hostnamectl", "set-hostname", r["hostname"]], stderr=subprocess.DEVNULL).returncode == 0:
+        pass
+    else:
+        write_root_file("/etc/hostname", r["hostname"] + "\n")
+
+    # Login screen matches the chosen look and has the new account preselected
+    write_root_file(GREETER_CONF, f"[General]\nvariant={r['variant']}\n")
+    os.makedirs(os.path.dirname(SDDM_STATE), exist_ok=True)
+    write_root_file(SDDM_STATE, f"[Last]\nUser={r['username']}\nSession=/usr/share/wayland-sessions/sway.desktop\n")
+    try:
+        sddm = pwd.getpwnam("sddm")
+        os.chown(SDDM_STATE, sddm.pw_uid, sddm.pw_gid)
+    except KeyError:
+        pass
+
+
+def remove_partial_account(username):
+    """Undo a half-finished account so the user can retry with the same name.
+
+    validate() already confirmed the name was free, so if it exists now this run created it.
+    """
+    try:
+        pwd.getpwnam(username)
+    except KeyError:
+        return
+    subprocess.run(["userdel", "-r", "-f", username], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+
+def apply():
+    if not os.path.exists(MARKER):
+        fail("First-boot setup has already finished.")
+    try:
+        req = json.loads(sys.stdin.read(65536))
+        r = validate(req)
+    except (ValueError, Invalid) as e:
+        fail(str(e) if isinstance(e, Invalid) else "Malformed request.")
+
+    try:
+        create_account(r)
+        seed_home(r)
+        configure_system(r)
+    except subprocess.CalledProcessError as e:
+        remove_partial_account(r["username"])
+        fail(f"Couldn't create the account ({e.cmd[0]}): {e.stderr.strip()[:200]}")
+    except (OSError, Invalid) as e:
+        remove_partial_account(r["username"])
+        fail(f"Couldn't finish setup: {e}")
+
+    # The marker goes first so this helper can't be reused, even before the sudo rule is removed
+    os.remove(MARKER)
+    subprocess.Popen(["systemd-run", "--no-block", "--collect", "--unit=palexus-oobe-finish",
+                      "/usr/lib/palexus/palexus-oobe-apply", "--finalize"],
+                     stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    print(json.dumps({"ok": True}))
+
+
+def finalize():
+    """Remove every trace of the setup session and bring up the normal login screen."""
+    if os.geteuid() != 0 or os.path.exists(MARKER):
+        sys.exit(1)
+    time.sleep(1.5)  # let the wizard draw its "done" state
+    for path in (AUTOLOGIN_CONF, SUDOERS_RULE, SESSION_FILE):
+        try:
+            os.remove(path)
+        except FileNotFoundError:
+            pass
+    shutil.rmtree(OOBE_SEED_DIR, ignore_errors=True)
+    subprocess.run(["systemctl", "disable", "--now", "palexus-oobe-recovery.service"],
+                   stderr=subprocess.DEVNULL)
+    subprocess.run(["systemctl", "restart", "display-manager"])
+    subprocess.run(["loginctl", "terminate-user", OOBE_USER], stderr=subprocess.DEVNULL)
+    for _ in range(20):
+        if subprocess.run(["pgrep", "-u", OOBE_USER], stdout=subprocess.DEVNULL).returncode != 0:
+            break
+        time.sleep(0.5)
+    subprocess.run(["userdel", "-r", "-f", OOBE_USER], stderr=subprocess.DEVNULL)
+
+
+if __name__ == "__main__":
+    if sys.argv[1:] == ["--finalize"]:
+        finalize()
+    elif len(sys.argv) == 1:
+        if os.geteuid() != 0:
+            fail("Must run as root.")
+        apply()
+    else:
+        fail("Usage: palexus-oobe-apply [--finalize]", 2)

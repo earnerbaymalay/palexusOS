@@ -1,8 +1,6 @@
-# PalexusOS Zero-Telemetry Hardened Chromium Flags
+# PalexusOS Chromium flags (system-wide copy of ~/.config/chromium-flags.conf)
+# Component updates stay on: they deliver certificate revocation lists (CRLSet).
 --disable-sync
---disable-telemetry
---disable-metrics
---disable-component-update
 --disable-domain-reliability
 --no-default-browser-check
 --enable-features=VaapiVideoDecoder

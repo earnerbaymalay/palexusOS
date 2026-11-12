@@ -15,14 +15,14 @@ strings:
     shortProductName:    "PalexusOS"
     version:             "0.1.0-alpha (Obsidian Mauve)"
     shortVersion:        "0.1.0"
-    versionedName:       "PalexusOS 0.1.0-alpha (Catppuccin Mauve)"
+    versionedName:       "PalexusOS 0.1.0-alpha (Obsidian Mauve)"
     shortVersionedName:  "PalexusOS 0.1.0"
     bootloaderEntryName: "PalexusOS"
-    productUrl:          "https://github.com/earnerbaymalay/synapseOS"
-    supportUrl:          "https://github.com/earnerbaymalay/synapseOS/issues"
-    knownIssuesUrl:      "https://github.com/earnerbaymalay/synapseOS/issues"
-    releaseNotesUrl:     "https://github.com/earnerbaymalay/synapseOS/releases"
-    donateUrl:           "https://github.com/earnerbaymalay/synapseOS"
+    productUrl:          "https://github.com/earnerbaymalay/palexusOS"
+    supportUrl:          "https://github.com/earnerbaymalay/palexusOS/issues"
+    knownIssuesUrl:      "https://github.com/earnerbaymalay/palexusOS/issues"
+    releaseNotesUrl:     "https://github.com/earnerbaymalay/palexusOS/releases"
+    donateUrl:           "https://github.com/earnerbaymalay/palexusOS"
 
 sidebar: widget
 navigation: widget

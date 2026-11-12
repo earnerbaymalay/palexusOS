@@ -7,6 +7,8 @@
  *   Liquid Silver Chrome : #cdd6f4
  * ============================================================================= */
 
+@import "theme-colors.css";
+
 * {
     border: none;
     border-radius: 0;
@@ -17,7 +19,7 @@
 
 window#waybar {
     background-color: #11111b;
-    border-bottom: 2px solid #cba6f7;
+    border-bottom: 2px solid @accent;
     color: #cdd6f4;
 }
 
@@ -30,13 +32,13 @@ window#waybar {
 
 #workspaces button:hover {
     background-color: #1e1e2e;
-    color: #cba6f7;
+    color: @accent;
 }
 
 #workspaces button.focused {
     background-color: #1e1e2e;
-    color: #cba6f7;
-    border-bottom: 2px solid #cba6f7;
+    color: @accent;
+    border-bottom: 2px solid @accent;
 }
 
 #workspaces button.urgent {
@@ -67,29 +69,29 @@ window#waybar {
     margin: 2px 2px;
     background-color: #1e1e2e;
     color: #cdd6f4;
-    border: 1px solid #cba6f7;
+    border: 1px solid @accent;
 }
 
 /* --- Palexus Cockpit Menu & HUD Button --- */
 #custom-menu,
 #custom-hud {
     background-color: #11111b;
-    color: #cba6f7;
+    color: @accent;
     font-weight: bold;
-    border: 1px solid #cba6f7;
+    border: 1px solid @accent;
     padding: 0 12px;
 }
 
 #custom-menu:hover,
 #custom-hud:hover {
-    background-color: #cba6f7;
+    background-color: @accent;
     color: #11111b;
 }
 
 /* --- Calamares Installer Action Banner (Live Session) --- */
 #custom-installer,
 #custom-calamares {
-    background-color: #cba6f7;
+    background-color: @accent;
     color: #11111b;
     font-weight: bold;
     border: 1px solid #b4befe;
@@ -111,7 +113,7 @@ window#waybar {
 
 #custom-terminal:hover {
     background-color: #313244;
-    color: #cba6f7;
+    color: @accent;
 }
 
 #custom-ai {
@@ -174,7 +176,7 @@ window#waybar {
 /* --- Palexus Daemon Health Status --- */
 #custom-palexus {
     background-color: #11111b;
-    color: #cba6f7;
+    color: @accent;
     font-weight: bold;
 }
 

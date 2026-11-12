@@ -12,7 +12,6 @@
     - aircrack-ng
     - hashcat
     - metasploit
-    - responder
     - sqlmap
     - hydra
 
@@ -37,18 +36,14 @@
     - lsp-plugins
     - thunderbird
 
-- name: "Palexus CLI Power Pack"
-  description: "Canonical AI Engineering CLI & Lightweight Bash Tool Suite (palexus-cli, memory bridge, doctor)"
+- name: "Python Scripting Libraries"
+  description: "Rich and PyYAML for Python scripts (jq, fzf, ripgrep and bat are already installed)"
   hidden: false
   selected: true
   critical: false
   packages:
     - python-rich
     - python-yaml
-    - jq
-    - fzf
-    - ripgrep
-    - bat
 
 - name: "Palexus Extras & Extended Ecosystem"
   description: "Community cyber themes, terminal soundscapes, and advanced Ollama workflow extensions"

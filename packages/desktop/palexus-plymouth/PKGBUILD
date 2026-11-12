@@ -1,7 +1,8 @@
 # Maintainer: PalexusOS Engineering Team <maintainers@palexusos.org>
 pkgname=palexus-plymouth
 pkgver=0.2.0
-pkgrel=3
+pkgrel=4
+install=palexus-plymouth.install
 pkgdesc="PalexusOS Plymouth boot splash: the official PalexusOS boot animation"
 arch=('any')
 url="https://github.com/earnerbaymalay/synapseOS"
@@ -10,10 +11,14 @@ provides=('synapse-plymouth' 'palexus-plymouth')
 conflicts=('synapse-plymouth')
 depends=('plymouth')
 makedepends=('ffmpeg')
-source=('palexus-boot.mp4' 'palexusos.script.in')
-# Official boot video source: palexus-boot.mp4
-sha256sums=('SKIP' 'SKIP')
+source=('palexus-boot.mp4' 'palexusos.script.in' '95-palexus-plymouth.hook')
+sha256sums=('SKIP' 'SKIP' 'SKIP')
 
+# The frames end up in the initramfs, so keep the sequence small:
+# 720x405 (Plymouth scales it to fit), 128-colour palette PNG (the footage is
+# mostly near-black chrome plus one purple; ~22 MB vs 127 MB for RGB), and
+# 50/3 fps so each frame spans exactly 3 of Plymouth's 50 Hz refresh ticks.
+# Playback keeps the video's real 10 s duration.
 _width=720
 _height=405
 _ticks=3
@@ -30,6 +35,7 @@ build() {
 }
 
 package() {
+  install -Dm644 95-palexus-plymouth.hook "$pkgdir/usr/share/libalpm/hooks/95-palexus-plymouth.hook"
   local dir="$pkgdir/usr/share/plymouth/themes/palexusos"
   local frames
   install -dm755 "$dir"

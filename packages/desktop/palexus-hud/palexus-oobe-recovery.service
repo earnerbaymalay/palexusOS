@@ -1,0 +1,24 @@
+[Unit]
+Description=PalexusOS first-boot setup, text fallback on tty2
+# Only while setup is pending; palexus-oobe-apply --finalize also disables this unit
+ConditionPathExists=/var/lib/palexus/oobe-pending
+After=systemd-user-sessions.service
+Conflicts=getty@tty2.service
+Before=getty@tty2.service
+
+[Service]
+Type=idle
+ExecStart=/usr/lib/palexus/palexus-oobe-recovery
+StandardInput=tty-force
+StandardOutput=tty
+StandardError=tty
+TTYPath=/dev/tty2
+TTYReset=yes
+TTYVHangup=yes
+TTYVTDisallocate=yes
+# Ctrl+C restarts the prompt; once setup is done the condition stops further starts
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

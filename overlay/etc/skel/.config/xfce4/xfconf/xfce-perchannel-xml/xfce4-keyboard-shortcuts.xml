@@ -57,7 +57,7 @@
       <property name="&lt;Primary&gt;&lt;Alt&gt;f" type="string" value="thunar"/>
       <property name="&lt;Super&gt;space" type="string" value="/usr/bin/palexus-hud"/>
       <property name="&lt;Primary&gt;&lt;Alt&gt;l" type="string" value="xflock4"/>
-      <property name="&lt;Alt&gt;F1" type="string" value="/usr/local/bin/xfce-launcher-toggle"/>
+      <property name="&lt;Alt&gt;F1" type="string" value="xfce4-popup-applicationsmenu"/>
       <property name="&lt;Primary&gt;&lt;Alt&gt;Delete" type="string" value="xfce4-session-logout"/>
       <property name="&lt;Super&gt;p" type="string" value="xfce4-display-settings --minimal"/>
       <property name="&lt;Super&gt;e" type="string" value="thunar"/>
@@ -70,7 +70,7 @@
       <property name="&lt;Super&gt;f" type="string" value="thunar"/>
       <property name="&lt;Super&gt;n" type="string" value="/usr/bin/palexus-notes"/>
       <property name="&lt;Super&gt;c" type="string" value="/usr/bin/galculator"/>
-      <property name="&lt;Super&gt;i" type="string" value="calamares -d"/>
+      <property name="&lt;Super&gt;i" type="string" value="sh -c &quot;[ -d /run/archiso ] &amp;&amp; sudo -E /usr/bin/calamares&quot;"/>
       <property name="&lt;Super&gt;a" type="string" value="/usr/bin/audio-switch"/>
       <property name="&lt;Super&gt;w" type="string" value="/usr/bin/palexus-welcome"/>
       <property name="&lt;Super&gt;k" type="string" value="/usr/bin/palexus-shortcuts"/>

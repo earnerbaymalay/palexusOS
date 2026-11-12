@@ -33,7 +33,7 @@ smart_borders on
 # --- Output & Idle Management ---
 output * bg #11111b solid_color
 output * bg /usr/share/backgrounds/palexusos/palexus-monolith-mauve.jpg fill #11111b
-exec swaybg -i /usr/share/backgrounds/palexusos/monolith-mauve.png -m fill 2>/dev/null || swaybg -i /usr/share/backgrounds/palexusos/palexus-monolith-mauve.jpg -m fill 2>/dev/null || true
+# Sway owns the background (output bg); palexus-theme --restore re-applies the saved theme
 exec palexus-theme --restore
 
 # Screensaver is not a lock: 5 min -> geodesic torus, 10 min -> displays off
@@ -62,7 +62,8 @@ bindsym Mod4+Shift+Return exec foot
 bindsym Mod4+b exec chromium
 bindsym Mod4+f exec thunar
 bindsym Mod4+n exec /usr/bin/palexus-notes
-bindsym Mod4+i exec calamares -d
+bindsym Mod4+c exec /usr/bin/galculator
+bindsym Mod4+i exec [ -d /run/archiso ] && sudo -E /usr/bin/calamares
 bindsym Mod4+a exec /usr/bin/audio-switch
 bindsym Mod4+Shift+o exec /usr/bin/palexus-welcome
 bindsym Mod4+slash exec /usr/bin/palexus-shortcuts
@@ -217,7 +218,9 @@ bar {
 
 # --- Autostart Services & Onboarding ---
 
-# In live sessions or initial login, autostart palexus-welcome centered so user has an immediate cockpit
-exec [ -f /etc/sudoers.d/00-palexus-live ] || [ -x /usr/bin/calamares ] || [ ! -f ~/.config/palexus/.onboarding_complete ] && /usr/bin/palexus-welcome --autostart
+# First-run setup: --autostart exits at once when ~/.config/palexus/.onboarding_complete exists
+exec /usr/bin/palexus-welcome --autostart
+# Resumes a local-model download the user agreed to in setup; no-op otherwise
+exec /usr/bin/palexus-setup --first-boot
 
 include /etc/sway/config.d/*

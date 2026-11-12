@@ -34,7 +34,7 @@ Full native packages + ISO (root required for `mkarchiso`):
 ## Gate-checked UI files
 
 - `packages/desktop/palexus-greeter/{Main.qml,theme.conf,metadata.desktop}`
-- `packages/desktop/palexus-plymouth/{PKGBUILD,render_frames.py,palexusos.script.in}`
+- `packages/desktop/palexus-plymouth/{PKGBUILD,palexus-boot.mp4,palexusos.script.in}`
 - `packages/desktop/palexus-themes/{PKGBUILD,palexus-theme}`
 - `packages/desktop/palexus-hud/{Main.qml,Welcome.qml,palexus-hud}`
 - `packages/desktop/llm-quickfire-panel/config/llm-quickfire-panel.desktop`

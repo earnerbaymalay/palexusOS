@@ -14,6 +14,10 @@ from PyQt6.QtCore import QObject, pyqtSlot, QUrl
 from PyQt6.QtGui import QGuiApplication
 from PyQt6.QtQml import QQmlApplicationEngine
 
+# Same model as the ask-qwen shell helper in ~/.bashrc
+AI_MODEL = "qwen2.5-coder:latest"
+
+
 class HudBackend(QObject):
     def __init__(self, app, parent=None):
         super().__init__(parent)
@@ -47,16 +51,18 @@ class HudBackend(QObject):
             elif prompt.lower().startswith("ai "):
                 prompt = prompt[3:].strip()
             if prompt:
-                # Fire direct prompt to Ollama in a popup Kitty terminal
+                # ~/.bashrc stops at once for non-interactive shells, so its ask-* aliases are
+                # never defined here: call ollama directly. The prompt travels as an argument,
+                # never inside the script text, so quotes and $(...) in it stay literal.
                 subprocess.Popen([
                     "kitty", "--title", f"AI Prompt: {prompt}",
                     "bash", "-c",
-                    f'source ~/.bashrc 2>/dev/null; ask-qwen "{prompt}"; echo; read -p "Press enter to close..."'
+                    'ollama run "$1" "$2"; echo; read -r -p "Press enter to close..."',
+                    "palexus-ai-prompt", AI_MODEL, prompt,
                 ], env=env, start_new_session=True)
         else:
             # Execute command detached with prepared environment
-            wrapped_action = f'source ~/.bashrc 2>/dev/null; {action}'
-            subprocess.Popen(["bash", "-c", wrapped_action], env=env, start_new_session=True)
+            subprocess.Popen(["bash", "-c", action], env=env, start_new_session=True)
 
         self.app.quit()
 

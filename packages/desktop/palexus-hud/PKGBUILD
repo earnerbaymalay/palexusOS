@@ -1,7 +1,7 @@
 # Maintainer: PalexusOS Engineering Team <maintainers@palexusos.org>
 pkgname=palexus-hud
 pkgver=0.1.0
-pkgrel=10
+pkgrel=11
 pkgdesc="Native Qt6/QML Material You Command HUD, Palexus Settings Control Center, Brain Notes, Metallic Icon Suites, and Neural Governor"
 arch=('any')
 url="https://github.com/earnerbaymalay/synapseOS"
@@ -9,13 +9,21 @@ license=('MIT')
 provides=('synapse-hud' 'palexus-hud')
 conflicts=('synapse-hud')
 backup=('etc/palexus/governor.toml')
-depends=('python' 'python-pyqt6' 'qt6-declarative' 'qt6-svg' 'qt6-5compat' 'kitty')
+depends=('python' 'python-pyqt6' 'qt6-declarative' 'qt6-svg' 'qt6-5compat' 'qt6-wayland' 'kitty' 'sway' 'sudo')
 source=(
   "palexus-hud"
   "palexus-settings"
   "palexus-notes"
   "palexus-setup"
   "palexus-welcome"
+  "palexus-oobe-apply"
+  "palexus-oobe-arm"
+  "palexus-oobe-session"
+  "palexus-oobe-wizard"
+  "palexus-oobe.desktop"
+  "oobe-sway.conf"
+  "palexus-oobe-recovery"
+  "palexus-oobe-recovery.service"
   "palexus-shortcuts"
   "palexus-power"
   "palexus-stealth"
@@ -69,16 +77,33 @@ sha256sums=(
   'SKIP'
   'SKIP'
   'SKIP'
+  'SKIP'
+  'SKIP'
+  'SKIP'
+  'SKIP'
+  'SKIP'
+  'SKIP'
+  'SKIP'
+  'SKIP'
 )
 
 package() {
   # Primary Palexus binaries & backwards-compatible Synapse symlinks
-  # Provides: synapse-setup, synapse-notes, synapse-settings, synapse-welcome, palexus-setup, palexus-notes, palexus-settings, palexus-welcome
   local tools=("hud" "settings" "notes" "setup" "welcome" "shortcuts" "power" "stealth" "hardware" "governor")
   for t in "${tools[@]}"; do
     install -Dm755 "${srcdir}/palexus-${t}" "${pkgdir}/usr/bin/palexus-${t}"
     ln -sf "palexus-${t}" "${pkgdir}/usr/bin/synapse-${t}"
   done
+
+  # First-boot setup (armed by the installer, see palexus-oobe-arm)
+  install -Dm755 "${srcdir}/palexus-oobe-apply" "${pkgdir}/usr/lib/palexus/palexus-oobe-apply"
+  install -Dm755 "${srcdir}/palexus-oobe-arm" "${pkgdir}/usr/lib/palexus/palexus-oobe-arm"
+  install -Dm755 "${srcdir}/palexus-oobe-session" "${pkgdir}/usr/lib/palexus/palexus-oobe-session"
+  install -Dm755 "${srcdir}/palexus-oobe-wizard" "${pkgdir}/usr/lib/palexus/palexus-oobe-wizard"
+  install -Dm644 "${srcdir}/palexus-oobe.desktop" "${pkgdir}/usr/share/palexus-hud/palexus-oobe.desktop"
+  install -Dm644 "${srcdir}/oobe-sway.conf" "${pkgdir}/usr/share/palexus-hud/oobe-sway.conf"
+  install -Dm755 "${srcdir}/palexus-oobe-recovery" "${pkgdir}/usr/lib/palexus/palexus-oobe-recovery"
+  install -Dm644 "${srcdir}/palexus-oobe-recovery.service" "${pkgdir}/usr/lib/systemd/system/palexus-oobe-recovery.service"
 
   install -Dm755 "${srcdir}/sec-status" "${pkgdir}/usr/bin/sec-status"
   install -Dm755 "${srcdir}/audio-switch" "${pkgdir}/usr/bin/audio-switch"

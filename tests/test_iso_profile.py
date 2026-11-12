@@ -60,8 +60,11 @@ class TestPalexusOSGates(unittest.TestCase):
 
         partition = (cal_root / "modules" / "partition.conf").read_text(encoding="utf-8")
         self.assertIn('defaultFileSystemType:  "btrfs"', partition)
+        # Calamares 3.3+ reads the subvolume layout from mount.conf only
+        mount = (cal_root / "modules" / "mount.conf").read_text(encoding="utf-8")
         for subvol in ("/@", "/@home", "/@snapshots", "/@var_log"):
-            self.assertIn(subvol, partition)
+            self.assertIn(subvol, mount)
+        self.assertNotIn("btrfsSubvolumes", partition)
 
         services = (cal_root / "modules" / "services-systemd.conf").read_text(
             encoding="utf-8"
@@ -93,7 +96,7 @@ class TestPalexusOSGates(unittest.TestCase):
             encoding="utf-8"
         )
         self.assertIn("Current=palexusos", sddm_conf)
-        self.assertNotIn("Xsetup-synapseos", sddm_conf)
+        self.assertNotIn("Xsetup-palexusos", sddm_conf)
         self.assertNotIn("Xsetup-palexusos", sddm_conf)
 
         picom_text = (REPO_ROOT / "overlay" / "etc" / "xdg" / "picom.conf").read_text(encoding="utf-8")
@@ -118,19 +121,18 @@ class TestPalexusOSGates(unittest.TestCase):
     def test_boot_splash(self) -> None:
         """Validate the official boot animation package and its boot wiring."""
         ply = REPO_ROOT / "packages" / "desktop" / "palexus-plymouth"
-        script_file = ply / "palexusos.script.in"
-        script = script_file.read_text(encoding="utf-8")
+        script = (ply / "palexusos.script.in").read_text(encoding="utf-8")
         for hook in ("SetRefreshFunction", "SetDisplayPasswordFunction", "SetDisplayQuestionFunction",
                      "SetDisplayNormalFunction", "SetMessageFunction", "SetQuitFunction"):
             self.assertIn(f"Plymouth.{hook}", script)
         for placeholder in ("@FRAMES@", "@TICKS@", "@WIDTH@", "@HEIGHT@"):
             self.assertIn(placeholder, script)
-        boot_mp4 = ply / "palexus-boot.mp4"
-        self.assertGreater(boot_mp4.stat().st_size, 0)
+        self.assertGreater((ply / "palexus-boot.mp4").stat().st_size, 0)
         pkgbuild = (ply / "PKGBUILD").read_text(encoding="utf-8")
         self.assertIn("'palexus-boot.mp4'", pkgbuild)
         self.assertIn("-an", pkgbuild)
         self.assertIn("/usr/share/plymouth/themes/palexusos", pkgbuild)
+        self.assertNotIn("palexusos-$name", pkgbuild)
         hooks = (REPO_ROOT / "build" / "archiso" / "airootfs" / "etc" / "mkinitcpio.conf.d" / "archiso.conf").read_text(
             encoding="utf-8"
         )
@@ -171,8 +173,10 @@ class TestPalexusOSGates(unittest.TestCase):
         self.assertIn("Mod4+Return", sway_conf)
         self.assertIn("Mod4+i", sway_conf)
         self.assertIn("Mod4+slash", sway_conf)
-        self.assertIn("calamares -d", sway_conf)
-        self.assertIn("swaybg -i", sway_conf)
+        self.assertIn("sudo -E /usr/bin/calamares", sway_conf)
+        self.assertNotIn("calamares -d", sway_conf)
+        self.assertIn("output * bg /usr/share/backgrounds/palexusos/palexus-monolith-mauve.jpg", sway_conf)
+        self.assertNotIn("exec swaybg", sway_conf)
         self.assertIn("Mod4+Ctrl+t", sway_conf)
         self.assertIn("Mod4+Shift+q", sway_conf)
         self.assertIn("Mod4+Shift+e", sway_conf)

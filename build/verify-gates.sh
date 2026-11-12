@@ -159,7 +159,8 @@ SDDM_CONF_DIR="${REPO_ROOT}/overlay/etc/sddm.conf.d"
 SDDM_CONF_FILE="${REPO_ROOT}/overlay/etc/sddm.conf"
 if [[ -d "${SDDM_CONF_DIR}" ]] || [[ -f "${SDDM_CONF_FILE}" ]]; then
     check_file_contains "${REPO_ROOT}/overlay/etc/sddm.conf.d/10-palexusos.conf" "^Current=palexusos$" "SDDM theme set to palexusos (palexus-greeter)"
-    check_file_contains "${REPO_ROOT}/overlay/etc/sddm.conf.d/10-palexusos.conf" "HideUsers=git,ollama,palexus-daemon" "SDDM HideUsers excludes live and daemon users"
+    check_file_contains "${REPO_ROOT}/overlay/etc/sddm.conf.d/10-palexusos.conf" "HideUsers=git,ollama,palexus-daemon" "SDDM HideUsers excludes live user 'palexus'"
+    check_file_lacks "${REPO_ROOT}/overlay/etc/sddm.conf.d/10-palexusos.conf" "Catppuccin-Mocha-Mauve-Cursors" "SDDM names no cursor theme that isn't shipped"
 else
     warn "Pending Phase 3 deliverable: SDDM configuration in overlay/etc/sddm*"
 fi
@@ -177,6 +178,7 @@ check_file_contains "${SDDM_MAIN_QML}" "#cdd6f4" "SDDM Main.qml uses Liquid Silv
 check_file_contains "${SDDM_MAIN_QML}" "model: sessionModel" "SDDM Main.qml offers session selection (XFCE/Sway)"
 check_file_contains "${SDDM_MAIN_QML}" "sddm\.login\(" "SDDM Main.qml authenticates via sddm.login"
 check_file_contains "${SDDM_MAIN_QML}" "strokeStyle: ShapePath\.DashLine" "SDDM panel border carries animated accent trails"
+check_file_contains "${SDDM_MAIN_QML}" 'objectName: "loginField"' "SDDM login name is editable, so any account can sign in"
 check_file_contains "${REPO_ROOT}/packages/desktop/palexus-greeter/metadata.desktop" "^QtVersion=6$" "SDDM palexusos theme targets the Qt6 greeter"
 if grep -Eq "password\.text\.length[[:space:]]*===[[:space:]]*0" "${SDDM_MAIN_QML}"; then
     fail "SDDM Main.qml blocks passwordless live user login"
@@ -205,15 +207,26 @@ WAYBAR_STYLE="${REPO_ROOT}/overlay/etc/skel/.config/waybar/style.css"
 check_file_contains "${SWAY_CONF}" "Mod4\+space.*(/usr/bin/(quickfire|palexus-hud)|\$menu)" "Sway config binds Mod4+space to /usr/bin/palexus-hud or quickfire"
 check_file_contains "${SWAY_CONF}" "Mod4\+d.*(/usr/bin/(quickfire|palexus-hud)|\$menu)" "Sway config binds Mod4+d to /usr/bin/palexus-hud or quickfire"
 check_file_contains "${SWAY_CONF}" "Mod4\+Return.*(kitty|foot|\$term)" "Sway config binds Mod4+Return to kitty/foot"
-check_file_contains "${SWAY_CONF}" "Mod4\+i.*calamares" "Sway config binds Mod4+i to calamares"
+check_file_contains "${SWAY_CONF}" "Mod4\+i exec \[ -d /run/archiso \] && sudo -E /usr/bin/calamares" "Sway Mod4+i launches Calamares as root, live session only"
+# Calamares requires root (welcome.conf); -d is its debug mode
+if grep -RqsE "calamares -d|\"calamares\", \"-d\"" "${REPO_ROOT}/overlay" "${REPO_ROOT}/packages/desktop/palexus-hud/palexus-welcome"; then
+    fail "No launcher starts Calamares unprivileged in debug mode (calamares -d)"
+else
+    pass "No launcher starts Calamares unprivileged in debug mode (calamares -d)"
+fi
+check_file_lacks "${WAYBAR_CONF}" 'x /usr/bin/calamares' "Waybar install button is keyed to the live session, not to Calamares being installed"
 check_file_contains "${SWAY_CONF}" "Mod4\+slash.*palexus-shortcuts" "Sway config binds Mod4+slash to cheat sheet"
 check_file_contains "${SWAY_CONF}" "for_window.*calamares.*floating" "Sway config floats Calamares installer"
 check_file_contains "${SWAY_CONF}" "for_window.*palexus-welcome.*floating" "Sway config floats Palexus welcome onboarding"
-check_file_contains "${SWAY_CONF}" "swaybg.*monolith-mauve" "Sway config sets monolith-mauve wallpaper fallback"
+check_file_contains "${SWAY_CONF}" "^output \* bg /usr/share/backgrounds/palexusos/palexus-monolith-mauve\.jpg" "Sway config sets monolith-mauve wallpaper fallback"
+check_file_lacks "${SWAY_CONF}" "(?m)^exec swaybg" "Sway runs no second swaybg over the themed background"
 check_file_contains "${SWAY_CONF}" "#11111b" "Sway config uses Obsidian Crust (#11111b)"
 check_file_contains "${SWAY_CONF}" "#cba6f7" "Sway config uses Catppuccin Mocha Mauve (#cba6f7)"
 check_file_contains "${SWAY_CONF}" "#cdd6f4" "Sway config uses Liquid Silver Chrome (#cdd6f4)"
 check_file_contains "${WAYBAR_CONF}" "sway/workspaces" "Waybar config.jsonc defines sway/workspaces"
+XFCE_KEYS="${REPO_ROOT}/overlay/etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-keyboard-shortcuts.xml"
+check_file_lacks "${XFCE_KEYS}" 'value="/usr/local/bin/' "XFCE shortcuts call nothing from /usr/local/bin (not shipped)"
+check_file_contains "${REPO_ROOT}/build/archiso/packages.x86_64" '^xorg-xkill$' "XFCE Ctrl+Alt+Esc (xkill) has its package"
 check_file_contains "${WAYBAR_CONF}" "custom/menu" "Waybar defines custom/menu cockpit widget"
 check_file_contains "${WAYBAR_CONF}" "custom/installer" "Waybar defines custom/installer action banner"
 check_file_contains "${WAYBAR_CONF}" "custom/terminal" "Waybar defines custom/terminal launcher"
@@ -226,6 +239,9 @@ check_file_contains "${WAYBAR_STYLE}" "#1e1e2e" "Waybar style.css uses Catppucci
 check_file_contains "${WAYBAR_STYLE}" "#cba6f7" "Waybar style.css uses Catppuccin Mocha Mauve (#cba6f7)"
 check_file_contains "${WAYBAR_STYLE}" "#cdd6f4" "Waybar style.css uses Liquid Silver Chrome (#cdd6f4)"
 check_file_contains "${WAYBAR_STYLE}" "#custom-installer" "Waybar style.css styles #custom-installer in mauve"
+check_file_contains "${WAYBAR_STYLE}" '^@import "theme-colors\.css";' "Waybar takes its accent from the theme switcher"
+check_file_contains "${REPO_ROOT}/overlay/etc/skel/.config/waybar/theme-colors.css" '^@define-color accent #cba6f7;$' "New users get a default Waybar accent to import"
+check_file_contains "${REPO_ROOT}/packages/desktop/palexus-themes/palexus-theme" 'client\.focused \$\{accent\}' "Theme switcher recolours Sway window borders"
 
 if grep -Rqs -i "#00a8ff" "${REPO_ROOT}/overlay" "${REPO_ROOT}/packages/installer/calamares"; then
     fail "Legacy #00a8ff color found in overlay/ or Calamares branding"
@@ -429,7 +445,17 @@ check_file_contains "${CAL_BRANDING_DIR}/show.qml" "BORE" "Calamares show.qml sh
 check_file_contains "${CAL_BRANDING_DIR}/show.qml" "Ollama" "Calamares show.qml showcases local Ollama AI engine"
 check_file_contains "${CAL_BRANDING_DIR}/show.qml" "Quad9" "Calamares show.qml showcases Quad9 DNS-over-TLS"
 check_file_contains "${CAL_PARTITION}" 'defaultFileSystemType:[[:space:]]*"btrfs"' "Calamares partition.conf defaults to Btrfs"
-check_file_contains "${CAL_PARTITION}" "/@snapshots" "Calamares partition.conf defines @snapshots subvolume"
+# Every filesystem offered on the partition page needs its mkfs tool on the live ISO
+declare -A FS_TOOL=([btrfs]=btrfs-progs [ext4]=e2fsprogs [xfs]=xfsprogs [f2fs]=f2fs-tools)
+while read -r fs; do
+    tool="${FS_TOOL[$fs]:-}"
+    if [[ -n "${tool}" ]] && grep -qx "${tool}" "${REPO_ROOT}/build/archiso/packages.x86_64"; then
+        pass "Installer can format ${fs} (${tool} on the ISO)"
+    else
+        fail "Installer can format ${fs} (${tool:-no known tool} on the ISO)"
+    fi
+done < <(grep -oP '^availableFileSystemTypes:.*' "${CAL_PARTITION}" | grep -oP '"\K[a-z0-9]+(?=")')
+check_file_lacks "${CAL_PARTITION}" "btrfsSubvolumes" "Subvolume layout lives only in mount.conf (partition.conf copy is ignored by Calamares 3.3+)"
 check_file_contains "${CAL_SERVICES}" "palexus" "Calamares services-systemd.conf enables palexus service"
 check_file_contains "${CAL_SERVICES}" "sddm" "Calamares services-systemd.conf enables sddm service"
 check_file_contains "${CAL_SERVICES}" "firewalld" "Calamares services-systemd.conf enables firewalld service"
@@ -445,7 +471,18 @@ check_file_contains "${REPO_ROOT}/build/archiso/airootfs/root/customize_airootfs
 check_file_contains "${REPO_ROOT}/packages/installer/calamares/settings.conf" 'shellprocess@cleanup' "Calamares runs live-session cleanup"
 check_file_contains "${REPO_ROOT}/packages/installer/calamares/modules/shellprocess@cleanup.conf" '00-palexus-live' "Calamares cleanup removes live NOPASSWD sudoers"
 check_file_contains "${REPO_ROOT}/packages/installer/calamares/modules/shellprocess@cleanup.conf" 'userdel -r palexus' "Calamares cleanup removes passwordless live user"
-check_file_contains "${REPO_ROOT}/packages/installer/calamares/modules/users.conf" '^sudoersGroup: wheel' "Installed users get password-protected wheel sudo"
+check_file_contains "${REPO_ROOT}/packages/desktop/palexus-hud/palexus-oobe-apply" '%wheel ALL=\(ALL:ALL\) ALL' "First-boot account gets password-protected wheel sudo"
+check_file_contains "${REPO_ROOT}/packages/installer/calamares/settings.conf" 'shellprocess@oobe' "Calamares arms first-boot account setup"
+check_file_contains "${REPO_ROOT}/packages/desktop/palexus-hud/palexus-oobe-arm" 'palexus-oobe-apply ""' "First-boot sudo rule allows only the argument-less helper"
+check_file_contains "${REPO_ROOT}/packages/desktop/palexus-hud/palexus-oobe-apply" 'os\.remove\(MARKER\)' "First-boot helper disarms itself after one use"
+check_file_contains "${REPO_ROOT}/packages/desktop/palexus-hud/palexus-oobe-arm" 'systemctl enable palexus-oobe-recovery\.service' "First boot has a text-mode account fallback on tty2"
+check_file_contains "${REPO_ROOT}/packages/desktop/palexus-hud/palexus-oobe-recovery.service" '^ConditionPathExists=/var/lib/palexus/oobe-pending$' "Text-mode fallback only runs while first-boot setup is pending"
+check_file_contains "${REPO_ROOT}/packages/installer/calamares/modules/shellprocess@cleanup.conf" '00-palexus-live.conf' "Calamares cleanup removes live autologin"
+check_file_contains "${REPO_ROOT}/build/archiso/packages.x86_64" '^cachyos-calamares$' "ISO pins one Calamares build (19 CachyOS packages provide 'calamares')"
+check_file_lacks "${REPO_ROOT}/build/archiso/packages.x86_64" '(?m)^calamares$' "ISO does not leave the Calamares provider to chance"
+check_file_contains "${REPO_ROOT}/packages/installer/calamares/modules/shellprocess@removelive.conf" 'pacman -Rns --noconfirm cachyos-calamares' "Installed systems do not keep the installer"
+check_file_contains "${REPO_ROOT}/packages/installer/calamares/settings.conf" '^ *- shellprocess@removelive$' "Calamares runs the live-package removal step"
+check_file_contains "${REPO_ROOT}/.gitattributes" '^\* text=auto eol=lf$' "Checkouts keep LF line endings (scripts and PKGBUILDs break with CRLF)"
 check_file_contains "${REPO_ROOT}/build/build-iso.sh" 'mkarchiso -v -C' "ISO build uses isolated build pacman.conf/keyring"
 
 # Package file-ownership conflicts (pacstrap aborts on these)
@@ -492,7 +529,8 @@ check_file_contains "${REPO_ROOT}/build/archiso/packages.x86_64" '^chromium$' "p
 check_file_contains "${REPO_ROOT}/build/archiso/packages.x86_64" '^galculator$' "packages.x86_64 ships galculator"
 check_file_contains "${REPO_ROOT}/build/archiso/packages.x86_64" '^mousepad$' "packages.x86_64 ships mousepad editor"
 check_file_contains "${REPO_ROOT}/build/archiso/packages.x86_64" '^palexus-hud$' "packages.x86_64 ships palexus-hud package"
-check_file_contains "${REPO_ROOT}/overlay/etc/chromium/default-flags" '--disable-telemetry' "Chromium flags disable telemetry"
+check_file_lacks "${REPO_ROOT}/overlay/etc/chromium/default-flags" '--disable-(telemetry|metrics|component-update)' "Chromium flags hold no fake switches and keep security updates on"
+check_file_lacks "${REPO_ROOT}/overlay/etc/skel/.config/chromium-flags.conf" '--disable-(telemetry|metrics|component-update)' "Per-user Chromium flags hold no fake switches and keep security updates on"
 check_file_contains "${REPO_ROOT}/overlay/etc/chromium/default-flags" '--disable-sync' "Chromium flags disable cloud sync"
 check_file_contains "${REPO_ROOT}/packages/desktop/palexus-hud/PKGBUILD" 'palexus-setup' "palexus-hud package includes palexus-setup"
 check_file_contains "${REPO_ROOT}/packages/desktop/palexus-hud/PKGBUILD" 'palexus-notes' "palexus-hud package includes palexus-notes"
@@ -519,7 +557,7 @@ else
 fi
 check_file_lacks "${REPO_ROOT}/build/archiso/airootfs/etc/mkinitcpio.conf.d/archiso.conf" 'archiso_pxe' "Live initramfs has no PXE hooks (nbd/nfs helpers not shipped)"
 check_file_lacks "${REPO_ROOT}/build/archiso/airootfs/root/customize_airootfs.sh" '(?m)^ln .*/etc/resolv\.conf' "customize_airootfs.sh does not replace chroot-bind-mounted resolv.conf"
-check_file_lacks "${REPO_ROOT}/packages/core/palexus-core/palexus.service" 'ExecStart=.*--config' "palexus.service passes only flags 'synapse serve' accepts"
+check_file_lacks "${REPO_ROOT}/packages/core/palexus-core/palexus.service" 'ExecStart=.*--config' "palexus.service passes only flags 'palexus serve' accepts"
 check_file_lacks "${REPO_ROOT}/packages/core/palexus-core/palexus.service" 'network-online\.target' "palexus.service does not wait on network-online (localhost gateway)"
 check_file_contains "${REPO_ROOT}/build/archiso/airootfs/root/customize_airootfs.sh" 'systemctl disable systemd-networkd\.service' "systemd-networkd disabled (NetworkManager owns networking)"
 
@@ -528,12 +566,33 @@ PLY_DIR="${REPO_ROOT}/packages/desktop/palexus-plymouth"
 check_file_contains "${REPO_ROOT}/build/archiso/airootfs/etc/mkinitcpio.conf.d/archiso.conf" '^HOOKS=\(.* kms plymouth .*\)$' "Live initramfs runs the plymouth hook"
 check_file_contains "${REPO_ROOT}/overlay/etc/plymouth/plymouthd.conf" '^Theme=palexusos$' "Plymouth uses the single palexusos theme"
 check_file_contains "${REPO_ROOT}/build/archiso/efiboot/loader/entries/01-palexusos-x86_64-linux.conf" '^options .* splash' "Live boot entry passes splash"
-check_file_contains "${REPO_ROOT}/packages/installer/calamares/modules/bootloader.conf" '"splash"' "Installed systems boot with splash"
+# GRUB takes its kernel line, splash and LUKS unlock from grubcfg, not bootloader.conf
+CAL_EXEC_ORDER="$(sed -n '/^  - exec:/,/^  - show:/p' "${REPO_ROOT}/packages/installer/calamares/settings.conf" | sed -n 's/^ *- //p' | tr '\n' ' ')"
+if [[ "${CAL_EXEC_ORDER}" == *" grubcfg bootloader "* ]]; then
+    pass "Calamares runs grubcfg right before bootloader (splash + LUKS on installed systems)"
+else
+    fail "Calamares runs grubcfg right before bootloader (splash + LUKS on installed systems)"
+fi
+if [[ "${CAL_EXEC_ORDER}" =~ bootloader\ .*packages ]]; then
+    pass "Calamares installs optional packs after the bootloader (a failed pack leaves a bootable disk)"
+else
+    fail "Calamares installs optional packs after the bootloader (a failed pack leaves a bootable disk)"
+fi
+check_file_contains "${REPO_ROOT}/packages/installer/calamares/modules/grubcfg.conf" '^ *- "quiet"$' "grubcfg.conf sets the installed kernel command line"
+check_file_lacks "${REPO_ROOT}/packages/installer/calamares/modules/grubcfg.conf" 'themes/cachyos' "grubcfg.conf carries no CachyOS GRUB theme"
 check_file_contains "${PLY_DIR}/palexusos.script.in" 'Plymouth\.SetDisplayPasswordFunction' "Splash handles the LUKS passphrase prompt"
 check_file_contains "${PLY_DIR}/palexusos.script.in" 'Plymouth\.SetRefreshFunction' "Splash script drives frame playback"
 check_file_contains "${PLY_DIR}/palexusos.script.in" 'Plymouth\.SetQuitFunction' "Splash holds the final frame for the login hand-off"
 check_file_contains "${PLY_DIR}/PKGBUILD" "^source=\\('palexus-boot\\.mp4'" "Boot splash is built from the official palexus-boot.mp4"
 check_file_contains "${PLY_DIR}/PKGBUILD" "ffmpeg .*-an" "Boot splash frames are extracted without audio"
+check_file_contains "${PLY_DIR}/PKGBUILD" '^install=palexus-plymouth\.install$' "Boot splash package selects its theme on install/upgrade"
+check_file_contains "${PLY_DIR}/95-palexus-plymouth.hook" '^Target = usr/share/plymouth/themes/palexusos/\*$' "Initramfs is rebuilt when the boot animation changes"
+check_file_contains "${PLY_DIR}/95-palexus-plymouth.hook" '^When = PostTransaction$' "Initramfs rebuild waits for the whole transaction"
+if bash -n "${PLY_DIR}/palexus-plymouth.install" 2>/dev/null && ! grep -q 'mkinitcpio\|-R ' <(grep -v '^ *#\|echo' "${PLY_DIR}/palexus-plymouth.install"); then
+    pass "Boot splash install scriptlet is valid and never rebuilds the initramfs mid-transaction"
+else
+    fail "Boot splash install scriptlet is valid and never rebuilds the initramfs mid-transaction"
+fi
 if [[ -s "${PLY_DIR}/palexus-boot.mp4" ]]; then
     pass "Official boot video present"
 else
@@ -581,6 +640,16 @@ GH_WORKFLOW="${REPO_ROOT}/.github/workflows/build-iso.yml"
 check_file_contains "${GH_WORKFLOW}" "verify-gates\.sh" "GitHub workflow runs verify-gates.sh"
 check_file_contains "${GH_WORKFLOW}" "SHA256SUMS" "GitHub workflow generates SHA256SUMS"
 
+# --- Boot & first-boot (boot-firstboot-fixes) ---
+HUD_PKG="${REPO_ROOT}/packages/desktop/palexus-hud"
+check_file_contains "${HUD_PKG}/palexus-welcome" '^LIVE_MARKER = "/run/archiso"$' "Welcome wizard detects the live USB by /run/archiso (readable by the live user)"
+check_file_lacks "${HUD_PKG}/palexus-welcome" 'LIVE_MARKER = "/etc/sudoers\.d' "Welcome wizard does not probe the root-only /etc/sudoers.d"
+check_file_contains "${HUD_PKG}/oobe-sway.conf" '^exec /usr/lib/palexus/palexus-oobe-wizard$' "First-boot compositor runs the wizard through the retrying runner"
+check_file_contains "${HUD_PKG}/palexus-oobe-wizard" 'Ctrl\+Alt\+F2' "A wizard that keeps failing points to the tty2 text setup"
+check_file_contains "${HUD_PKG}/palexus-oobe-apply" 'remove_partial_account\(r\["username"\]\)' "Failed account creation is rolled back so setup can be retried"
+# ~/.bashrc returns at once for non-interactive shells, so its ask-*/squash aliases don't exist in bash -c
+check_file_lacks "${HUD_PKG}/palexus-hud" 'ask-qwen "' "HUD Ask AI calls ollama directly, not a ~/.bashrc alias"
+check_file_lacks "${HUD_PKG}/Main.qml" '&& (ask-qwen|ask-llama|squash )' "HUD menu commands do not rely on ~/.bashrc aliases"
 # QEMU boot smoke test harness check
 TEST_BOOT_SH="${REPO_ROOT}/build/test-iso-boot.sh"
 if [[ -f "${TEST_BOOT_SH}" ]] && [[ -x "${TEST_BOOT_SH}" ]]; then
