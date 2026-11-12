@@ -556,27 +556,31 @@ def run_unified(term, accent, mesh):
 # ─── OmarchyOS-Style Dedicated Screensavers ───────────────────────────────────
 
 def run_matrix(term, accent):
-    """Omarchy-style Digital Cyber Matrix rain."""
+    """Omarchy-style digital rain, tinted with the active accent."""
     cols, rows = term.size()
     rain = MatrixRain(cols, rows)
     dt = 1.0 / FPS
     while True:
         frame_start = time.monotonic()
-        cols, rows = term.size()
-        if rain.cols != cols or rain.rows != rows:
+        size = term.size()
+        if size != (cols, rows):
+            cols, rows = size
             rain = MatrixRain(cols, rows)
-        rain.step()
-        buf = ["[H"]
-        for y in range(rows):
-            line = [" "] * cols
-            for col in rain.columns:
-                if col.x < cols:
-                    for char, cy, alpha in col.chars():
-                        if cy == y:
-                            col_rgb = scale_rgb(accent, alpha) if alpha < 0.95 else (255, 255, 255)
-                            line[col.x] = fg(col_rgb) + char + "[0m"
-            buf.append("".join(line))
-        sys.stdout.write(chr(10).join(buf))
+        rain.tick(dt)
+        buf = ["\x1b[2J"]
+        for c, (head, _speed, trail, _active) in enumerate(rain.columns):
+            head_row = int(head)
+            for offset in range(trail + 1):
+                r = head_row - offset
+                if r < 0 or r >= rows:
+                    continue
+                if offset == 0:
+                    rgb = (255, 255, 255)
+                else:
+                    rgb = scale_rgb(accent, max(0.15, 1.0 - offset / (trail + 1)))
+                buf.append("\x1b[%d;%dH%s%s" % (r + 1, c + 1, fg(rgb), random.choice(RAIN_CHARS)))
+        buf.append("\x1b[0m")
+        sys.stdout.write("".join(buf))
         sys.stdout.flush()
         elapsed = time.monotonic() - frame_start
         if term.key_pressed(max(0.0, dt - elapsed)):
@@ -586,7 +590,6 @@ def run_matrix(term, accent):
 def run_pipes(term, accent):
     """Omarchy-style 3D Terminal Pipe generator."""
     cols, rows = term.size()
-    grid = [[False] * cols for _ in range(rows)]
     pipes = []
     # 4 active pipe heads
     for _ in range(4):
@@ -599,7 +602,7 @@ def run_pipes(term, accent):
         })
     dt = 1.0 / FPS
     step_count = 0
-    sys.stdout.write("[2J")
+    sys.stdout.write("\x1b[2J")
     while True:
         frame_start = time.monotonic()
         cols, rows = term.size()
@@ -612,12 +615,12 @@ def run_pipes(term, accent):
             p["x"] = (p["x"] + dx) % cols
             p["y"] = (p["y"] + dy) % rows
             p["char"] = "─" if dy == 0 else "│"
-            buf.append(f"[{p['y']+1};{p['x']+1}H{fg(p['col'])}{p['char']}[0m")
+            buf.append(f"\x1b[{p['y']+1};{p['x']+1}H{fg(p['col'])}{p['char']}\x1b[0m")
         sys.stdout.write("".join(buf))
         sys.stdout.flush()
         step_count += 1
         if step_count > 1200:
-            sys.stdout.write("[2J")
+            sys.stdout.write("\x1b[2J")
             step_count = 0
         elapsed = time.monotonic() - frame_start
         if term.key_pressed(max(0.0, dt - elapsed)):
@@ -636,7 +639,7 @@ def run_starfield(term, accent):
         frame_start = time.monotonic()
         cols, rows = term.size()
         cx, cy = cols / 2, rows / 2
-        buf = ["[2J"]
+        buf = ["\x1b[2J"]
         for s in stars:
             s[2] -= 0.02
             if s[2] <= 0.05:
@@ -649,7 +652,7 @@ def run_starfield(term, accent):
                 bright = 1.0 - s[2]
                 ch = "." if bright < 0.3 else ("*" if bright < 0.7 else "✦")
                 col = scale_rgb(accent, bright) if bright < 0.85 else (255, 255, 255)
-                buf.append(f"[{py+1};{px+1}H{fg(col)}{ch}[0m")
+                buf.append(f"\x1b[{py+1};{px+1}H{fg(col)}{ch}\x1b[0m")
         sys.stdout.write("".join(buf))
         sys.stdout.flush()
         elapsed = time.monotonic() - frame_start
@@ -666,13 +669,13 @@ def run_waves(term, accent):
         frame_start = time.monotonic()
         cols, rows = term.size()
         cy = rows // 2
-        buf = ["[2J"]
+        buf = ["\x1b[2J"]
         for x in range(0, cols, 2):
             for w_idx in range(3):
                 y = int(cy + math.sin(x * 0.05 + phase + w_idx * 1.2) * (rows * 0.3))
                 if 0 <= y < rows:
                     col = scale_rgb(accent, 0.5 + w_idx * 0.25)
-                    buf.append(f"[{y+1};{x+1}H{fg(col)}≈[0m")
+                    buf.append(f"\x1b[{y+1};{x+1}H{fg(col)}≈\x1b[0m")
         sys.stdout.write("".join(buf))
         sys.stdout.flush()
         phase += 0.08

@@ -1,7 +1,7 @@
 # Maintainer: PalexusOS Engineering Team <maintainers@palexusos.org>
 pkgname=palexus-themes
 pkgver=0.1.0
-pkgrel=6
+pkgrel=7
 pkgdesc="PalexusOS wallpapers (3 designs x accent variants), system theme switcher for wallpaper, terminal, launcher, Waybar and Sway (Super+Ctrl+T), and geodesic torus screensaver"
 arch=('any')
 url="https://github.com/earnerbaymalay/palexusOS"
@@ -36,7 +36,7 @@ source=(
   'palexus-tower-tungsten.jpg'
 )
 sha256sums=('c02993ce6b245a63b8626787d28de114a90ea78cc5809f787075bc4eb5ed9435'
-            '710470aefce1670bba657b5ba13afbe7a4f440fde49e824fe0011570731bba7e'
+            '0457859413a1d7a95d59addf102b45bd9b4fa5e35d2b3ad59bdc14460d716a75'
             '23a9d2960afead31f14059da99631f0485bdffbd30f50f40c1ff2971e9ea7bc8'
             '85cddd56836b6fce2d074789c9a3bfabfe1599e0cca63f8a6a2dea5153bdb4a9'
             '49c612df50d0571b2ad20086dd0932ad4fa4027cac0ed2dc10e3b12094e09170'
