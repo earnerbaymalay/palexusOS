@@ -1,7 +1,7 @@
 # Maintainer: PalexusOS Engineering Team <maintainers@palexusos.org>
 pkgname=palexus-greeter
 pkgver=0.1.0
-pkgrel=4
+pkgrel=5
 pkgdesc="PalexusOS SDDM login theme: clock + system readout, chamfered panel with animated accent trails"
 arch=('any')
 url="https://github.com/earnerbaymalay/palexusOS"
@@ -10,7 +10,7 @@ provides=('synapse-greeter' 'palexus-greeter')
 conflicts=('synapse-greeter')
 depends=('sddm' 'qt6-declarative' 'palexus-themes' 'ttf-jetbrains-mono-nerd')
 source=('Main.qml' 'metadata.desktop' 'theme.conf')
-sha256sums=('8864578269f339db1c341ca7ef8d527f7cc2b285b613fd2ecca7100108ff0abb'
+sha256sums=('a825fd9c4a2569b72c51d0da9da4643f2887c626f7b65d6b7a79c0e12bfcfa4f'
             '3eddd24150b33e52a2fa0f0e3b4e7f5a58ac8ae590a817652401056780495b7e'
             '7d57c06f0a4378bd577235b2352c6f95504ad5f5cdc0d9b7d4c6ab77526dd61d')
 

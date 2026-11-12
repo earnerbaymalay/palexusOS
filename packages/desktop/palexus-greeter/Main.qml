@@ -24,7 +24,7 @@ Item {
     readonly property color deepPurpleAura: "#4d1d75"
     readonly property color voidDark: "#07070b"
     readonly property color surfacePanel: Qt.rgba(12 / 255, 11 / 255, 18 / 255, 0.88)
-    readonly property color text: "#f5f5fc"
+    readonly property color text: "#cdd6f4"
     readonly property color subtext: "#bac2de"
     readonly property color muted: "#7f849c"
     readonly property string mono: "JetBrainsMono Nerd Font"
