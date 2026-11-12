@@ -21,8 +21,9 @@ shellcheck build/*.sh build/archiso/profiledef.sh build/archiso/airootfs/root/cu
 ## 1. Where things stand
 
 - All gates, pytest and ShellCheck pass on `cleanup/post-rebrand-fixes`.
-- `main` has been failing CI since the rebrand merge. The causes are fixed on
-  the branch above; CI has not yet run against it.
+- Every CI run on `main` since the PR #2 and #3 merges on 2026-11-11 has
+  failed. The causes found are fixed on the branch above; CI has not yet run
+  against it.
 - The newest local ISO (`out/palexusos-2026.11.12-x86_64.iso`) was built
   **before** this branch. It boots under UEFI in QEMU to the login screen.
   No ISO has been built from this branch yet.
@@ -83,6 +84,9 @@ Once one is chosen:
 
 - `README.md` links to a `LICENSE` file and shows an "MIT / GPLv3" badge, but
   the repository has no `LICENSE` file.
+- The GitHub release `v0.2.0-alpha` has only `SHA256SUMS` and `SHA512SUMS`
+  attached, no ISO, and is not flagged as a pre-release. The tag's CI run
+  failed, so the workflow never published an image.
 - The GitHub repository description still uses the old project name.
 - Remote branches `rebrand/palexusos` and
   `task/work-through-the-tasks-listed-on-the-75b059` are fully merged into
