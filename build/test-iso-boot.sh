@@ -184,15 +184,15 @@ if [[ -z "${OVMF_CODE}" ]]; then
     exit 1
 fi
 
-# 3. Detect KVM acceleration
+# 3. Detect KVM acceleration and CPU microarchitecture
 ACCEL_DESC=""
 ACCEL_OPTS=()
 if [[ -r /dev/kvm && -w /dev/kvm ]]; then
     ACCEL_DESC="KVM hardware acceleration active (/dev/kvm)"
-    ACCEL_OPTS=("-enable-kvm")
+    ACCEL_OPTS=("-enable-kvm" "-cpu" "host")
 else
     ACCEL_DESC="TCG software emulation (KVM unavailable or unprivileged)"
-    ACCEL_OPTS=("-accel" "tcg")
+    ACCEL_OPTS=("-accel" "tcg" "-cpu" "max")
 fi
 
 # 4. Resolve ISO image path
