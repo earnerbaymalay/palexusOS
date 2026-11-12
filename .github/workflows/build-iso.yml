@@ -24,7 +24,7 @@ jobs:
       - name: Install Verification Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y shellcheck python3-pytest python3-pyqt6 python3-yaml jq qemu-system-x86 ovmf
+          sudo apt-get install -y shellcheck python3-pytest python3-pyqt6 python3-pyqt6.qtquick python3-yaml jq qemu-system-x86 ovmf
 
       - name: Run ShellCheck on Build Scripts
         run: |
