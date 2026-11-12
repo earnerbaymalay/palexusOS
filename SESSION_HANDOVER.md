@@ -34,7 +34,7 @@ Regressions introduced by `47a244d`:
 
 | Area | Problem | Fix |
 | :--- | :--- | :--- |
-| `overlay/etc/skel/.bashrc`, `shell-welcome.sh` | Welcome script was loaded from one developer's home path, and its interactive check ran `exit`, which would close every new terminal | Load from `$HOME`; return instead of exit; ask the shell question once |
+| `overlay/etc/skel/.bashrc`, `shell-welcome.sh` | Welcome script was loaded from one developer's home path, and its interactive check ran `exit`, which would close every new terminal | Load from `$HOME`; return instead of exit; ask the shell question once and only switch that terminal (permanent change is `chsh`) |
 | Sway config | `Super+Space` / `Super+D` moved from the Command HUD to rofi; two keys bound twice | HUD restored; rofi list on `Super+Shift+D`; `Super+E` opens Files; duplicates removed |
 | Greeter `Main.qml` | Brand text colour changed; PKGBUILD checksum stale (package would not build) | Colour restored; checksum and `pkgrel` updated |
 | `palexus-screensaver` | `--mode matrix` crashed on its first frame; PKGBUILD checksum stale | Mode rewritten on the existing rain engine; checksum and `pkgrel` updated |

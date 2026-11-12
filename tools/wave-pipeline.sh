@@ -16,7 +16,8 @@
 set -euo pipefail
 
 # Base paths: everything is derived from where this checkout lives.
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# readlink -f: still correct when the script is started through a symlink.
+SCRIPT_DIR="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 WAVE_CONFIG_DIR="${WAVE_CONFIG_DIR:-${XDG_CONFIG_HOME:-${HOME}/.config}/waveterm}"
 WAVE_SETUP_DIR="${WAVE_SETUP_DIR:-}"

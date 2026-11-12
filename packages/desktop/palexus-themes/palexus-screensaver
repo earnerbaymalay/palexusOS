@@ -272,10 +272,12 @@ class MatrixRain:
                 col[1] = random.uniform(0.3, 1.2)
                 col[2] = random.randint(4, min(18, self.rows - 2))
 
-    def render(self, alpha=1.0):
+    def render(self, alpha=1.0, accent=None):
         """
         Return list of (row, col, char, esc_color) cells to paint.
         alpha: 0.0 = invisible, 1.0 = full brightness (for fade in/out).
+        accent: optional (r, g, b). When given, each trail fades from a white
+        head through that colour instead of the classic green.
         """
         cells = []
         for c, (head, speed, trail, active) in enumerate(self.columns):
@@ -285,7 +287,12 @@ class MatrixRain:
                 if r < 0 or r >= self.rows:
                     continue
                 ch = random.choice(RAIN_CHARS)
-                if offset == 0:
+                if accent is not None:
+                    if offset == 0:
+                        base = (255, 255, 255)
+                    else:
+                        base = scale_rgb(accent, max(0.15, 1.0 - offset / (trail + 1)))
+                elif offset == 0:
                     # Bright white/green head
                     base = self.GREEN_HEAD
                 elif offset < 3:
@@ -568,17 +575,8 @@ def run_matrix(term, accent):
             rain = MatrixRain(cols, rows)
         rain.tick(dt)
         buf = ["\x1b[2J"]
-        for c, (head, _speed, trail, _active) in enumerate(rain.columns):
-            head_row = int(head)
-            for offset in range(trail + 1):
-                r = head_row - offset
-                if r < 0 or r >= rows:
-                    continue
-                if offset == 0:
-                    rgb = (255, 255, 255)
-                else:
-                    rgb = scale_rgb(accent, max(0.15, 1.0 - offset / (trail + 1)))
-                buf.append("\x1b[%d;%dH%s%s" % (r + 1, c + 1, fg(rgb), random.choice(RAIN_CHARS)))
+        for r, c, ch, colour in rain.render(accent=accent):
+            buf.append("\x1b[%d;%dH%s%s" % (r + 1, c + 1, colour, ch))
         buf.append("\x1b[0m")
         sys.stdout.write("".join(buf))
         sys.stdout.flush()
