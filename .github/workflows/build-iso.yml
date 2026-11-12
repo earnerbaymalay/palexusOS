@@ -69,17 +69,17 @@ jobs:
               pacman-key --init
               pacman-key --populate archlinux
               pacman -Sy --noconfirm archlinux-keyring
-              pacman -Syu --noconfirm archiso base-devel git sudo namcap shellcheck rust python python-pillow python-numpy
+              pacman -Syu --noconfirm archiso base-devel git sudo namcap shellcheck rust python python-pillow python-numpy qemu-base edk2-ovmf
               git config --system --add safe.directory '*'
               useradd -m -G wheel -s /bin/bash builder 2>/dev/null || true
               install -d -m 0750 /etc/sudoers.d
               echo 'builder ALL=(ALL:ALL) NOPASSWD: ALL' > /etc/sudoers.d/builder
               echo 'nobody ALL=(ALL:ALL) NOPASSWD: ALL' > /etc/sudoers.d/nobody
               chmod 0440 /etc/sudoers.d/builder /etc/sudoers.d/nobody
-              mkdir -p /workspace/out/repo /home/builder/.cargo
+              mkdir -p /workspace/out /home/builder/.cargo
               chown -R builder:builder /workspace/out /workspace/packages /home/builder 2>/dev/null || true
-              ./build/verify-gates.sh
               ./build/build-iso.sh --build-pkgs
+              ./build/verify-gates.sh
             "
 
       - name: Generate Checksums
