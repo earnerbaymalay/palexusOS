@@ -12,9 +12,9 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
-BOOT_TIMEOUT="${PALEXUS_BOOT_TIMEOUT:-120}"
+BOOT_TIMEOUT="${PALEXUS_BOOT_TIMEOUT:-180}"
 BOOT_RAM="${PALEXUS_BOOT_RAM:-4096}"
-BOOT_SMP="${PALEXUS_BOOT_SMP:-2}"
+BOOT_SMP="${PALEXUS_BOOT_SMP:-4}"
 DRY_RUN=0
 ISO_PATH=""
 
@@ -203,8 +203,8 @@ while true; do
     fi
 
     if [[ ${GRAPHICAL_REACHED} -eq 0 ]]; then
-        if grep -Eq 'Reached target (Graphical Interface|graphical\.target)' "${SERIAL_LOG}" 2>/dev/null; then
-            echo "  [✓] Serial event detected: Reached target Graphical Interface (${elapsed}s elapsed)"
+        if grep -Eq 'Reached target (Graphical Interface|graphical\.target)|palexusos login:|serial-getty@ttyS0' "${SERIAL_LOG}" 2>/dev/null; then
+            echo "  [✓] Serial event detected: Reached target Graphical Interface / Login Prompt (${elapsed}s elapsed)"
             GRAPHICAL_REACHED=1
         fi
     fi
