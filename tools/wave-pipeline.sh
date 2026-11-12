@@ -1,20 +1,29 @@
 #!/usr/bin/env bash
 # ==============================================================================
 # Wave Pipeline & Ollama CI Automation Harness
-# SynapseOS / AI BRAIN
+# PalexusOS developer tooling (not shipped in the image)
 #
 # Provides turnkey integration between Wave Terminal sessions, local Ollama
 # coding models (qwen2.5-coder:7b, hermes3-abliterated, qwen-coder-abliterated),
 # and parallel background CI / test suites.
+#
+# Environment overrides:
+#   WAVE_CONFIG_DIR  Wave Terminal config dir (default: ~/.config/waveterm)
+#   WAVE_SETUP_DIR   optional second directory to mirror the config into
+#   OLLAMA_HOST      Ollama endpoint (default: http://localhost:11434)
 # ==============================================================================
 
 set -euo pipefail
 
-# Base Paths
-AI_BRAIN="/home/ebaymlay/Desktop/AI BRAIN"
-SYNAPSE_DIR="${AI_BRAIN}/synapseOS"
-WAVE_CONFIG_DIR="${HOME}/.config/waveterm"
-WAVE_SETUP_DIR="${AI_BRAIN}/wave-setup"
+# Base paths: everything is derived from where this checkout lives.
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+WAVE_CONFIG_DIR="${WAVE_CONFIG_DIR:-${XDG_CONFIG_HOME:-${HOME}/.config}/waveterm}"
+WAVE_SETUP_DIR="${WAVE_SETUP_DIR:-}"
+if [[ -z "${WAVE_SETUP_DIR}" && -d "${REPO_ROOT}/../wave-setup" ]]; then
+    # A sibling wave-setup/ checkout is mirrored automatically.
+    WAVE_SETUP_DIR="$(cd "${REPO_ROOT}/../wave-setup" && pwd)"
+fi
 OLLAMA_HOST="${OLLAMA_HOST:-http://localhost:11434}"
 
 # Color codes
@@ -84,17 +93,28 @@ check_prereqs() {
 # Sync Wave AI & Widgets Config
 # ------------------------------------------------------------------------------
 sync_wave_configs() {
-    log_info "Synchronizing Wave Terminal configs with Ollama models and Synapse tools..."
-    mkdir -p "${WAVE_CONFIG_DIR}" "${WAVE_SETUP_DIR}/config"
+    log_info "Synchronizing Wave Terminal configs with Ollama models and PalexusOS tools..."
+    mkdir -p "${WAVE_CONFIG_DIR}"
 
-    python3 - << 'EOF'
+    REPO_ROOT="${REPO_ROOT}" WAVE_CONFIG_DIR="${WAVE_CONFIG_DIR}" WAVE_SETUP_DIR="${WAVE_SETUP_DIR}" \
+        python3 - << 'EOF'
 import json
 import os
+import shlex
 
-configs = [
-    "/home/ebaymlay/.config/waveterm/waveai.json",
-    "/home/ebaymlay/Desktop/AI BRAIN/wave-setup/config/waveai.json"
-]
+repo_root = os.environ["REPO_ROOT"]
+config_dirs = [os.environ["WAVE_CONFIG_DIR"]]
+if os.environ.get("WAVE_SETUP_DIR"):
+    config_dirs.append(os.path.join(os.environ["WAVE_SETUP_DIR"], "config"))
+pipeline = os.path.join(repo_root, "tools", "wave-pipeline.sh")
+
+
+def widget_cmd(subcommand):
+    inner = "cd %s && %s %s" % (shlex.quote(repo_root), shlex.quote(pipeline), subcommand)
+    return "bash -ic " + shlex.quote(inner)
+
+
+configs = [os.path.join(d, "waveai.json") for d in config_dirs]
 
 models = {
     "ollama@qwen25-coder": {
@@ -139,24 +159,24 @@ for cfg_path in configs:
         json.dump(data, f, indent=2)
 
 # Update widgets
-widget_paths = [
-    "/home/ebaymlay/.config/waveterm/widgets.json",
-    "/home/ebaymlay/Desktop/AI BRAIN/wave-setup/config/widgets.json"
-]
+widget_paths = [os.path.join(d, "widgets.json") for d in config_dirs]
+
+# Widget ids written by earlier versions of this script.
+retired_widgets = ["ci@synapse"]
 
 widgets = {
-    "ci@synapse": {
+    "ci@palexus": {
         "display:order": 10,
         "icon": "shield-check",
         "color": "#10b981",
-        "label": "synapse-ci",
-        "description": "SynapseOS Background CI & Pytest Guard",
+        "label": "palexus-ci",
+        "description": "PalexusOS Background CI & Pytest Guard",
         "blockdef": {
             "meta": {
                 "view": "term",
                 "controller": "cmd",
-                "cmd": "bash -ic 'cd \"/home/ebaymlay/Desktop/AI BRAIN/synapseOS\" && \"/home/ebaymlay/Desktop/AI BRAIN/synapseOS/tools/wave-pipeline.sh\" ci-watch'",
-                "cmd:cwd": "/home/ebaymlay/Desktop/AI BRAIN/synapseOS",
+                "cmd": widget_cmd("ci-watch"),
+                "cmd:cwd": repo_root,
                 "cmd:clearonstart": True
             }
         }
@@ -166,13 +186,13 @@ widgets = {
         "icon": "bolt",
         "color": "#f59e0b",
         "label": "dev-sprint",
-        "description": "SynapseOS Parallel Dev Sprint Runner",
+        "description": "PalexusOS Parallel Dev Sprint Runner",
         "blockdef": {
             "meta": {
                 "view": "term",
                 "controller": "cmd",
-                "cmd": "bash -ic 'cd \"/home/ebaymlay/Desktop/AI BRAIN/synapseOS\" && \"/home/ebaymlay/Desktop/AI BRAIN/synapseOS/tools/wave-pipeline.sh\" sprint'",
-                "cmd:cwd": "/home/ebaymlay/Desktop/AI BRAIN/synapseOS",
+                "cmd": widget_cmd("sprint"),
+                "cmd:cwd": repo_root,
                 "cmd:clearonstart": True
             }
         }
@@ -187,6 +207,8 @@ for w_path in widget_paths:
                 wdata = json.load(f)
         except Exception:
             pass
+    for retired in retired_widgets:
+        wdata.pop(retired, None)
     wdata.update(widgets)
     os.makedirs(os.path.dirname(w_path), exist_ok=True)
     with open(w_path, "w") as f:
@@ -230,20 +252,20 @@ query_ollama() {
 # Background CI Verification Runner
 # ------------------------------------------------------------------------------
 run_ci() {
-    log_info "Starting SynapseOS CI Verification Suite..."
-    local test_dir="${SYNAPSE_DIR}/tests"
-    local log_file="${SYNAPSE_DIR}/build/ci-run.log"
-    mkdir -p "${SYNAPSE_DIR}/build"
+    log_info "Starting PalexusOS CI Verification Suite..."
+    local test_dir="${REPO_ROOT}/tests"
+    local log_file="${REPO_ROOT}/build/ci-run.log"
+    mkdir -p "${REPO_ROOT}/build"
 
-    echo "=== SynapseOS CI Run: $(date) ===" > "$log_file"
+    echo "=== PalexusOS CI Run: $(date) ===" > "$log_file"
 
     if [ -d "$test_dir" ]; then
         log_info "Executing pytest suite across: $test_dir"
         if pytest "$test_dir" -v --tb=short 2>&1 | tee -a "$log_file"; then
-            log_success "All SynapseOS CI tests PASSED!"
+            log_success "All PalexusOS CI tests PASSED!"
             return 0
         else
-            log_error "SynapseOS CI tests FAILED! See details in: $log_file"
+            log_error "PalexusOS CI tests FAILED! See details in: $log_file"
             return 1
         fi
     else
@@ -260,7 +282,7 @@ run_ci_watch() {
     while true; do
         clear || true
         echo -e "${CYAN}====================================================${NC}"
-        echo -e "${CYAN} SynapseOS Wave Terminal Background CI Sentinel     ${NC}"
+        echo -e "${CYAN} PalexusOS Wave Terminal Background CI Sentinel     ${NC}"
         echo -e "${CYAN} $(date)                                            ${NC}"
         echo -e "${CYAN}====================================================${NC}"
         run_ci || true
@@ -276,10 +298,11 @@ run_sprint() {
     log_info "Initializing Parallel Dev Sprint Orchestrator..."
 
     echo -e "${CYAN}====================================================${NC}"
-    echo -e "${CYAN} SynapseOS Parallel Dev Sprint Engine               ${NC}"
+    echo -e "${CYAN} PalexusOS Parallel Dev Sprint Engine               ${NC}"
     echo -e "${CYAN}====================================================${NC}"
 
-    local sprint_dir="${SYNAPSE_DIR}/build/sprints/$(date +%Y%m%d_%H%M%S)"
+    local sprint_dir
+    sprint_dir="${REPO_ROOT}/build/sprints/$(date +%Y%m%d_%H%M%S)"
     mkdir -p "$sprint_dir"
 
     # Step 1: Pre-flight CI
@@ -289,14 +312,22 @@ run_sprint() {
 
     # Step 2: Query Ollama sprint summary
     log_info "[Sprint Step 2/3] Checking Ollama model health..."
-    local prompt="Provide a 1-sentence affirmation that the SynapseOS development sprint is operational."
+    local prompt="Provide a 1-sentence affirmation that the PalexusOS development sprint is operational."
     query_ollama "qwen2.5-coder:7b" "$prompt" > "${sprint_dir}/ollama_response.txt" 2>&1 &
     local ollama_pid=$!
 
     # Await parallel background jobs
     log_info "Awaiting background sprint jobs (PID $ci_pid, PID $ollama_pid)..."
-    wait $ci_pid && log_success "Pre-flight CI completed successfully." || log_warn "CI baseline had warnings/failures (check ${sprint_dir}/ci_baseline.log)."
-    wait $ollama_pid && log_success "Ollama sprint agent responded." || log_warn "Ollama query had issues."
+    if wait "$ci_pid"; then
+        log_success "Pre-flight CI completed successfully."
+    else
+        log_warn "CI baseline had warnings/failures (check ${sprint_dir}/ci_baseline.log)."
+    fi
+    if wait "$ollama_pid"; then
+        log_success "Ollama sprint agent responded."
+    else
+        log_warn "Ollama query had issues."
+    fi
 
     log_success "Parallel sprint batch complete. Artifacts saved in: $sprint_dir"
 }
@@ -328,7 +359,7 @@ usage() {
     echo "  check         Check environment, wsh, Wave, and Ollama status"
     echo "  sync          Synchronize Wave configuration files (waveai.json & widgets.json)"
     echo "  query         Query local Ollama models (e.g. qwen2.5-coder:7b or hermes3-abliterated)"
-    echo "  ci            Run full SynapseOS pytest suite once"
+    echo "  ci            Run full PalexusOS pytest suite once"
     echo "  ci-watch      Run continuous CI verification loop for Wave split-pane view"
     echo "  sprint        Execute parallel dev sprint pipeline (CI + AI synthesis)"
     echo "  wave          Launch Wave Terminal live workspace"
