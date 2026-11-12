@@ -24,7 +24,7 @@ jobs:
       - name: Install Verification Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y shellcheck python3-pytest python3-yaml jq qemu-system-x86 ovmf pipx
+          sudo apt-get install -y shellcheck python3-pytest python3-yaml jq qemu-system-x86 ovmf pipx libegl1 libgl1 libxkbcommon-x11-0 libfontconfig1 libdbus-1-3
           pipx install --include-deps pytest
           pipx runpip pytest install PyQt6
 
