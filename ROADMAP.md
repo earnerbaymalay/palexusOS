@@ -91,8 +91,9 @@
   - [x] Tag `v0.2.0-alpha` release milestone.
 
 ## Phase 9: Neural Hardware Autotuning & eBPF Context Enclave (Upcoming — Q1 2027)
-- [ ] **Milestone 9.1: Dynamic PL1/PL2 Thermal Governor (`palexus-governor`)**:
+- [x] **Milestone 9.1: Dynamic PL1/PL2 Thermal Governor (`palexus-governor`)**:
   - Automatically scale CPU package TDP based on real-time Ollama inference vs background compilation state.
+  - RAPL powercap backend, `throttled.conf` backend while throttled runs, EPP-only fallback; limits in `/etc/palexus/governor.toml`; hardened unit (loopback-only networking); `tests/test_governor.py` on a fake sysfs.
 - [ ] **Milestone 9.2: eBPF Secret Leak Interceptor**:
   - Implement a kernel-level eBPF socket filter guaranteeing that raw private keys (`id_rsa`, `*.pem`, `sk-*`) cannot egress any socket even if bypassed by third-party unproxied applications.
 - [ ] **Milestone 9.3: Vulkan Offload Profiler for Integrated Graphics**:

@@ -612,6 +612,31 @@ else
 fi
 
 # ------------------------------------------------------------------------------
+# Milestone 9.1: PL1/PL2 thermal governor
+# ------------------------------------------------------------------------------
+echo ""
+echo "---> Milestone 9.1: PL1/PL2 Thermal Governor"
+GOV_DIR="${REPO_ROOT}/packages/desktop/palexus-hud"
+GOV_UNIT="${GOV_DIR}/palexus-governor.service"
+check_file_contains "${GOV_DIR}/PKGBUILD" '"governor\.toml"' "palexus-hud ships the default governor.toml"
+check_file_contains "${GOV_DIR}/PKGBUILD" "backup=\\(.*etc/palexus/governor\\.toml" "governor.toml is a pacman backup file (local edits survive upgrades)"
+check_file_contains "${GOV_DIR}/palexus-governor" 'intel-rapl' "Governor drives intel-rapl powercap constraints"
+check_file_contains "${GOV_DIR}/palexus-governor" 'ProxyHandler\(\{\}\)' "Governor's Ollama probe ignores proxy environment"
+for directive in 'ProtectSystem=strict' 'NoNewPrivileges=yes' 'ProtectKernelTunables=yes' 'IPAddressDeny=any' 'IPAddressAllow=localhost'; do
+    check_file_contains "${GOV_UNIT}" "^${directive}$" "palexus-governor.service sets ${directive}"
+done
+check_file_contains "${GOV_UNIT}" '^ReadWritePaths=.*/sys/devices/virtual/powercap' "palexus-governor.service may write only cpufreq, powercap and throttled.conf"
+if command -v python3 >/dev/null 2>&1 && python3 -c 'import tomllib' 2>/dev/null; then
+    if python3 -I -c 'import sys,tomllib; tomllib.load(open(sys.argv[1],"rb"))' "${GOV_DIR}/governor.toml" 2>/dev/null; then
+        pass "governor.toml parses as TOML"
+    else
+        fail "governor.toml parses as TOML"
+    fi
+else
+    warn "python3 with tomllib unavailable; skipping governor.toml parse"
+fi
+
+# ------------------------------------------------------------------------------
 # Leftover Name Gate: Verify zero stray 'synapseos' references
 # ------------------------------------------------------------------------------
 echo ""

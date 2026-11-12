@@ -1,0 +1,41 @@
+# /etc/palexus/governor.toml — palexus-governor (PL1/PL2 thermal governor)
+# Every key is optional; invalid values are logged and replaced by these defaults.
+# Apply changes with: sudo systemctl restart palexus-governor
+
+# Power-limit backend: "auto" | "rapl" | "throttled" | "none"
+#   auto: throttled.conf when throttled is running (it rewrites MSR 0x610 and
+#         would undo RAPL writes), otherwise intel-rapl powercap, otherwise EPP only.
+backend = "auto"
+
+poll_interval_s = 1.0
+# Seconds a higher state is held after it was last seen before stepping down.
+cooldown_s = 10.0
+
+[ollama]
+# Must be a loopback http URL; anything else is rejected.
+url = "http://127.0.0.1:11434/api/ps"
+# CPU (in cores) the runner must use for a loaded model to count as generating.
+cpu_threshold = 0.5
+processes = ["ollama", "ollama_llama_se"]
+
+[compile]
+processes = ["rustc", "cc1", "cc1plus", "cc1obj", "clang", "clang++", "ld", "ld.lld", "ld.gold", "mold", "go", "javac"]
+
+[throttled]
+conf = "/etc/throttled.conf"
+
+# 0 < pl1_w <= pl2_w. RAPL values are clamped to the zone's max_power_uw.
+[profiles.idle]
+epp = "balance_power"
+pl1_w = 15
+pl2_w = 25
+
+[profiles.compile]
+epp = "balance_performance"
+pl1_w = 20
+pl2_w = 30
+
+[profiles.inference]
+epp = "performance"
+pl1_w = 25
+pl2_w = 35

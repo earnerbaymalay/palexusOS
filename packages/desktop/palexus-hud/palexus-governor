@@ -1,182 +1,676 @@
 #!/usr/bin/env python3
-"""palexus-governor — Dynamic Thermal & Performance Governor Daemon for PalexusOS.
+"""palexus-governor — PL1/PL2 thermal and EPP governor for PalexusOS (Milestone 9.1).
 
-Phase 9 Autotuning:
-Monitors local Ollama LLM inference bursts, Rust/C++ compilation jobs,
-and CPU pressure. Elevates Intel/AMD P-state EPP to 'performance' and
-unlocks sustained PL1/PL2 power envelopes during generation, stepping
-gracefully down to 'balance_power' after 10 seconds of idle.
+Classifies the machine every poll into one of three states and applies the
+matching profile (EPP + package power limits):
+
+  inference  Ollama has a model loaded AND its runner is using CPU
+  compile    a compiler/linker process (rustc, cc1, clang, ld, ...) is running
+  idle       neither
+
+Inference outranks compile. Stepping up is immediate; stepping down waits for
+`cooldown_s` since the higher state was last seen.
+
+Power limits are written through one backend:
+  rapl       /sys/class/powercap/intel-rapl*:N package zones (long_term=PL1, short_term=PL2)
+  throttled  PL1_Tdp_W / PL2_Tdp_W in /etc/throttled.conf ([AC] and [BATTERY]); throttled
+             rewrites MSR 0x610 every few seconds, so while it runs RAPL writes would be undone
+  none       EPP only
+`backend = "auto"` picks throttled if it is running, else rapl if writable, else none.
+
+All values found at start are restored on SIGTERM/SIGINT. The only network
+request is to the loopback Ollama /api/ps endpoint; proxies are ignored.
+Configuration: /etc/palexus/governor.toml (every key optional).
 """
 
-import os
-import sys
-import glob
-import time
-import signal
-import urllib.request
+from __future__ import annotations
+
+import argparse
+import dataclasses
+import enum
+import ipaddress
 import json
+import os
+import re
+import signal
+import sys
+import threading
+import time
+import tomllib
+import urllib.parse
+import urllib.request
+from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Callable
 
-# Paths & Settings
-EPP_GLOB = "/sys/devices/system/cpu/cpu*/cpufreq/energy_performance_preference"
-GOV_GLOB = "/sys/devices/system/cpu/cpu*/cpufreq/scaling_governor"
-OLLAMA_PS_URL = "http://127.0.0.1:11434/api/ps"
-IDLE_COOLDOWN_SEC = 10.0
-POLL_INTERVAL_SEC = 1.0
+DEFAULT_CONFIG_PATH = "/etc/palexus/governor.toml"
+DEFAULT_OLLAMA_URL = "http://127.0.0.1:11434/api/ps"
+VALID_EPP = ("default", "performance", "balance_performance", "balance_power", "power")
+VALID_BACKENDS = ("auto", "rapl", "throttled", "none")
+MAX_LIMIT_W = 250.0
 
-RUNNING = True
-
-
-def handle_signals(sig, frame):
-    global RUNNING
-    RUNNING = False
-    print(f"\n[palexus-governor] Received signal {sig}, restoring balanced state and exiting.")
-    set_epp("balance_power")
-    sys.exit(0)
+Log = Callable[[str], None]
 
 
-def set_epp(target: str) -> bool:
-    """Sets Energy Performance Preference (EPP) across all logical CPU cores."""
-    success = False
-    files = glob.glob(EPP_GLOB)
-    if not files:
-        # Fallback to scaling_governor if EPP is not supported
-        gov = "performance" if target == "performance" else "powersave"
-        for gf in glob.glob(GOV_GLOB):
-            try:
-                Path(gf).write_text(gov)
-                success = True
-            except Exception:
-                pass
-        return success
-
-    for f in files:
-        try:
-            p = Path(f)
-            curr = p.read_text().strip()
-            if curr != target:
-                p.write_text(target)
-                success = True
-        except Exception:
-            pass
-    return success
+def log_stdout(msg: str) -> None:
+    print(f"[palexus-governor] {msg}", flush=True)
 
 
-def get_current_epp() -> str:
-    files = glob.glob(EPP_GLOB)
-    if files:
-        try:
-            return Path(files[0]).read_text().strip()
-        except Exception:
-            pass
-    govs = glob.glob(GOV_GLOB)
-    if govs:
-        try:
-            return Path(govs[0]).read_text().strip()
-        except Exception:
-            pass
-    return "unknown"
+# --------------------------------------------------------------------------- domain
 
 
-def is_process_bursting() -> bool:
-    """Detects active LLM generation or compilation processes via /proc scanning."""
-    burst_names = {"ollama_llama_se", "cargo", "rustc", "cc1", "cc1plus"}
+class State(enum.IntEnum):
+    IDLE = 0
+    COMPILE = 1
+    INFERENCE = 2
+
+
+@dataclass(frozen=True)
+class Profile:
+    epp: str
+    pl1_w: float
+    pl2_w: float
+
+
+def _default_profiles() -> dict[State, Profile]:
+    return {
+        State.IDLE: Profile("balance_power", 15.0, 25.0),
+        State.COMPILE: Profile("balance_performance", 20.0, 30.0),
+        State.INFERENCE: Profile("performance", 25.0, 35.0),
+    }
+
+
+@dataclass(frozen=True)
+class Config:
+    backend: str = "auto"
+    poll_interval_s: float = 1.0
+    cooldown_s: float = 10.0
+    ollama_url: str = DEFAULT_OLLAMA_URL
+    inference_cpu_threshold: float = 0.5
+    inference_processes: frozenset[str] = frozenset({"ollama", "ollama_llama_se"})
+    compile_processes: frozenset[str] = frozenset(
+        {"rustc", "cc1", "cc1plus", "cc1obj", "clang", "clang++", "ld", "ld.lld", "ld.gold", "mold", "go", "javac"}
+    )
+    throttled_conf: str = "/etc/throttled.conf"
+    profiles: dict[State, Profile] = field(default_factory=_default_profiles)
+
+
+def default_config() -> Config:
+    return Config()
+
+
+def replace_config(cfg: Config, **changes) -> Config:
+    return dataclasses.replace(cfg, **changes)
+
+
+class Policy:
+    """Hysteresis: the highest state seen within the last `cooldown_s` wins."""
+
+    def __init__(self, cooldown_s: float) -> None:
+        self.cooldown_s = cooldown_s
+        self._last_seen: dict[State, float] = {}
+
+    def update(self, observed: State, now: float) -> State:
+        self._last_seen[observed] = now
+        for state in sorted(State, reverse=True):
+            if state == observed:
+                return state
+            seen = self._last_seen.get(state)
+            if seen is not None and now - seen < self.cooldown_s:
+                return state
+        return observed  # unreachable: observed is always in State
+
+
+# --------------------------------------------------------------------------- config
+
+
+def is_loopback_url(url: str) -> bool:
     try:
-        # Scan /proc for active matching processes
-        for pid_entry in os.listdir("/proc"):
-            if not pid_entry.isdigit():
-                continue
-            comm_path = os.path.join("/proc", pid_entry, "comm")
-            try:
-                with open(comm_path, "r", encoding="utf-8") as f:
-                    name = f.read().strip()
-                    if name in burst_names:
-                        return True
-            except (IOError, OSError):
-                continue
-    except Exception:
-        pass
-    return False
-
-
-def is_ollama_generating() -> bool:
-    """Checks if Ollama has an active resident model and active inference."""
+        parts = urllib.parse.urlsplit(url)
+    except ValueError:
+        return False
+    if parts.scheme != "http" or not parts.hostname:
+        return False
+    if parts.hostname == "localhost":
+        return True
     try:
-        req = urllib.request.Request(OLLAMA_PS_URL, headers={"User-Agent": "palexus-governor"})
-        with urllib.request.urlopen(req, timeout=0.5) as resp:
-            data = json.loads(resp.read().decode("utf-8"))
-            models = data.get("models", [])
-            # If models are loaded, check process activity
-            if models and is_process_bursting():
-                return True
-    except Exception:
-        pass
-    return is_process_bursting()
+        return ipaddress.ip_address(parts.hostname).is_loopback
+    except ValueError:
+        return False
 
 
-def print_status():
-    epp = get_current_epp()
-    generating = is_ollama_generating()
-    print("==================================================")
-    print(" PalexusOS Neural Hardware Governor Status")
-    print("==================================================")
-    print(f" Current CPU Energy Profile : {epp.upper()}")
-    print(f" Inference Burst Detected   : {'YES (TURBO BOOST)' if generating else 'NO (IDLE)'}")
-    print(f" Cooldown Window            : {IDLE_COOLDOWN_SEC}s")
-    print(f" Reference Platform Target  : Dell 7490 (25W PL1 sustained)")
-    print("==================================================")
+def _positive_number(value, name: str, warnings: list[str]) -> float | None:
+    if isinstance(value, bool) or not isinstance(value, (int, float)) or value <= 0:
+        warnings.append(f"{name} must be a positive number, got {value!r}; using default")
+        return None
+    return float(value)
 
 
-def run_governor_loop():
-    global RUNNING
-    print(f"[palexus-governor] Initialized. Monitoring inference bursts (polling every {POLL_INTERVAL_SEC}s)...")
-    
-    last_burst_time = 0.0
-    active_profile = get_current_epp()
+def _process_set(value, name: str, warnings: list[str]) -> frozenset[str] | None:
+    if not isinstance(value, list) or not value or not all(isinstance(v, str) and v for v in value):
+        warnings.append(f"{name} must be a non-empty list of process names; using default")
+        return None
+    # /proc/<pid>/comm is truncated to 15 characters.
+    return frozenset(v[:15] for v in value)
 
-    while RUNNING:
-        burst = is_ollama_generating()
-        now = time.time()
 
-        if burst:
-            last_burst_time = now
-            if active_profile != "performance":
-                set_epp("performance")
-                active_profile = "performance"
-                print(f"[palexus-governor] ⚡ LLM/Build Burst detected. Elevated CPU profile -> PERFORMANCE (25W PL1)")
+def _profile(value, name: str, warnings: list[str]) -> Profile | None:
+    if not isinstance(value, dict):
+        warnings.append(f"{name} must be a table; using default")
+        return None
+    epp, pl1, pl2 = value.get("epp"), value.get("pl1_w"), value.get("pl2_w")
+    numbers_ok = all(isinstance(v, (int, float)) and not isinstance(v, bool) for v in (pl1, pl2))
+    if epp not in VALID_EPP or not numbers_ok or not (0 < pl1 <= pl2 <= MAX_LIMIT_W):
+        warnings.append(
+            f"{name} needs epp in {VALID_EPP} and 0 < pl1_w <= pl2_w <= {MAX_LIMIT_W:g}, got {value!r}; using default"
+        )
+        return None
+    return Profile(epp, float(pl1), float(pl2))
+
+
+def load_config(path: str | os.PathLike) -> tuple[Config, list[str]]:
+    """Returns (config, warnings). Missing keys and invalid values fall back to defaults."""
+    cfg = default_config()
+    warnings: list[str] = []
+    try:
+        with open(path, "rb") as fh:
+            data = tomllib.load(fh)
+    except FileNotFoundError:
+        return cfg, warnings
+    except (OSError, tomllib.TOMLDecodeError) as exc:
+        return cfg, [f"cannot read {path}: {exc}; using defaults"]
+
+    changes: dict = {}
+    backend = data.get("backend")
+    if backend is not None:
+        if backend in VALID_BACKENDS:
+            changes["backend"] = backend
         else:
-            idle_duration = now - last_burst_time
-            if active_profile == "performance" and idle_duration >= IDLE_COOLDOWN_SEC:
-                set_epp("balance_power")
-                active_profile = "balance_power"
-                print(f"[palexus-governor] 🍃 System idle for {int(idle_duration)}s. Scaled down -> BALANCE_POWER (15W nominal)")
+            warnings.append(f"backend must be one of {VALID_BACKENDS}, got {backend!r}; using default")
+    for key in ("poll_interval_s", "cooldown_s"):
+        if key in data and (v := _positive_number(data[key], key, warnings)) is not None:
+            changes[key] = v
 
-        time.sleep(POLL_INTERVAL_SEC)
+    ollama = data.get("ollama", {})
+    if "url" in ollama:
+        if is_loopback_url(ollama["url"]):
+            changes["ollama_url"] = ollama["url"]
+        else:
+            warnings.append(f"ollama.url {ollama['url']!r} is not a loopback http URL; using {DEFAULT_OLLAMA_URL}")
+    if "cpu_threshold" in ollama and (v := _positive_number(ollama["cpu_threshold"], "ollama.cpu_threshold", warnings)) is not None:
+        changes["inference_cpu_threshold"] = v
+    if "processes" in ollama and (s := _process_set(ollama["processes"], "ollama.processes", warnings)) is not None:
+        changes["inference_processes"] = s
+
+    compile_ = data.get("compile", {})
+    if "processes" in compile_ and (s := _process_set(compile_["processes"], "compile.processes", warnings)) is not None:
+        changes["compile_processes"] = s
+
+    throttled = data.get("throttled", {})
+    if "conf" in throttled:
+        if isinstance(throttled["conf"], str) and throttled["conf"].startswith("/"):
+            changes["throttled_conf"] = throttled["conf"]
+        else:
+            warnings.append(f"throttled.conf must be an absolute path, got {throttled['conf']!r}; using default")
+
+    profiles = dict(cfg.profiles)
+    for state in State:
+        key = state.name.lower()
+        if key in data.get("profiles", {}):
+            if (p := _profile(data["profiles"][key], f"profiles.{key}", warnings)) is not None:
+                profiles[state] = p
+    changes["profiles"] = profiles
+    return replace_config(cfg, **changes), warnings
 
 
-def main():
-    signal.signal(signal.SIGINT, handle_signals)
-    signal.signal(signal.SIGTERM, handle_signals)
+# --------------------------------------------------------------------------- adapters
 
-    if len(sys.argv) > 1:
-        cmd = sys.argv[1].lower()
-        if cmd == "status":
-            print_status()
-            sys.exit(0)
-        elif cmd == "boost":
-            set_epp("performance")
-            print("⚡ Manual Turbo Boost activated for 60 seconds...")
-            time.sleep(60)
-            set_epp("balance_power")
-            print("🍃 Boost ended. Restored to balanced.")
-            sys.exit(0)
-        elif cmd in ("help", "--help", "-h"):
-            print("Usage: palexus-governor [run | status | boost]")
-            sys.exit(0)
 
-    run_governor_loop()
+def _read(path: Path) -> str | None:
+    try:
+        return path.read_text().strip()
+    except OSError:
+        return None
+
+
+def _write(path: Path, value: str, log: Log | None = None) -> bool:
+    try:
+        path.write_text(value)
+        return True
+    except OSError as exc:
+        if log:
+            log(f"write failed {path}: {exc}")
+        return False
+
+
+class ProcScanner:
+    def __init__(self, proc_root: str | os.PathLike = "/proc") -> None:
+        self.root = Path(proc_root)
+
+    def _pids(self) -> list[Path]:
+        try:
+            return [p for p in self.root.iterdir() if p.name.isdigit()]
+        except OSError:
+            return []
+
+    def snapshot(self) -> dict[int, tuple[str, int]]:
+        """pid -> (comm, utime+stime ticks)."""
+        out: dict[int, tuple[str, int]] = {}
+        for d in self._pids():
+            comm = _read(d / "comm")
+            stat = _read(d / "stat")
+            if comm is None or stat is None:
+                continue  # process exited mid-scan
+            try:
+                fields = stat[stat.rindex(")") + 2 :].split()
+                ticks = int(fields[11]) + int(fields[12])  # utime, stime (fields 14 and 15)
+            except (ValueError, IndexError):
+                ticks = 0
+            out[int(d.name)] = (comm, ticks)
+        return out
+
+    def is_running(self, comm: str, cmdline_fragment: str) -> bool:
+        for d in self._pids():
+            if _read(d / "comm") == comm:
+                return True
+            try:
+                if cmdline_fragment in (d / "cmdline").read_bytes().decode(errors="replace"):
+                    return True
+            except OSError:
+                continue
+        return False
+
+
+class OllamaProbe:
+    """Asks the loopback Ollama /api/ps whether any model is resident."""
+
+    def __init__(self, url: str = DEFAULT_OLLAMA_URL, timeout_s: float = 0.5) -> None:
+        if not is_loopback_url(url):
+            raise ValueError(f"refusing non-loopback Ollama URL: {url}")
+        self.url = url
+        self.timeout_s = timeout_s
+        # Empty ProxyHandler: never route the request through http_proxy/HTTP_PROXY.
+        self._opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+
+    def models_loaded(self) -> bool:
+        req = urllib.request.Request(self.url, headers={"User-Agent": "palexus-governor"})
+        try:
+            with self._opener.open(req, timeout=self.timeout_s) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
+        except (OSError, ValueError):
+            return False
+        return bool(isinstance(data, dict) and data.get("models"))
+
+
+class Detector:
+    def __init__(self, cfg: Config, proc: ProcScanner, ollama, clk_tck: int | None = None) -> None:
+        self.cfg = cfg
+        self.proc = proc
+        self.ollama = ollama
+        self.clk_tck = clk_tck or os.sysconf("SC_CLK_TCK")
+        self._prev: dict[int, int] = {}
+        self._prev_t: float | None = None
+
+    def prime(self, now: float) -> None:
+        self._sample_runner_cpu(self.proc.snapshot(), now)
+
+    def _sample_runner_cpu(self, snap: dict[int, tuple[str, int]], now: float) -> float:
+        """Cores' worth of CPU the inference processes used since the last sample."""
+        ticks = {pid: t for pid, (comm, t) in snap.items() if comm in self.cfg.inference_processes}
+        busy = 0.0
+        if self._prev_t is not None and now > self._prev_t:
+            delta = sum(max(0, t - self._prev.get(pid, t)) for pid, t in ticks.items())
+            busy = delta / self.clk_tck / (now - self._prev_t)
+        self._prev, self._prev_t = ticks, now
+        return busy
+
+    def sample(self, now: float) -> State:
+        snap = self.proc.snapshot()
+        busy = self._sample_runner_cpu(snap, now)
+        if busy >= self.cfg.inference_cpu_threshold and self.ollama.models_loaded():
+            return State.INFERENCE
+        if any(comm in self.cfg.compile_processes for comm, _ in snap.values()):
+            return State.COMPILE
+        return State.IDLE
+
+
+class EppControl:
+    """Energy Performance Preference, falling back to scaling_governor."""
+
+    def __init__(self, sysroot: str | os.PathLike = "/", log: Log | None = None) -> None:
+        cpu = Path(sysroot) / "sys/devices/system/cpu"
+        self.epp_files = sorted(cpu.glob("cpu[0-9]*/cpufreq/energy_performance_preference"))
+        self.gov_files = sorted(cpu.glob("cpu[0-9]*/cpufreq/scaling_governor"))
+        self.log = log
+
+    def snapshot(self) -> dict[Path, str]:
+        files = self.epp_files or self.gov_files
+        return {p: v for p in files if (v := _read(p)) is not None}
+
+    def current(self) -> str:
+        for p in self.epp_files or self.gov_files:
+            if (v := _read(p)) is not None:
+                return v
+        return "unknown"
+
+    def apply(self, epp: str) -> None:
+        if self.epp_files:
+            for p in self.epp_files:
+                if _read(p) != epp:
+                    _write(p, epp, self.log)
+            return
+        gov = "performance" if epp == "performance" else "powersave"
+        for p in self.gov_files:
+            if _read(p) != gov:
+                _write(p, gov, self.log)
+
+    def restore(self, snap: dict[Path, str]) -> None:
+        for p, v in snap.items():
+            _write(p, v, self.log)
+
+
+class NullBackend:
+    name = "none"
+
+    def available(self) -> bool:
+        return True
+
+    def snapshot(self):
+        return None
+
+    def apply(self, profile: Profile) -> None:
+        pass
+
+    def restore(self, snap) -> None:
+        pass
+
+    def describe(self) -> str:
+        return "no power-limit control (EPP only)"
+
+
+class RaplBackend:
+    name = "rapl"
+    _ZONE = re.compile(r"^intel-rapl(-mmio)?:\d+$")
+
+    def __init__(self, sysroot: str | os.PathLike = "/", log: Log | None = None) -> None:
+        base = Path(sysroot) / "sys/class/powercap"
+        self.log = log
+        self.zones: list[Path] = []
+        self._limits: dict[Path, dict[str, tuple[Path, int]]] = {}
+        try:
+            entries = sorted(base.iterdir())
+        except OSError:
+            entries = []
+        for z in entries:
+            if not self._ZONE.match(z.name) or not (_read(z / "name") or "").startswith("package"):
+                continue
+            limits: dict[str, tuple[Path, int]] = {}
+            for i in range(8):
+                cname = _read(z / f"constraint_{i}_name")
+                if cname is None:
+                    break
+                key = {"long_term": "pl1", "short_term": "pl2"}.get(cname)
+                if key:
+                    try:
+                        max_uw = int(_read(z / f"constraint_{i}_max_power_uw") or 0)
+                    except ValueError:
+                        max_uw = 0
+                    limits[key] = (z / f"constraint_{i}_power_limit_uw", max_uw)
+            if limits:
+                self.zones.append(z)
+                self._limits[z] = limits
+
+    def _files(self) -> list[Path]:
+        return [f for lim in self._limits.values() for f, _ in lim.values()]
+
+    def available(self) -> bool:
+        return bool(self.zones) and all(os.access(f, os.W_OK) for f in self._files())
+
+    def snapshot(self) -> dict[Path, str]:
+        return {f: v for f in self._files() if (v := _read(f)) is not None}
+
+    def apply(self, profile: Profile) -> None:
+        for limits in self._limits.values():
+            targets = {"pl1": profile.pl1_w, "pl2": profile.pl2_w}
+            # Raise PL2 before PL1 and lower PL1 before PL2 so PL1 never exceeds PL2.
+            current_pl2 = int(_read(limits["pl2"][0]) or 0) if "pl2" in limits else 0
+            order = ("pl2", "pl1") if profile.pl2_w * 1_000_000 >= current_pl2 else ("pl1", "pl2")
+            for key in order:
+                if key not in limits:
+                    continue
+                path, max_uw = limits[key]
+                uw = int(targets[key] * 1_000_000)
+                if max_uw > 0:
+                    uw = min(uw, max_uw)
+                _write(path, str(uw), self.log)
+
+    def restore(self, snap: dict[Path, str]) -> None:
+        # PL2 files first so a restored PL1 is never above the live PL2.
+        for f in sorted(snap, key=lambda p: "constraint_0" in p.name):
+            _write(f, snap[f], self.log)
+
+    def describe(self) -> str:
+        parts = []
+        for z, limits in self._limits.items():
+            vals = {k: (_read(p) or "?") for k, (p, _) in limits.items()}
+            fmt = {k: f"{int(v) / 1e6:g}W" if v.isdigit() else v for k, v in vals.items()}
+            parts.append(f"{z.name} PL1={fmt.get('pl1', '-')} PL2={fmt.get('pl2', '-')}")
+        return "; ".join(parts) or "no package zones"
+
+
+class ThrottledBackend:
+    name = "throttled"
+    SECTIONS = ("AC", "BATTERY")
+
+    def __init__(self, conf: str | os.PathLike, proc: ProcScanner, log: Log | None = None) -> None:
+        self.conf = Path(conf)
+        self.proc = proc
+        self.log = log
+
+    def running(self) -> bool:
+        return self.proc.is_running("throttled", "throttled.py")
+
+    def available(self) -> bool:
+        return self.conf.is_file() and os.access(self.conf, os.W_OK) and self.running()
+
+    def autoreload_enabled(self) -> bool:
+        text = _read(self.conf) or ""
+        return re.search(r"^\s*Autoreload\s*[:=]\s*true\s*$", text, re.I | re.M) is not None
+
+    def snapshot(self) -> str | None:
+        try:
+            return self.conf.read_text()
+        except OSError:
+            return None
+
+    def apply(self, profile: Profile) -> None:
+        text = self.snapshot()
+        if text is None:
+            return
+        new = self.render(text, profile)
+        if new != text:
+            # In place (no rename): the unit bind-mounts this single file read-write.
+            _write(self.conf, new, self.log)
+
+    @classmethod
+    def render(cls, text: str, profile: Profile) -> str:
+        values = {"pl1_tdp_w": f"{profile.pl1_w:g}", "pl2_tdp_w": f"{profile.pl2_w:g}"}
+        key_re = re.compile(r"^(\s*)(PL[12]_Tdp_W)(\s*[:=]\s*)(.*?)(\s*)$", re.I)
+        out: list[str] = []
+        section: str | None = None
+        seen: set[str] = set()
+
+        def close_section() -> None:
+            if section in cls.SECTIONS:
+                for key, val in values.items():
+                    if key not in seen:
+                        name = "PL1_Tdp_W" if key.startswith("pl1") else "PL2_Tdp_W"
+                        # insert before trailing blank lines of the section
+                        idx = len(out)
+                        while idx > 0 and out[idx - 1].strip() == "":
+                            idx -= 1
+                        out.insert(idx, f"{name}: {val}")
+
+        for line in text.splitlines():
+            header = re.match(r"^\s*\[([^\]]+)\]\s*$", line)
+            if header:
+                close_section()
+                section, seen = header.group(1).strip().upper(), set()
+                out.append(line)
+                continue
+            m = key_re.match(line)
+            if m and section in cls.SECTIONS:
+                key = m.group(2).lower()
+                seen.add(key)
+                line = f"{m.group(1)}{m.group(2)}{m.group(3)}{values[key]}{m.group(5)}"
+            out.append(line)
+        close_section()
+        return "\n".join(out) + ("\n" if text.endswith("\n") else "")
+
+    def restore(self, snap: str | None) -> None:
+        if snap is not None and self.snapshot() != snap:
+            _write(self.conf, snap, self.log)
+
+    def describe(self) -> str:
+        text = self.snapshot() or ""
+        found = re.findall(r"^\s*(PL[12]_Tdp_W)\s*[:=]\s*(\S+)", text, re.I | re.M)
+        return f"{self.conf}: " + ", ".join(f"{k}={v}" for k, v in found)
+
+
+def select_backend(cfg: Config, sysroot: str | os.PathLike, proc: ProcScanner, log: Log = log_stdout):
+    rapl = RaplBackend(sysroot, log)
+    throttled = ThrottledBackend(cfg.throttled_conf, proc, log)
+    if cfg.backend == "none":
+        return NullBackend()
+    if cfg.backend in ("auto", "throttled") and throttled.available():
+        if not throttled.autoreload_enabled():
+            log(f"warning: {cfg.throttled_conf} lacks 'Autoreload: True'; throttled will not pick up new limits")
+        return throttled
+    if cfg.backend in ("auto", "rapl") and rapl.available():
+        if throttled.running():
+            log("warning: throttled is running and will overwrite RAPL limits")
+        return rapl
+    if cfg.backend != "auto":
+        log(f"warning: backend {cfg.backend!r} unavailable; controlling EPP only")
+    return NullBackend()
+
+
+# --------------------------------------------------------------------------- service
+
+
+class Governor:
+    def __init__(self, cfg: Config, detector: Detector, policy: Policy, epp: EppControl, backend, log: Log = log_stdout) -> None:
+        self.cfg = cfg
+        self.detector = detector
+        self.policy = policy
+        self.epp = epp
+        self.backend = backend
+        self.log = log
+        self.applied: State | None = None
+        self._epp_snap: dict | None = None
+        self._pl_snap = None
+
+    def start(self, now: float) -> None:
+        self._epp_snap = self.epp.snapshot()
+        self._pl_snap = self.backend.snapshot()
+        self.detector.prime(now)
+        self._apply(State.IDLE)
+
+    def _apply(self, state: State) -> None:
+        profile = self.cfg.profiles[state]
+        self.epp.apply(profile.epp)
+        self.backend.apply(profile)
+        if self.applied is not None:
+            self.log(f"{self.applied.name.lower()} -> {state.name.lower()}: EPP={profile.epp} PL1={profile.pl1_w:g}W PL2={profile.pl2_w:g}W")
+        self.applied = state
+
+    def tick(self, now: float) -> State:
+        target = self.policy.update(self.detector.sample(now), now)
+        if target != self.applied:
+            self._apply(target)
+        return target
+
+    def restore(self) -> None:
+        if self._epp_snap is not None:
+            self.epp.restore(self._epp_snap)
+        if self._pl_snap is not None:
+            self.backend.restore(self._pl_snap)
+        self.log("restored boot-time EPP and power limits")
+
+    def run(self, stop: threading.Event, clock: Callable[[], float] = time.monotonic) -> None:
+        self.start(clock())
+        try:
+            while not stop.wait(self.cfg.poll_interval_s):
+                self.tick(clock())
+        finally:
+            self.restore()
+
+
+def build(cfg: Config, sysroot: str, log: Log = log_stdout) -> Governor:
+    proc = ProcScanner(Path(sysroot) / "proc")
+    backend = select_backend(cfg, sysroot, proc, log)
+    return Governor(
+        cfg,
+        Detector(cfg, proc, OllamaProbe(cfg.ollama_url)),
+        Policy(cfg.cooldown_s),
+        EppControl(sysroot, log),
+        backend,
+        log,
+    )
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(prog="palexus-governor", description=__doc__.split("\n\n")[0])
+    parser.add_argument("command", nargs="?", default="run", choices=("run", "status", "boost", "help"))
+    parser.add_argument("--config", default=DEFAULT_CONFIG_PATH, help=f"TOML config (default {DEFAULT_CONFIG_PATH})")
+    parser.add_argument("--sysroot", default="/", help="prefix for /sys and /proc (testing aid)")
+    parser.add_argument("--seconds", type=float, default=60.0, help="boost duration")
+    args = parser.parse_args(argv)
+    if args.command == "help":
+        parser.print_help()
+        return 0
+
+    cfg, warnings = load_config(args.config)
+    for w in warnings:
+        log_stdout(f"config: {w}")
+    gov = build(cfg, args.sysroot)
+
+    stop = threading.Event()
+
+    def on_signal(signum, _frame):
+        log_stdout(f"received {signal.Signals(signum).name}, shutting down")
+        stop.set()
+
+    signal.signal(signal.SIGTERM, on_signal)
+    signal.signal(signal.SIGINT, on_signal)
+
+    if args.command == "status":
+        gov.detector.prime(time.monotonic())
+        time.sleep(0.5)
+        state = gov.detector.sample(time.monotonic())
+        print("PalexusOS governor status")
+        print(f"  backend         : {gov.backend.name} ({gov.backend.describe()})")
+        print(f"  current EPP     : {gov.epp.current()}")
+        print(f"  detected state  : {state.name.lower()}")
+        for s in State:
+            p = cfg.profiles[s]
+            print(f"  profile {s.name.lower():<9}: EPP={p.epp} PL1={p.pl1_w:g}W PL2={p.pl2_w:g}W")
+        return 0
+
+    if args.command == "boost":
+        gov.start(time.monotonic())
+        gov._apply(State.INFERENCE)
+        log_stdout(f"manual boost for {args.seconds:g}s")
+        try:
+            stop.wait(args.seconds)
+        finally:
+            gov.restore()
+        return 0
+
+    log_stdout(f"backend={gov.backend.name} poll={cfg.poll_interval_s:g}s cooldown={cfg.cooldown_s:g}s ollama={cfg.ollama_url}")
+    gov.run(stop)
+    return 0
 
 
 if __name__ == "__main__":
-    main()
-
+    sys.exit(main())

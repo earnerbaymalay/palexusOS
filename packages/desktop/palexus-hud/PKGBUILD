@@ -1,13 +1,14 @@
 # Maintainer: PalexusOS Engineering Team <maintainers@palexusos.org>
 pkgname=palexus-hud
 pkgver=0.1.0
-pkgrel=9
+pkgrel=10
 pkgdesc="Native Qt6/QML Material You Command HUD, Palexus Settings Control Center, Brain Notes, Metallic Icon Suites, and Neural Governor"
 arch=('any')
 url="https://github.com/earnerbaymalay/synapseOS"
 license=('MIT')
 provides=('synapse-hud' 'palexus-hud')
 conflicts=('synapse-hud')
+backup=('etc/palexus/governor.toml')
 depends=('python' 'python-pyqt6' 'qt6-declarative' 'qt6-svg' 'qt6-5compat' 'kitty')
 source=(
   "palexus-hud"
@@ -23,6 +24,7 @@ source=(
   "palexus-hardware"
   "palexus-governor"
   "palexus-governor.service"
+  "governor.toml"
   "Main.qml"
   "CommandCategoryCard.qml"
   "palexus-hud.desktop"
@@ -66,6 +68,7 @@ sha256sums=(
   'SKIP'
   'SKIP'
   'SKIP'
+  'SKIP'
 )
 
 package() {
@@ -80,6 +83,7 @@ package() {
   install -Dm755 "${srcdir}/sec-status" "${pkgdir}/usr/bin/sec-status"
   install -Dm755 "${srcdir}/audio-switch" "${pkgdir}/usr/bin/audio-switch"
   install -Dm644 "${srcdir}/palexus-governor.service" "${pkgdir}/usr/lib/systemd/system/palexus-governor.service"
+  install -Dm644 "${srcdir}/governor.toml" "${pkgdir}/etc/palexus/governor.toml"
   ln -sf "palexus-governor.service" "${pkgdir}/usr/lib/systemd/system/synapse-governor.service"
 
   ln -sf "palexus-hud" "${pkgdir}/usr/bin/palexus-palette"

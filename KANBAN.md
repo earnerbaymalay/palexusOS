@@ -4,14 +4,6 @@ Plan the project here. Each card can start a Parallel Code task.
 
 ## Backlog
 
-- [ ] Finish and test the PL1/PL2 thermal governor (Milestone 9.1)
-  `packages/desktop/palexus-hud/palexus-governor` already polls Ollama `/api/ps` and switches EPP, but the roadmap item is unchecked. Add real PL1/PL2 switching (RAPL `intel-rapl` constraints, with the existing `throttled` path as fallback), distinguish inference from background compilation, make limits configurable in `/etc/palexus/governor.toml`, and harden `palexus-governor.service` (`ProtectSystem`, `NoNewPrivileges`, only the sysfs paths it writes). Add `tests/test_governor.py` using a fake sysfs tree.
-  - [ ] Unit tests cover idle, inference and compile states against fake sysfs
-  - [ ] Daemon exits cleanly and restores defaults on SIGTERM
-  - [ ] Makes no network request other than loopback Ollama
-  depends: Commit the in-progress rebrand working tree as the baseline
-  related: Rebrand system overlay configs and the AMOLED theme
-  group: hardware
 - [ ] Design spike: eBPF secret leak interceptor (Milestone 9.2)
   Write `docs/EBPF_SECRET_INTERCEPTOR.md` only. Decide the hook point (cgroup/skb egress, sock_ops, or LSM), how plaintext is inspected given TLS (uprobes on OpenSSL/GnuTLS versus pre-encryption only), pattern set (`sk-*`, PEM headers, OpenSSH private keys), false-positive handling, kernel config requirements on `linux-cachyos`, and how it reuses the patterns in the upstream daemon's `firewall.rs`.
   - [ ] Document names one recommended hook point with its limits stated
@@ -49,6 +41,14 @@ Plan the project here. Each card can start a Parallel Code task.
 
 ## Done
 
+- [x] Finish and test the PL1/PL2 thermal governor (Milestone 9.1)
+  `packages/desktop/palexus-hud/palexus-governor` already polls Ollama `/api/ps` and switches EPP, but the roadmap item is unchecked. Add real PL1/PL2 switching (RAPL `intel-rapl` constraints, with the existing `throttled` path as fallback), distinguish inference from background compilation, make limits configurable in `/etc/palexus/governor.toml`, and harden `palexus-governor.service` (`ProtectSystem`, `NoNewPrivileges`, only the sysfs paths it writes). Add `tests/test_governor.py` using a fake sysfs tree.
+  - [x] Unit tests cover idle, inference and compile states against fake sysfs
+  - [x] Daemon exits cleanly and restores defaults on SIGTERM
+  - [x] Makes no network request other than loopback Ollama
+  depends: Commit the in-progress rebrand working tree as the baseline
+  related: Rebrand system overlay configs and the AMOLED theme
+  group: hardware
 - [x] Build, verify and tag the first PalexusOS ISO
   Run `./build/build-iso.sh --build-pkgs`, the gate harness, pytest and the QEMU smoke test, walk through a Calamares install in a VM, then update `ROADMAP.md` and tag `v0.2.0-alpha`. Remove stale `out/repo/synapse-*` packages and the old `synapseos` database first.
   - [x] `out/palexusos-<date>-x86_64.iso` boots to the greeter and desktop under UEFI
