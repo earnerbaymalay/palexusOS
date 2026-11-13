@@ -1,7 +1,7 @@
 # Maintainer: PalexusOS Engineering Team <maintainers@palexusos.org>
 pkgname=palexus-plymouth
 pkgver=0.2.0
-pkgrel=4
+pkgrel=5
 install=palexus-plymouth.install
 pkgdesc="PalexusOS Plymouth boot splash: the official PalexusOS boot animation"
 arch=('any')
@@ -12,7 +12,9 @@ conflicts=('synapse-plymouth')
 depends=('plymouth')
 makedepends=('ffmpeg')
 source=('palexus-boot.mp4' 'palexusos.script.in' '95-palexus-plymouth.hook')
-sha256sums=('SKIP' 'SKIP' 'SKIP')
+sha256sums=('f1f5830a7a105310aa6916100c162a4884a6312bbf45be39ffe59aa04b7545b1'
+            '26eb43f5a95fc44abf4045f87d4f36cdd8d4899e9c1d485e8428f92bb3974554'
+            '5fcfd0c8eb2de7594108dd205c18c45b0e402b654fef367a83171ecafe2636a5')
 
 # The frames end up in the initramfs, so keep the sequence small:
 # 720x405 (Plymouth scales it to fit), 128-colour palette PNG (the footage is

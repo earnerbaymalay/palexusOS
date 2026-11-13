@@ -43,6 +43,7 @@ echo ""
 # ─── 1. Palexus ASCII Brand Monolith ──────────────────────────────────────────
 gradient_print '   ____   _     _     _______  __  _   _  ____'
 gradient_print '  |  _ \ / \   | |   | ____\ \/ / | | | |/ ___|'
+# shellcheck disable=SC1003
 gradient_print '  | |_) / _ \  | |   |  _|  \  /  | | | |\___ \'
 gradient_print '  |  __/ ___ \ | |___| |___ /  \  | |_| | ___) |'
 gradient_print '  |_| /_/   \_\|_____|_____/_/\_\  \___/ |____/'
