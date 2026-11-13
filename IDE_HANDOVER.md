@@ -3,7 +3,7 @@
 **Project:** PalexusOS (`https://github.com/earnerbaymalay/palexusOS`) *(formerly SynapseOS)*  
 **Workspace Root:** `/home/ebaymlay/Desktop/AI BRAIN/synapseOS`  
 **Maintainer:** earnerbaymalay  
-**Handover Status:** Rebrand to PalexusOS in Progress (**269/269 Gates Passing** | **17/17 pytest UI/UX Passing**); Laser Monolith Plymouth Splash & Branding Review Ready (see [`docs/BRANDING_LASER_BOOT_REVIEW.md`](docs/BRANDING_LASER_BOOT_REVIEW.md))
+**Handover Status:** This file describes the layout and build stages. Current status and open items live in [`SESSION_HANDOVER.md`](SESSION_HANDOVER.md).
 
 ---
 
@@ -23,7 +23,7 @@ All structural specifications, packaging recipes, system overlays, and live ISO 
 | **Archiso Live Profile** | [`build/archiso/`](build/archiso) & [`build/build-iso.sh`](build/build-iso.sh) | Ready (`linux-cachyos`, UEFI `systemd-boot` + BIOS `syslinux`, `customize_airootfs.sh`) |
 | **Calamares Installer** | [`packages/installer/calamares/`](packages/installer/calamares) | Ready (Catppuccin Mauve + Liquid Silver Chrome + Obsidian Crust branding, Btrfs `@`/`@home`/`@snapshots` zstd layout) |
 | **V4 Theme Pack & Screensaver** | [`packages/desktop/palexus-themes/`](packages/desktop/palexus-themes) | Ready (14 wallpapers, `palexus-theme` switcher on `Super+Ctrl+T`, geodesic torus `palexus-screensaver`) |
-| **Verification Gate Suite** | [`build/verify-gates.sh`](build/verify-gates.sh) | **269/269 Checks Passing** |
+| **Verification Gate Suite** | [`build/verify-gates.sh`](build/verify-gates.sh) | Run it for the current result |
 
 ---
 

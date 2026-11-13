@@ -763,7 +763,9 @@ while IFS= read -r f; do
     if [[ "$f" =~ ${ALLOWLIST_REGEX} ]]; then
         continue
     fi
-    if [[ -d "${REPO_ROOT}/${f}" ]]; then
+    # Skip directories (submodules) and dangling symlinks such as the live
+    # resolv.conf, which points at a path that only exists on a running system.
+    if [[ -d "${REPO_ROOT}/${f}" || ! -e "${REPO_ROOT}/${f}" ]]; then
         continue
     fi
     if grep -Eni 'synapseos' "${REPO_ROOT}/${f}" | grep -Ev 'github\.com/.*synapseOS|ln -sf.*synapseos|backgrounds/synapseos|themes/synapseos' >/dev/null 2>&1; then

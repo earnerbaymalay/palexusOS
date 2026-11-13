@@ -205,11 +205,9 @@ if [[ -f /usr/share/fzf/key-bindings.bash ]]; then
     source /usr/share/fzf/completion.bash
 fi
 
-if command -v fastfetch >/dev/null 2>&1; then
+# --- PalexusOS shell welcome (banner, local system readout, fastfetch) ---
+if [[ -f "${HOME}/.config/palexus/shell-welcome.sh" ]]; then
+    source "${HOME}/.config/palexus/shell-welcome.sh"
+elif command -v fastfetch >/dev/null 2>&1; then
     fastfetch
-fi
-
-# --- PalexusOS Interactive Shell Welcome & Telemetry ---
-if [[ -f "/home/ebaymlay/.config/palexus/shell-welcome.sh" ]]; then
-    source "/home/ebaymlay/.config/palexus/shell-welcome.sh"
 fi
