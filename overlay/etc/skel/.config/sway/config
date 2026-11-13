@@ -219,6 +219,9 @@ bar {
 
 # --- Autostart Services & Onboarding ---
 
+# Play PalexusOS login chime once PipeWire is ready
+exec sh -c 'sleep 1 && [ -f /usr/share/sounds/palexus/palexus-boot-chime.ogg ] && (pw-play /usr/share/sounds/palexus/palexus-boot-chime.ogg || mpv --no-video --really-quiet /usr/share/sounds/palexus/palexus-boot-chime.ogg) >/dev/null 2>&1 &'
+
 # First-run setup: --autostart exits at once when ~/.config/palexus/.onboarding_complete exists
 exec /usr/bin/palexus-welcome --autostart
 # Resumes a local-model download the user agreed to in setup; no-op otherwise
