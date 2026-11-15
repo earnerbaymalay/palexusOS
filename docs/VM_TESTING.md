@@ -14,17 +14,17 @@ Two ways to boot an ISO:
 ```powershell
 wsl --install archlinux --no-launch
 wsl -d archlinux -u root -e bash -lc "pacman -Syu --noconfirm --needed archiso git base-devel sudo rust ffmpeg"
-wsl -d archlinux -u root -e bash -lc "git clone https://github.com/earnerbaymalay/palexusOS.git /root/palexusOS"
-wsl -d archlinux -u root -e bash -lc "cd /root/palexusOS && ./build/build-iso.sh --build-pkgs"
+wsl -d archlinux -u root -e bash -lc "git clone https://github.com/earnerbaymalay/palexusOS.git /srv/palexusOS"
+wsl -d archlinux -u root -e bash -lc "cd /srv/palexusOS && ./build/build-iso.sh --build-pkgs"
 ```
 
-Keep the window open until the build ends. WSL stops the distro, and the build with it, once
-no window is attached. The ISO lands in `/root/palexusOS/out/`. Hyper-V can't read `\\wsl$`
+Clone into `/srv`, not `/root`: the package build runs as an unprivileged `builder` user that cannot enter `/root`. Keep the window open until the build ends. WSL stops the distro, and the build with it, once
+no window is attached. The ISO lands in `/srv/palexusOS/out/`. Hyper-V can't read `\\wsl$`
 paths, so copy the ISO to a normal folder:
 
 ```powershell
 New-Item -ItemType Directory -Force "$env:USERPROFILE\VMs\iso" | Out-Null
-Copy-Item \\wsl$\archlinux\root\palexusOS\out\palexusos-*.iso "$env:USERPROFILE\VMs\iso\"
+Copy-Item \\wsl$\archlinux\srv\palexusOS\out\palexusos-*.iso "$env:USERPROFILE\VMs\iso\"
 ```
 
 Keep the ISO outside `VMs\PalexusOS-Test`, because `-Action Remove` deletes that folder.
