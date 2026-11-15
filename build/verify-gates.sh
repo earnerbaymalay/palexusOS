@@ -650,6 +650,9 @@ check_file_contains "${PLY_DIR}/palexusos.script.in" 'Plymouth\.SetQuitFunction'
 check_file_contains "${PLY_DIR}/PKGBUILD" "^source=\\('palexus-boot\\.mp4'" "Boot splash is built from the official palexus-boot.mp4"
 check_file_contains "${PLY_DIR}/PKGBUILD" "ffmpeg .*-an" "Boot splash frames are extracted without audio"
 check_file_contains "${PLY_DIR}/PKGBUILD" '^install=palexus-plymouth\.install$' "Boot splash package selects its theme on install/upgrade"
+# Boot 3: the frames live in every initramfs; budget 8 MB (tests/test_plymouth_size.py builds and measures them)
+check_file_contains "${PLY_DIR}/PKGBUILD" '^_width=480$' "Boot animation frames are 480x270 (initramfs budget)"
+check_file_contains "${PLY_DIR}/PKGBUILD" '^_ticks=4$' "Boot animation runs at 12.5 fps, 4 Plymouth ticks per frame"
 check_file_contains "${PLY_DIR}/95-palexus-plymouth.hook" '^Target = usr/share/plymouth/themes/palexusos/\*$' "Initramfs is rebuilt when the boot animation changes"
 check_file_contains "${PLY_DIR}/95-palexus-plymouth.hook" '^When = PostTransaction$' "Initramfs rebuild waits for the whole transaction"
 if bash -n "${PLY_DIR}/palexus-plymouth.install" 2>/dev/null && ! grep -q 'mkinitcpio\|-R ' <(grep -v '^ *#\|echo' "${PLY_DIR}/palexus-plymouth.install"); then
