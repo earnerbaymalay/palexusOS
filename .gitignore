@@ -75,3 +75,9 @@ packages/core/palexus-core/synapse/
 packages/desktop/llm-quickfire-panel/llm-quickfire-panel/
 
 build/blender/*.mp4
+
+# tools/wave-pipeline.sh sprint artifacts
+build/sprints/
+
+# Boost shell-output cache (local tooling)
+.boost/

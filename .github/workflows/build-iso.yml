@@ -10,8 +10,9 @@ on:
     - cron: '0 2 * * *'
   workflow_dispatch:
 
+# Read-only by default; only the job that publishes a release may write.
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   verify-gates:
@@ -49,6 +50,8 @@ jobs:
     needs: verify-gates
     runs-on: ubuntu-latest
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    permissions:
+      contents: write
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4

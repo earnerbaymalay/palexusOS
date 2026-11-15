@@ -14,8 +14,8 @@ REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
 # Default parameters
 ISO_PATH=""
-TIMEOUT=120
-MEMORY="2048"
+TIMEOUT=300
+MEMORY="4096"
 SMP="2"
 DRY_RUN=false
 CHECK_ONLY=false
@@ -38,8 +38,8 @@ Headless QEMU boot smoke test for PalexusOS ISO images.
 
 Options:
   -i, --iso <path>       Path to PalexusOS ISO image (default: newest in out/)
-  -t, --timeout <sec>    Maximum boot timeout in seconds (default: 120)
-  -m, --memory <mb>      VM memory in megabytes (default: 2048)
+  -t, --timeout <sec>    Maximum boot timeout in seconds (default: 300)
+  -m, --memory <mb>      VM memory in megabytes (default: 4096)
   -s, --smp <cores>      Virtual CPU core count (default: 2)
   -g, --gui, --window    Launch interactive graphical VM window (GTK/VirtIO) on DISPLAY
       --ovmf <path>      Explicit path to OVMF UEFI firmware file
@@ -162,6 +162,7 @@ else
     OVMF_SEARCH_PATHS=(
         "/usr/share/OVMF/OVMF_CODE.fd"
         "/usr/share/OVMF/OVMF_CODE_4M.fd"
+        "/usr/share/edk2/x64/OVMF_CODE.4m.fd"
         "/usr/share/edk2/x64/OVMF_CODE.fd"
         "/usr/share/edk2/x64/OVMF_CODE_4M.fd"
         "/usr/share/edk2-ovmf/x64/OVMF_CODE.fd"
@@ -324,7 +325,11 @@ match_in_logs() {
 # Boot milestone patterns
 PAT_KERNEL="(Linux version|vmlinuz-linux-cachyos|Booting Linux|EFI stub: Loaded initrd|Probing EDD)"
 PAT_SYSTEMD="(systemd\[[0-9]+\]|palexus\.service|Reached target|Started )"
-PAT_LOGIN="(login:|PalexusOS Live|Graphical Interface|Multi-User System|palexus-live)"
+# The login milestone must come from the booted system, never from the boot
+# menu: the menu entry is titled "PalexusOS Live" and reaches the serial console
+# seconds after power-on, long before a kernel is loaded. The live image boots
+# with "quiet", so in practice the serial getty prompt is what arrives.
+PAT_LOGIN="(login: |Reached target.*(Graphical Interface|Multi-User System))"
 
 START_TIME=$(date +%s)
 
@@ -365,7 +370,7 @@ while true; do
         if [[ -n "${CUSTOM_MARKER}" ]] && match_in_logs "${CUSTOM_MARKER}"; then
             SUCCESS=true
             break
-        elif [[ "${SEEN_LOGIN}" == "true" || ( "${SEEN_SYSTEMD}" == "true" && "${SEEN_KERNEL}" == "true" ) ]]; then
+        elif [[ "${SEEN_LOGIN}" == "true" ]]; then
             SUCCESS=true
             break
         fi

@@ -5,7 +5,7 @@
 
 configuration {
     modi: "drun,run,filebrowser,window";
-    font: "JetBrains Mono 12";
+    font: "JetBrainsMono Nerd Font 12";
     show-icons: true;
     icon-theme: "Papirus-Dark";
     display-drun: " Applications";
@@ -62,7 +62,7 @@ prompt {
     text-color: #0b0a10;
     border-radius: 6px;
     margin: 2px 8px 2px 0px;
-    font: "JetBrains Mono Bold 11";
+    font: "JetBrainsMono Nerd Font Bold 11";
 }
 
 entry {
@@ -116,5 +116,5 @@ button {
 button selected {
     background-color: @purple;
     text-color: #0b0a10;
-    font: "JetBrains Mono Bold 11";
+    font: "JetBrainsMono Nerd Font Bold 11";
 }

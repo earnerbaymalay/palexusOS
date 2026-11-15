@@ -1,11 +1,23 @@
 #!/usr/bin/env bash
 # ==============================================================================
 # PalexusOS Luxury Terminal Welcome Banner & Shell Selector
-# ASCII Cyber-Organic Art + Fastfetch/Sysinfo + Low-Profile Telemetry
+# ASCII banner, local system readout (nothing leaves the machine) and fastfetch
 # ==============================================================================
 
-# Ensure output only runs in interactive terminal sessions
-[[ $- != *i* ]] && return 2>/dev/null || exit 0 2>/dev/null
+# Sourced from ~/.bashrc. Do nothing in non-interactive shells. (This must not
+# "exit": the file runs inside the user's own shell.)
+# "return" ends a sourced file; the "|| exit 0" only runs if someone executes
+# this file directly, where it ends that script and nothing else.
+# shellcheck disable=SC2317
+case $- in
+    *i*) ;;
+    *) return 0 2>/dev/null || exit 0 ;;
+esac
+# "bash -ic '<command>'" is interactive too; keep scripted output clean.
+if [[ -n "${BASH_EXECUTION_STRING:-}" ]]; then
+    # shellcheck disable=SC2317
+    return 0 2>/dev/null || exit 0
+fi
 
 # Color definitions
 VIOLET='\033[38;2;168;85;247m'
@@ -31,13 +43,14 @@ echo ""
 # ─── 1. Palexus ASCII Brand Monolith ──────────────────────────────────────────
 gradient_print '   ____   _     _     _______  __  _   _  ____'
 gradient_print '  |  _ \ / \   | |   | ____\ \/ / | | | |/ ___|'
+# shellcheck disable=SC1003
 gradient_print '  | |_) / _ \  | |   |  _|  \  /  | | | |\___ \'
 gradient_print '  |  __/ ___ \ | |___| |___ /  \  | |_| | ___) |'
 gradient_print '  |_| /_/   \_\|_____|_____/_/\_\  \___/ |____/'
 echo -e "${MUTED}   ─── Sovereign Cyber-Organic Workstation [x86-64-v3] ───${RESET}"
 echo ""
 
-# ─── 2. Low-Profile Live Sysmon Pill ───────────────────────────────────────────
+# ─── 2. Local system readout ───────────────────────────────────────────
 # CPU Model & Load
 CPU_MODEL=$(lscpu 2>/dev/null | grep -m1 "Model name" | cut -d: -f2 | xargs | sed 's/(R)//g; s/(TM)//g; s/CPU //g')
 CPU_MODEL=${CPU_MODEL:-"x86-64 Processor"}
@@ -59,7 +72,7 @@ else
     AI_STATUS="${MUTED}○ Ollama Standby${RESET}"
 fi
 
-echo -e " ${BOLD}${MAUVE}SYS-TELEMETRY${RESET} ${MUTED}│${RESET} ${WHITE}CPU:${RESET} ${CPU_MODEL} ${MUTED}(load: ${LOAD_AVG})${RESET}"
+echo -e " ${BOLD}${MAUVE}SYSTEM       ${RESET} ${MUTED}│${RESET} ${WHITE}CPU:${RESET} ${CPU_MODEL} ${MUTED}(load: ${LOAD_AVG})${RESET}"
 echo -e " ${BOLD}${MAUVE}MEMORY/ZRAM  ${RESET} ${MUTED}│${RESET} ${WHITE}RAM:${RESET} ${RAM_USED}G / ${RAM_TOTAL}G ${MUTED}│${RESET} ${WHITE}ZRAM:${RESET} ${ZRAM_STAT}"
 echo -e " ${BOLD}${MAUVE}STORAGE/AI   ${RESET} ${MUTED}│${RESET} ${WHITE}NVMe:${RESET} ${DISK_FREE} ${MUTED}│${RESET} ${WHITE}AI Core:${RESET} ${AI_STATUS}"
 echo ""
@@ -69,38 +82,29 @@ if command -v fastfetch >/dev/null 2>&1; then
     fastfetch --structure Title:OS:Kernel:Uptime:Packages:Shell:DE:WM:Terminal:Memory:Disk --logo-color-1 "magenta" --logo-color-2 "blue"
 fi
 
-# ─── 4. Interactive Shell Switcher Prompt ─────────────────────────────────────
-# Only ask if interactive and user hasn't locked in their preference
-PREF_SHELL_FILE="$HOME/.config/palexus/preferred_shell"
-if [[ ! -f "$PREF_SHELL_FILE" ]] && [[ -t 0 ]]; then
-    echo -e "${VIOLET}Select your preferred primary shell experience:${RESET}"
-    echo -e "  ${BOLD}[1]${RESET} ${WHITE}Fish Shell${RESET} ${MUTED}(Rich autosuggestions, syntax highlights, web themes)${RESET}"
-    echo -e "  ${BOLD}[2]${RESET} ${WHITE}Oh-My-Bash / Bash${RESET} ${MUTED}(Standard POSIX, scripts, aliases)${RESET}"
-    echo -e "  ${BOLD}[3]${RESET} ${WHITE}Wave Terminal / Parallel Agent Mode${RESET}"
-    echo -e "  ${MUTED}[Press Enter to keep current shell ($SHELL)]${RESET}"
-    read -t 10 -p "Choice (1-3): " SHELL_CHOICE
-    
-    case "$SHELL_CHOICE" in
-        1)
-            mkdir -p "$(dirname "$PREF_SHELL_FILE")"
-            echo "fish" > "$PREF_SHELL_FILE"
-            if command -v fish >/dev/null 2>&1; then
-                exec fish
-            fi
-            ;;
-        2)
-            mkdir -p "$(dirname "$PREF_SHELL_FILE")"
-            echo "bash" > "$PREF_SHELL_FILE"
-            ;;
-        3)
-            mkdir -p "$(dirname "$PREF_SHELL_FILE")"
-            echo "wave" > "$PREF_SHELL_FILE"
-            if command -v wsh >/dev/null 2>&1 || command -v wave >/dev/null 2>&1; then
-                exec wsh || exec wave
-            fi
-            ;;
-        *)
-            # No change
-            ;;
-    esac
+# ─── 4. One-time shell choice ─────────────────────────────────────────────────
+# Asked once per account, and only when fish is installed. Any answer,
+# including Enter or the timeout, is recorded so later shells start without a
+# prompt. Choosing fish switches this terminal only; making it the login shell
+# is left to chsh, so a Bash started on purpose always stays Bash.
+PREF_SHELL_FILE="${HOME}/.config/palexus/preferred_shell"
+if [[ ! -f "$PREF_SHELL_FILE" ]] && [[ -t 0 ]] && command -v fish >/dev/null 2>&1; then
+    echo -e "${VIOLET}Pick your interactive shell (asked once):${RESET}"
+    echo -e "  ${BOLD}[1]${RESET} ${WHITE}Fish${RESET} ${MUTED}(autosuggestions, syntax highlighting)${RESET}"
+    echo -e "  ${BOLD}[2]${RESET} ${WHITE}Bash${RESET} ${MUTED}(keep the current shell)${RESET}"
+    SHELL_CHOICE=""
+    read -r -t 10 -p "Choice (1-2, Enter keeps Bash): " SHELL_CHOICE || echo ""
+    mkdir -p "$(dirname "$PREF_SHELL_FILE")"
+    if [[ "$SHELL_CHOICE" == "1" ]]; then
+        echo "fish" > "$PREF_SHELL_FILE"
+        echo -e "${MUTED}Starting fish. To use it in every terminal: chsh -s $(command -v fish)${RESET}"
+        exec fish
+    fi
+    echo "bash" > "$PREF_SHELL_FILE"
 fi
+
+# This file runs inside the user's shell: leave nothing behind in it.
+unset -f gradient_print
+unset VIOLET PURPLE MAUVE CYAN WHITE MUTED BOLD RESET \
+    CPU_MODEL LOAD_AVG RAM_TOTAL RAM_USED ZRAM_STAT DISK_FREE AI_STATUS \
+    PREF_SHELL_FILE SHELL_CHOICE

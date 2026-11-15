@@ -53,14 +53,17 @@ client.background       #050508
 
 # --- Mnemonic Application Launchers (Super + First Letter) ---
 bindsym Mod4+s exec /usr/bin/palexus-hud
-bindsym Mod4+d exec rofi -show drun
-bindsym Mod4+space exec rofi -show drun
+bindsym Mod4+space exec /usr/bin/palexus-hud
+bindsym Mod4+d exec /usr/bin/palexus-hud
+# Plain application list (themed by ~/.config/rofi/config.rasi)
+bindsym Mod4+Shift+d exec rofi -show drun
 # Secondary prompt palette: /usr/bin/quickfire
 bindsym Mod4+t exec kitty
 bindsym Mod4+Return exec kitty
 bindsym Mod4+Shift+Return exec foot
 bindsym Mod4+b exec chromium
 bindsym Mod4+f exec thunar
+bindsym Mod4+e exec thunar
 bindsym Mod4+n exec /usr/bin/palexus-notes
 bindsym Mod4+c exec /usr/bin/galculator
 bindsym Mod4+i exec [ -d /run/archiso ] && sudo -E /usr/bin/calamares
@@ -77,8 +80,6 @@ bindsym Mod4+w kill
 bindsym Mod4+q kill
 bindsym Mod4+Escape kill
 bindsym Mod4+Shift+q kill
-bindsym Mod4+Shift+w kill
-bindsym Mod4+c kill
 bindsym Mod4+BackSpace kill
 bindsym Alt+F4 kill
 bindsym Mod1+F4 kill
@@ -156,7 +157,7 @@ bindsym $mod+backslash splith
 bindsym $mod+v splitv
 bindsym $mod+Shift+s layout stacking
 bindsym $mod+Shift+w layout tabbed
-bindsym $mod+e layout toggle split
+bindsym $mod+Shift+t layout toggle split
 bindsym $mod+Shift+f fullscreen
 bindsym F11 fullscreen
 bindsym $mod+Shift+space floating toggle
@@ -217,6 +218,9 @@ bar {
 }
 
 # --- Autostart Services & Onboarding ---
+
+# Play PalexusOS login chime once PipeWire is ready
+exec sh -c 'sleep 1 && [ -f /usr/share/sounds/palexus/palexus-boot-chime.ogg ] && (pw-play /usr/share/sounds/palexus/palexus-boot-chime.ogg || mpv --no-video --really-quiet /usr/share/sounds/palexus/palexus-boot-chime.ogg) >/dev/null 2>&1 &'
 
 # First-run setup: --autostart exits at once when ~/.config/palexus/.onboarding_complete exists
 exec /usr/bin/palexus-welcome --autostart
