@@ -40,7 +40,7 @@ PalexusOS breaks the telemetry paradigm. Built on the high-throughput CachyOS BO
 <img src="docs/assets/palexusos-teaser.gif" alt="Animated concept render: a PalexusOS laptop booting into its neural HUD" width="480"/>
 <br/><sub><i>Concept render</i></sub>
 
-[**60-Second Virtual Test Drive**](#-60-second-virtual-test-drive-no-usb-required) • [**Install in 3 Steps**](#-get-started-in-3-steps) • [**System Architecture**](#-system-architecture--subsystems) • [**Hardware Matrix**](#-supported-hardware-matrix) • [**UI/UX Verification**](docs/UI_UX_AUDIT_REPORT.md) • [**Boot Video Suite**](docs/PALEXUS_BOOT_VIDEO_SUITE.md)
+[**60-Second Virtual Test Drive**](#-60-second-virtual-test-drive-no-usb-required) • [**Install in 3 Steps**](#-get-started-in-3-steps) • [**System Architecture**](#-system-architecture--subsystems) • [**Hardware Matrix**](#-supported-hardware-matrix) • [**UI/UX Verification**](docs/audits/UI_UX_AUDIT_REPORT.md) • [**Boot Video Suite**](docs/design/PALEXUS_BOOT_VIDEO_SUITE.md)
 
 </div>
 
@@ -185,7 +185,7 @@ PalexusOS replaces complex legacy distributions with four tightly integrated arc
 * **Resident Neural Models**: Resident Ollama engine running quantized local models (`qwen2.5-coder:latest`) directly on CPU AVX2 and Vulkan GPU memory with 24-hour keepalive.
 
 ### Layer 4: Cyberdeck Interface & Presentation
-* **Dual Compositor Choice**: Ultra-fast XFCE 4.20 with `picom dual_kawase` glass blur, alongside an optional hardware-accelerated Sway Wayland tiling session.
+* **Dual Compositor Choice**: Ultra-fast XFCE 4.20 with xfwm4's built-in compositor, alongside an optional hardware-accelerated Sway Wayland tiling session.
 * **First-Boot Setup**: Boot goes straight into a full-screen setup wizard (`palexus-welcome --oobe`): create your account, pick a look (the wallpaper behind it is the live preview), choose a local or cloud AI assistant, review live privacy status, then land on the login screen with your account selected. No account is created by the installer; a single argument-less root helper (`palexus-oobe-apply`) creates it and removes the setup session afterwards. If the graphical setup can't start, press Ctrl+Alt+F2 for a text-mode version that creates the account the same way.
 * **Dedicated Claude & Multi-Model AI Console**: Integrated directly into onboarding with Anthropic API key configuration, Claude 3.7 Sonnet / Opus model targeting, and live interactive query testing.
 * **12-Toggle Modular Combo Matrix**: Interactive cyberdeck hardware, privacy, and kernel switches (Prime Directive stealth MAC, Quad9 DoT, strict firewall drop, volatile RAM scrub, Ollama daemon, vector memory, GPU tensor boost, BORE scheduler, ZRAM filesystem, 64-sample audio).

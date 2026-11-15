@@ -62,5 +62,4 @@ ScriptFile=/usr/share/plymouth/themes/palexusos/palexusos.script
 PLY
 
   # Legacy compatibility symlinks
-  ln -sf "palexusos" "$pkgdir/usr/share/plymouth/themes/synapseos"
 }

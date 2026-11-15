@@ -90,5 +90,4 @@ package() {
     ln -sf "$wp" "$pkgdir/usr/share/backgrounds/palexusos/synapse-$base"
   done
   ln -sf "/usr/share/backgrounds/palexusos/palexus-monolith-mauve.jpg" "$pkgdir/usr/share/backgrounds/palexusos/monolith-mauve.png"
-  ln -sf "palexusos" "$pkgdir/usr/share/backgrounds/synapseos"
 }

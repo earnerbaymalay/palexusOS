@@ -24,7 +24,7 @@ Compile all native PalexusOS packages into the local `[palexusos]` repository (`
 ## Stage B — Sync Overlays, CachyOS Mirrorlists & Validate Archiso Staging
 
 1. **RootFS Overlay Synchronization (`./build/build-iso.sh --dry-run`)**:
-   - Sync `overlay/etc/` into `build/archiso/airootfs/etc/` (including `99-palexusos.conf` ZRAM/BBR sysctl, `zram-generator.conf`, NetworkManager MAC randomization & RFC 4941 IPv6 stealth posture, Quad9 DoT `resolved.conf.d`, `picom.conf`, and `sddm.conf.d`).
+   - Sync `overlay/etc/` into `build/archiso/airootfs/etc/` (including `99-palexusos.conf` ZRAM/BBR sysctl, `zram-generator.conf`, NetworkManager MAC randomization & RFC 4941 IPv6 stealth posture, Quad9 DoT `resolved.conf.d`, and `sddm.conf.d`).
    - Sync `overlay/etc/skel/` into `build/archiso/airootfs/etc/skel/`.
    - Stage Calamares installer configs (`packages/installer/calamares/`) into `build/archiso/airootfs/etc/palexusos/calamares/` (copied over `/etc/calamares` by `customize_airootfs.sh` after pacstrap).
 2. **CachyOS Mirrorlists & Keyring Preparation**:

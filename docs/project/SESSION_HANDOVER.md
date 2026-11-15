@@ -4,7 +4,7 @@
 **Repository:** `https://github.com/earnerbaymalay/palexusOS`
 **Branch with this work:** `cleanup/post-rebrand-fixes` (cut from `main` at `47a244d`)
 
-This file is the single current-status note. `IDE_HANDOVER.md` and `GEMINI.md`
+This file is the single current-status note. `docs/project/IDE_HANDOVER.md` and `GEMINI.md`
 describe the project layout and conventions; they do not track status.
 
 To check the state of a checkout, run these rather than trusting a number

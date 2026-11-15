@@ -21,5 +21,4 @@ package() {
     install -Dm644 "$f" "$dir/$f"
   done
   # Legacy compatibility symlink
-  ln -sf "palexusos" "$pkgdir/usr/share/sddm/themes/synapseos"
 }

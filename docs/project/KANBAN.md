@@ -5,7 +5,7 @@ Plan the project here. Each card can start a Parallel Code task.
 ## Backlog
 
 - [x] Design spike: eBPF secret leak interceptor (Milestone 9.2)
-  Write `docs/EBPF_SECRET_INTERCEPTOR.md` only. Decide the hook point (cgroup/skb egress, sock_ops, or LSM), how plaintext is inspected given TLS (uprobes on OpenSSL/GnuTLS versus pre-encryption only), pattern set (`sk-*`, PEM headers, OpenSSH private keys), false-positive handling, kernel config requirements on `linux-cachyos`, and how it reuses the patterns in the upstream daemon's `firewall.rs`.
+  Write `docs/design/EBPF_SECRET_INTERCEPTOR.md` only. Decide the hook point (cgroup/skb egress, sock_ops, or LSM), how plaintext is inspected given TLS (uprobes on OpenSSL/GnuTLS versus pre-encryption only), pattern set (`sk-*`, PEM headers, OpenSSH private keys), false-positive handling, kernel config requirements on `linux-cachyos`, and how it reuses the patterns in the upstream daemon's `firewall.rs`.
   - [x] Document names one recommended hook point with its limits stated
   - [x] Lists required kernel options and the toolchain (aya or libbpf)
   - [x] Breaks implementation into follow-up cards
@@ -65,13 +65,13 @@ Plan the project here. Each card can start a Parallel Code task.
   Create `build/test-iso-boot.sh` that boots the newest `out/palexusos-*.iso` headless under QEMU/KVM with OVMF, watches the serial console for the graphical target and `palexus.service` becoming active, and exits non-zero on timeout. Base the approach on `build/test-plymouth-container.sh` (also rename its old-brand references). Add a matching gate entry that is skipped when no ISO is present.
   - [x] Script exits 0 against a good ISO and non-zero against a truncated one
   - [x] Runs without a display and without root
-  - [x] Documented in `docs/RELEASE_CHANNELS.md`
+  - [x] Documented in `docs/design/RELEASE_CHANNELS.md`
   depends: Rebrand the verification gate harness
   related: Make the ISO build reproducible
   group: testing
 
 - [x] Sign the package repository and the ISO
-  The local repo is added with `repo-add` unsigned and the ISO ships without a signature. Add optional signing to `build/build-iso.sh`, driven by a `PALEXUS_GPG_KEY` environment variable: `repo-add --sign`, detached `.sig` for the ISO and checksum files. Set an explicit `SigLevel` for the `[palexusos]` repo in both pacman configs. Never store key material in the repo; document the CI secret in `docs/RELEASE_CHANNELS.md`.
+  The local repo is added with `repo-add` unsigned and the ISO ships without a signature. Add optional signing to `build/build-iso.sh`, driven by a `PALEXUS_GPG_KEY` environment variable: `repo-add --sign`, detached `.sig` for the ISO and checksum files. Set an explicit `SigLevel` for the `[palexusos]` repo in both pacman configs. Never store key material in the repo; document the CI secret in `docs/design/RELEASE_CHANNELS.md`.
   - [x] With the variable set, repo database, ISO and checksums each have a valid signature
   - [x] Without it the build still succeeds and prints a clear unsigned warning
   - [x] No key or secret is added to Git
@@ -96,7 +96,7 @@ Plan the project here. Each card can start a Parallel Code task.
   group: release
 
 - [x] Rebrand docs, agent rules and editor config
-  Text-only pass over `ROADMAP.md`, `AGENTS.md`, `GEMINI.md`, `IDE_HANDOVER.md`, `docs/*.md`, `.cursor/**` (rename `.cursor/skills/synapseos-iso-build`), `.vscode/tasks.json`, `synapseos.code-workspace` (rename to `palexusos.code-workspace`), and `.gitignore` comments/paths. Delete the superseded `docs/assets/synapseos-banner.png` and make `generate_banner.py` write `palexus-banner.png`. Leave `docs/RESEARCH_SYNAPSE_INTEGRATION.md` content about the upstream Synapse project intact and keep completed roadmap history readable (add a one-line "formerly SynapseOS" note rather than rewriting history). Leave `.gitmodules` and GitHub URLs unchanged until the repository itself is renamed.
+  Text-only pass over `ROADMAP.md`, `AGENTS.md`, `GEMINI.md`, `docs/project/IDE_HANDOVER.md`, `docs/*.md`, `.cursor/**` (rename `.cursor/skills/synapseos-iso-build`), `.vscode/tasks.json`, `synapseos.code-workspace` (rename to `palexusos.code-workspace`), and `.gitignore` comments/paths. Delete the superseded `docs/assets/synapseos-banner.png` and make `generate_banner.py` write `palexus-banner.png`. Leave `docs/design/RESEARCH_SYNAPSE_INTEGRATION.md` content about the upstream Synapse project intact and keep completed roadmap history readable (add a one-line "formerly SynapseOS" note rather than rewriting history). Leave `.gitmodules` and GitHub URLs unchanged until the repository itself is renamed.
   - [x] README, AGENTS.md and docs describe the product as PalexusOS with `palexus-*` commands
   - [x] No doc links to a file that no longer exists
   - [x] Paths quoted in docs match the renamed files
@@ -168,7 +168,7 @@ Plan the project here. Each card can start a Parallel Code task.
   depends: Commit the in-progress rebrand working tree as the baseline
   group: installer
 - [x] Commit the in-progress rebrand working tree as the baseline
-  The SynapseOS -> PalexusOS rename exists only as ~220 uncommitted changes on branch `rebrand/palexusos` (staged renames plus unstaged edits and untracked files). Card worktrees are created from committed history, so nothing below can see this work until it is committed. This card must be done in the main checkout, not a fresh worktree. Stage the intended files (`overlay/usr/`, `overlay/etc/skel/.themes/`, `.config/gtk-3.0`, `.config/gtk-4.0`, `xfwm4.xml`, `xsettings.xml`, `docs/*AUDIT*.md`, `docs/PALEXUS_BOOT_VIDEO_SUITE.md`, `docs/assets/palexus-banner.png`, `KANBAN.md`, sources under `build/blender` and `build/videos`). Do not commit build output: the old `packages/core/synapse-core`, `packages/desktop/synapse-{greeter,hud,plymouth,themes}` and `packages/installer/calamares/branding/synapseos` paths now hold only ignored leftovers (`src/`, `pkg/`, `*.pkg.tar.zst`, `__pycache__`), and `build/blender/renders`, `*.blend` and `docs/assets/videos` should be checked for size before staging (AGENTS.md: no binary blobs).
+  The SynapseOS -> PalexusOS rename exists only as ~220 uncommitted changes on branch `rebrand/palexusos` (staged renames plus unstaged edits and untracked files). Card worktrees are created from committed history, so nothing below can see this work until it is committed. This card must be done in the main checkout, not a fresh worktree. Stage the intended files (`overlay/usr/`, `overlay/etc/skel/.themes/`, `.config/gtk-3.0`, `.config/gtk-4.0`, `xfwm4.xml`, `xsettings.xml`, `docs/*AUDIT*.md`, `docs/design/PALEXUS_BOOT_VIDEO_SUITE.md`, `docs/assets/palexus-banner.png`, `docs/project/KANBAN.md`, sources under `build/blender` and `build/videos`). Do not commit build output: the old `packages/core/synapse-core`, `packages/desktop/synapse-{greeter,hud,plymouth,themes}` and `packages/installer/calamares/branding/synapseos` paths now hold only ignored leftovers (`src/`, `pkg/`, `*.pkg.tar.zst`, `__pycache__`), and `build/blender/renders`, `*.blend` and `docs/assets/videos` should be checked for size before staging (AGENTS.md: no binary blobs).
   - [x] `git status` is clean apart from ignored files
   - [x] No `*.pkg.tar.zst`, `src/`, `pkg/`, ISO or large render blob is in the commit
   - [x] Branch is pushed or merged so new worktrees contain the `palexus-*` package directories
