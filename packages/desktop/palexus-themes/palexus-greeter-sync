@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+# palexus-greeter-sync — set the login screen (palexus-greeter) variant.
+# Runs as root through pkexec (polkit action org.palexusos.theme.sync-greeter),
+# so it accepts only a theme id that has a wallpaper, and writes nothing else.
+# Usage: palexus-greeter-sync THEME
+set -euo pipefail
+
+# pkexec gives root a clean environment; the prefix exists only for tests run as a normal user
+root=""
+if [[ "${EUID}" -ne 0 ]]; then
+    root="${PALEXUS_SYSROOT:-}"
+fi
+WALLPAPER_DIR="${root}/usr/share/backgrounds/palexusos"
+GREETER_CONF="${root}/usr/share/sddm/themes/palexusos/theme.conf.user"
+
+id="${1:-}"
+if [[ ! "$id" =~ ^[a-z]+-[a-z]+$ ]] || [[ ! -f "${WALLPAPER_DIR}/palexus-${id}.jpg" ]]; then
+    echo "palexus-greeter-sync: unknown theme '${id}'" >&2
+    exit 2
+fi
+
+dir="$(dirname "$GREETER_CONF")"
+[[ -d "$dir" ]] || { echo "palexus-greeter-sync: ${dir} missing (is palexus-greeter installed?)" >&2; exit 3; }
+
+tmp="$(mktemp "${dir}/.theme.conf.user.XXXXXX")"
+trap 'rm -f "$tmp"' EXIT
+printf '[General]\nvariant=%s\n' "$id" > "$tmp"
+chmod 644 "$tmp"
+mv -f "$tmp" "$GREETER_CONF"
+trap - EXIT

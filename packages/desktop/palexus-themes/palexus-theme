@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # palexus-theme — PalexusOS system theme switcher (wallpaper, Kitty, Rofi, Waybar, Sway borders)
 # Usage: palexus-theme [THEME] | --menu | --restore | --list | --register-shortcut | --sync-greeter [THEME]
+# Picking a theme also updates the login screen (one admin prompt; cancel keeps the old look).
 # The boot animation is fixed (palexus-plymouth) and does not follow the accent.
 set -euo pipefail
 
@@ -14,8 +15,10 @@ ROFI_THEME_FILE="${CONFIG_DIR}/rofi/quickfire-theme.rasi"
 WAYBAR_THEME_FILE="${CONFIG_DIR}/waybar/theme-colors.css"
 DEFAULT_THEME="monolith-mauve"
 XFCE_SHORTCUT="<Primary><Super>t"
-# Login screen (palexus-greeter) reads its variant from this SDDM theme override
-GREETER_CONF="/usr/share/sddm/themes/palexusos/theme.conf.user"
+# Login screen (palexus-greeter) reads its variant from this SDDM theme override,
+# written by a root helper that polkit lets run after one admin prompt
+GREETER_CONF="${PALEXUS_GREETER_CONF:-/usr/share/sddm/themes/palexusos/theme.conf.user}"
+GREETER_SYNC="${PALEXUS_GREETER_SYNC:-/usr/lib/palexus/palexus-greeter-sync}"
 
 # id|label|wallpaper|base|surface|accent|secondary
 THEMES=(
@@ -175,11 +178,38 @@ apply_theme() {
 }
 
 # The greeter runs before any user logs in and can't read ~/.config, so syncing
-# writes a root-owned override; pkexec asks for the admin password each time.
+# writes a root-owned override through pkexec and palexus-greeter-sync.
+greeter_variant() {
+    sed -n 's/^variant=//p' "$GREETER_CONF" 2>/dev/null | tail -n 1
+}
+
 sync_greeter() {
     local id="$1"
     lookup "$id" >/dev/null || { echo "palexus-theme: unknown theme '$id' (see --list)" >&2; return 1; }
-    printf '[General]\nvariant=%s\n' "$id" | pkexec tee "$GREETER_CONF" >/dev/null
+    [[ "$(greeter_variant)" == "$id" ]] && return 0
+    if ! command -v pkexec >/dev/null 2>&1 || [[ ! -x "$GREETER_SYNC" ]]; then
+        echo "palexus-theme: pkexec or ${GREETER_SYNC} missing; login screen not changed" >&2
+        return 1
+    fi
+    pkexec "$GREETER_SYNC" "$id"
+}
+
+# After a theme change from the menu or the command line. Cancelling the password
+# prompt (or having no polkit agent) is not an error: the desktop has already
+# switched, and the login screen simply keeps its previous look.
+auto_sync_greeter() {
+    local id="$1"
+    [[ "${PALEXUS_THEME_NO_GREETER:-0}" == "1" ]] && return 0
+    # Nothing to do when the login theme isn't installed (e.g. a container) or already matches
+    [[ -d "$(dirname "$GREETER_CONF")" ]] || return 0
+    [[ "$(greeter_variant)" == "$id" ]] && return 0
+    if sync_greeter "$id" 2>/dev/null; then
+        return 0
+    fi
+    if command -v notify-send >/dev/null 2>&1; then
+        notify-send -i preferences-desktop-theme "PalexusOS Theme"             "Login screen unchanged. Run 'palexus-theme --sync-greeter' to try again." || true
+    fi
+    return 0
 }
 
 register_shortcut() {
@@ -197,7 +227,7 @@ show_menu() {
     done
     selected="$(printf '%s' "$menu" | rofi -dmenu -i -no-custom -p "PalexusOS Theme" -l "${#THEMES[@]}")" || return 0
     if [[ -n "$selected" ]]; then
-        apply_theme "${selected%% —*}"
+        apply_theme "${selected%% —*}" && auto_sync_greeter "${selected%% —*}"
     fi
 }
 
@@ -227,9 +257,10 @@ case "${1:---menu}" in
         done
         ;;
     -h|--help)
-        sed -n '2,3p' "$0" | sed 's/^# \{0,1\}//'
+        sed -n '2,4p' "$0" | sed 's/^# \{0,1\}//'
         ;;
     *)
         apply_theme "$1"
+        auto_sync_greeter "$1"
         ;;
 esac

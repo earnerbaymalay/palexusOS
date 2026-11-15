@@ -28,6 +28,8 @@ def run_theme(tmp_path, *args, sway=False):
         "PATH": f"{bindir}:/usr/bin:/bin",
         "HOME": str(tmp_path),
         "XDG_CONFIG_HOME": str(tmp_path / "config"),
+        # Login screen sync has its own tests (test_greeter_sync.py)
+        "PALEXUS_THEME_NO_GREETER": "1",
     }
     if sway:
         env["SWAYSOCK"] = str(tmp_path / "sway.sock")

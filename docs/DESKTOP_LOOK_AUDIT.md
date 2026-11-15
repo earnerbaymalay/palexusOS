@@ -36,7 +36,7 @@
 
 ## Decisions for you
 
-- **L7:** sync the login screen automatically when you change theme (one admin-password prompt), keep it manual, or drop per-user greeter theming?
+- ~~**L7:** sync the login screen automatically when you change theme (one admin-password prompt), keep it manual, or drop per-user greeter theming?~~ Decided 2026-11-16: sync automatically.
 - **L8:** start picom (prettier, but its GLX backend can show a black screen in some VMs), or remove `picom.conf` and the blur claim?
 - **L9:** ship `orca` (screen reader, ~10 MB with deps), or unbind the shortcut?
 
@@ -50,6 +50,7 @@
 | L4 | ✅ phantom cursor theme removed | gate |
 | L5 | ✅ Alt+F1 opens the applications menu; `xorg-xkill` added to the ISO | 2 gates |
 | L6 | ✅ fake and security-weakening Chromium flags removed from both flag files; FAQ corrected | 2 gates |
-| L7–L9 | open: decisions for you (above) | — |
+| L7 | ✅ decided: sync automatically. Picking a theme (menu, command line or Settings) also updates the login screen through a small root helper (`/usr/lib/palexus/palexus-greeter-sync`, polkit action `org.palexusos.theme.sync-greeter`, `auth_admin_keep`): one password prompt, no repeat for a few minutes, no prompt if the login screen already matches or on `--restore` at login. Cancelling keeps the desktop theme, leaves the login screen as it was, and shows a notification with the retry command. Neither Sway nor XFCE started a polkit agent, so pkexec could never prompt; both now start `polkit-gnome`. VM check: the prompt appears on Sway and XFCE. | `tests/test_greeter_sync.py` (12 tests), 9 gates |
+| L8–L9 | open: decisions for you (above) | — |
 
 On a clean Linux clone this branch passes 302/302 gates. Merged with `boot-firstboot-fixes`, the result passes 309/309 gates, 63/63 pytest and ShellCheck.
