@@ -122,4 +122,22 @@ WantedBy=multi-user.target
 EOF
 systemctl enable pacman-init.service
 
+# "Safe graphics" boot entry (nomodeset): Sway needs a working DRM driver, so log the
+# live user into XFCE instead, which falls back to the vesa/fbdev X drivers.
+cat << 'EOF' > /etc/systemd/system/palexus-safe-graphics.service
+[Unit]
+Description=Use the XFCE live session when booted with nomodeset
+ConditionKernelCommandLine=nomodeset
+ConditionPathExists=/etc/sddm.conf.d/00-palexus-live.conf
+Before=display-manager.service sddm.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/sed -i "s/^Session=sway\\.desktop$/Session=xfce.desktop/" /etc/sddm.conf.d/00-palexus-live.conf
+
+[Install]
+WantedBy=multi-user.target
+EOF
+systemctl enable palexus-safe-graphics.service
+
 echo "[PalexusOS] customize_airootfs.sh completed successfully."

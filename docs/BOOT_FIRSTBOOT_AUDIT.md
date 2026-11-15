@@ -59,10 +59,10 @@ Branch `boot-firstboot-fixes` from `main` @ `17814cf`. Audited 2026-11-12.
 
 ## Decisions for you
 
-1. **No "safe graphics" live boot entry.** There is no `nomodeset` / no-splash entry for machines whose GPU fails with KMS or Plymouth. Add one?
+1. ✅ **Done 2026-11-16: "Safe graphics" live boot entry.** Both live menus (syslinux for BIOS, systemd-boot for UEFI; the ISO uses no GRUB) now have it: the main entry's options without `quiet splash`, plus `nomodeset plymouth.enable=0`. Sway can't start without a KMS driver, so a live-only unit (`palexus-safe-graphics.service`, only when `nomodeset` is on the command line) switches the live autologin to XFCE, which falls back to the vesa/fbdev X drivers. The installer removes the unit. The installed system's GRUB menu is unchanged. Proven by `tests/test_boot_entries.py` and 7 gates. **[VM]** boot it with a GPU that fails KMS (or in QEMU with `-vga std`) and confirm XFCE comes up.
 2. **The HUD and the `ask-qwen` alias use `qwen2.5-coder:latest`, but the wizard's "light" tier installs `qwen2.5-coder:1.5b`.** On a light-tier machine the first HUD question silently starts a large download. Should the HUD use whichever coder model the user installed?
 3. **Initramfs size.** The animation is about 22 MB of frames inside every initramfs, with `xz -9e` on the live ISO. That means slower kernel updates and ISO builds. Keep the length and resolution as they are?
-4. **"Copy to RAM" boot entry** passes fewer options than the main entry (no `nowatchdog`, `audit=0`, `systemd.show_status=auto`). Make them match?
+4. ✅ **Done 2026-11-16: "Copy to RAM" boot entry** now passes exactly the main entry's options plus `copytoram`. UEFI had no Copy to RAM entry at all; it now has one too, so both menus offer the same three choices. Proven by `tests/test_boot_entries.py`.
 5. **[VM] Splash-to-login hand-off.** Whether the last frame holds until SDDM appears, or flashes black, needs a real boot.
 
 ## Outside this branch's scope (noted for the desktop-look work)

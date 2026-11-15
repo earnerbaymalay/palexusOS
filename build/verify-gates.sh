@@ -398,6 +398,16 @@ check_file_contains "${BUILD_ISO_SH}" "PALEXUS_GPG_KEY" "build-iso.sh supports P
 check_file_contains "${REPO_ROOT}/build/archiso/efiboot/loader/loader.conf" "01-palexusos-x86_64-linux\.conf" "UEFI loader.conf points to PalexusOS entry"
 check_file_contains "${REPO_ROOT}/build/archiso/efiboot/loader/entries/01-palexusos-x86_64-linux.conf" "vmlinuz-linux-cachyos" "UEFI entry boots vmlinuz-linux-cachyos"
 check_file_contains "${REPO_ROOT}/build/archiso/syslinux/syslinux.cfg" "vmlinuz-linux-cachyos" "BIOS syslinux.cfg boots vmlinuz-linux-cachyos"
+# Boot 1 + Boot 4: both live menus offer Safe graphics and Copy to RAM (tests/test_boot_entries.py compares options)
+SYSLINUX_CFG="${REPO_ROOT}/build/archiso/syslinux/syslinux.cfg"
+SDBOOT_DIR="${REPO_ROOT}/build/archiso/efiboot/loader/entries"
+check_file_contains "${SYSLINUX_CFG}" '^APPEND .* nomodeset plymouth\.enable=0 ' "BIOS menu has a Safe graphics entry (nomodeset, no splash)"
+check_file_contains "${SDBOOT_DIR}/03-palexusos-x86_64-linux-safe-graphics.conf" '^options .* nomodeset plymouth\.enable=0 ' "UEFI menu has a Safe graphics entry (nomodeset, no splash)"
+check_file_lacks "${SDBOOT_DIR}/03-palexusos-x86_64-linux-safe-graphics.conf" '(?m)^options .*\bsplash\b' "UEFI Safe graphics entry passes no splash"
+check_file_contains "${SYSLINUX_CFG}" '^APPEND .* nowatchdog audit=0 .* copytoram$' "BIOS Copy to RAM entry uses the main entry's options"
+check_file_contains "${SDBOOT_DIR}/02-palexusos-x86_64-linux-copytoram.conf" '^options .* nowatchdog audit=0 .* copytoram$' "UEFI menu has a Copy to RAM entry with the main entry's options"
+check_file_contains "${REPO_ROOT}/build/archiso/airootfs/root/customize_airootfs.sh" '^ConditionKernelCommandLine=nomodeset$' "Safe graphics live boot logs into XFCE (Sway needs KMS)"
+check_file_contains "${REPO_ROOT}/packages/installer/calamares/modules/shellprocess@cleanup.conf" 'rm -f /etc/systemd/system/palexus-safe-graphics\.service' "Installer removes the live-only safe graphics unit"
 
 if [[ -x "${CUSTOMIZE_SH}" ]] && bash -n "${CUSTOMIZE_SH}"; then
     pass "customize_airootfs.sh is executable and syntactically valid"
