@@ -1,7 +1,7 @@
 # Antigravity IDE Handover Brief — PalexusOS
 
-**Project:** PalexusOS (`https://github.com/earnerbaymalay/palexusOS`) *(formerly SynapseOS)*  
-**Workspace Root:** `/home/ebaymlay/Desktop/AI BRAIN/synapseOS`  
+**Project:** PalexusOS (`https://github.com/earnerbaymalay/palexusOS`)  
+**Workspace Root:** `/home/ebaymlay/Desktop/AI BRAIN/palexusOS`  
 **Maintainer:** earnerbaymalay  
 **Handover Status:** This file describes the layout and build stages. Current status and open items live in [`SESSION_HANDOVER.md`](SESSION_HANDOVER.md).
 

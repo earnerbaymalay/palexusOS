@@ -2,7 +2,7 @@
 
 ## 1. Vision & Core Philosophy
 
-**PalexusOS** (formerly SynapseOS) is an AI-native rolling Linux operating system engineered from the ground up for developers, security researchers, and AI-assisted workflows. It synthesizes four distinct paradigms:
+**PalexusOS** is an AI-native rolling Linux operating system engineered from the ground up for developers, security researchers, and AI-assisted workflows. It synthesizes four distinct paradigms:
 
 | Paradigm | Engineering Source | Core Technical Focus | Distro Implementation |
 | :--- | :--- | :--- | :--- |

@@ -1,6 +1,6 @@
 # PalexusOS Live Compilation & Release Execution Plan
 
-This document defines the four-stage execution pipeline (`Stage A` – `Stage D`) transitioning PalexusOS (formerly SynapseOS) from its engineering verification gate baseline into native package compilation, Archiso staging, live ISO image generation, QEMU/KVM validation, and release tagging.
+This document defines the four-stage execution pipeline (`Stage A` – `Stage D`) transitioning PalexusOS from its engineering verification gate baseline into native package compilation, Archiso staging, live ISO image generation, QEMU/KVM validation, and release tagging.
 
 ---
 

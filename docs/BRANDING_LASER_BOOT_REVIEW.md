@@ -1,7 +1,7 @@
 # PalexusOS Review Brief: Brand Identity & Monolithic Laser Boot Splash
 
 **Target:** Claude Code / Antigravity Agent Cross-Evaluation  
-**Repository:** `palexusOS` (formerly SynapseOS)  
+**Repository:** `palexusOS`  
 **Harness Status:** **269/269 Gates Passing** | **17/17 pytest UI/UX Tests Passing**
 
 ---

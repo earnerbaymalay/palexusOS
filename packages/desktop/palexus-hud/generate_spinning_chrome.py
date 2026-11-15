@@ -331,10 +331,7 @@ def main():
         script_dir / "master_plate_960.png",
         script_dir / "../palexus-plymouth/master_plate_960.png",
         script_dir / "../../desktop/palexus-plymouth/master_plate_960.png",
-        script_dir / "../synapse-plymouth/master_plate_960.png",
-        script_dir / "../../desktop/synapse-plymouth/master_plate_960.png",
         Path("/usr/share/palexusos/branding/master_plate_960.png"),
-        Path("/usr/share/synapseos/branding/master_plate_960.png"),
     ]
     master_path = None
     for p in master_candidates:

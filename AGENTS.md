@@ -10,7 +10,7 @@
 
 ## AI Governance & Project Mission
 - **Maintainer**: earnerbaymalay
-- **Mission**: Architect, construct, package, and test PalexusOS (formerly SynapseOS) — an AI-native rolling Linux operating system merging:
+- **Mission**: Architect, construct, package, and test PalexusOS — an AI-native rolling Linux operating system merging:
   - **CachyOS Performance**: Kernel schedulers (BORE/EEVDF), x86-64-v3/v4 optimized repos, ZRAM zstd swappiness=180, BBR TCP.
   - **EndeavourOS Foundation**: Clean upstream Arch Linux base, transparent pacman packaging, Calamares installer, zero bloat.
   - **Omarchy Aesthetics**: Cybernetic, monospace terminal environment, unified Catppuccin / liquid chrome theme, keyboard-centric control.
