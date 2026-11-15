@@ -35,6 +35,8 @@ output * bg #11111b solid_color
 output * bg /usr/share/backgrounds/palexusos/palexus-monolith-mauve.jpg fill #11111b
 # Sway owns the background (output bg); palexus-theme --restore re-applies the saved theme
 exec palexus-theme --restore
+# Password prompts for pkexec (e.g. matching the login screen to the theme)
+exec /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1
 
 # Screensaver is not a lock: 5 min -> geodesic torus, 10 min -> displays off
 exec swayidle -w \

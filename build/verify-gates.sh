@@ -143,16 +143,23 @@ else
 fi
 
 # ------------------------------------------------------------------------------
-# Gate G3: Cyberdeck UI, Picom, SDDM & Quickfire Configs
+# Gate G3: Cyberdeck UI, SDDM & Quickfire Configs
 # ------------------------------------------------------------------------------
 echo ""
-echo "---> Gate G3: Cyberdeck UI, Picom, SDDM & Quickfire Configs"
-PICOM_CONF="${REPO_ROOT}/overlay/etc/xdg/picom.conf"
-if [[ -f "${PICOM_CONF}" ]]; then
-    check_file_contains "${PICOM_CONF}" "dual_kawase" "Picom dual_kawase blur configured"
-    check_file_contains "${PICOM_CONF}" "corner-radius" "Picom rounded corner-radius configured"
+echo "---> Gate G3: Cyberdeck UI, SDDM & Quickfire Configs"
+# L8: picom was never started (XFCE uses xfwm4's compositor) and its GLX backend can
+# black-screen VMs, so it is gone, and so is every blur claim.
+if [[ -e "${REPO_ROOT}/overlay/etc/xdg/picom.conf" ]]; then
+    fail "picom.conf removed (L8)"
 else
-    warn "Pending Phase 3 deliverable: overlay/etc/xdg/picom.conf"
+    pass "picom.conf removed (L8)"
+fi
+check_file_lacks "${REPO_ROOT}/build/archiso/packages.x86_64" '(?m)^picom$' "ISO does not ship picom (L8)"
+if grep -rIqiE 'picom|kawase' "${REPO_ROOT}/packages" "${REPO_ROOT}/overlay" \
+        "${REPO_ROOT}/build/archiso/packages.x86_64" "${REPO_ROOT}/docs/TECHNICAL_FAQ.md"; then
+    fail "No picom or kawase-blur claims in packages, overlay, slideshow or FAQ (L8)"
+else
+    pass "No picom or kawase-blur claims in packages, overlay, slideshow or FAQ (L8)"
 fi
 
 SDDM_CONF_DIR="${REPO_ROOT}/overlay/etc/sddm.conf.d"
@@ -225,6 +232,7 @@ check_file_contains "${SWAY_CONF}" "#cba6f7" "Sway config uses Catppuccin Mocha 
 check_file_contains "${SWAY_CONF}" "#cdd6f4" "Sway config uses Liquid Silver Chrome (#cdd6f4)"
 check_file_contains "${WAYBAR_CONF}" "sway/workspaces" "Waybar config.jsonc defines sway/workspaces"
 XFCE_KEYS="${REPO_ROOT}/overlay/etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-keyboard-shortcuts.xml"
+check_file_contains "${XFCE_KEYS}" '&lt;Alt&gt;&lt;Super&gt;s" type="string" value="orca"' "XFCE Alt+Super+S starts the orca screen reader (shipped, L9)"
 check_file_lacks "${XFCE_KEYS}" 'value="/usr/local/bin/' "XFCE shortcuts call nothing from /usr/local/bin (not shipped)"
 check_file_contains "${REPO_ROOT}/build/archiso/packages.x86_64" '^xorg-xkill$' "XFCE Ctrl+Alt+Esc (xkill) has its package"
 check_file_contains "${WAYBAR_CONF}" "custom/menu" "Waybar defines custom/menu cockpit widget"
@@ -328,9 +336,10 @@ REQUIRED_PKGS=(
     "zram-generator"
     "xfce4"
     "sddm"
-    "picom"
     "kitty"
     "rofi"
+    "orca"
+    "espeak-ng"
     "sway"
     "waybar"
     "foot"
@@ -389,6 +398,16 @@ check_file_contains "${BUILD_ISO_SH}" "PALEXUS_GPG_KEY" "build-iso.sh supports P
 check_file_contains "${REPO_ROOT}/build/archiso/efiboot/loader/loader.conf" "01-palexusos-x86_64-linux\.conf" "UEFI loader.conf points to PalexusOS entry"
 check_file_contains "${REPO_ROOT}/build/archiso/efiboot/loader/entries/01-palexusos-x86_64-linux.conf" "vmlinuz-linux-cachyos" "UEFI entry boots vmlinuz-linux-cachyos"
 check_file_contains "${REPO_ROOT}/build/archiso/syslinux/syslinux.cfg" "vmlinuz-linux-cachyos" "BIOS syslinux.cfg boots vmlinuz-linux-cachyos"
+# Boot 1 + Boot 4: both live menus offer Safe graphics and Copy to RAM (tests/test_boot_entries.py compares options)
+SYSLINUX_CFG="${REPO_ROOT}/build/archiso/syslinux/syslinux.cfg"
+SDBOOT_DIR="${REPO_ROOT}/build/archiso/efiboot/loader/entries"
+check_file_contains "${SYSLINUX_CFG}" '^APPEND .* nomodeset plymouth\.enable=0 ' "BIOS menu has a Safe graphics entry (nomodeset, no splash)"
+check_file_contains "${SDBOOT_DIR}/03-palexusos-x86_64-linux-safe-graphics.conf" '^options .* nomodeset plymouth\.enable=0 ' "UEFI menu has a Safe graphics entry (nomodeset, no splash)"
+check_file_lacks "${SDBOOT_DIR}/03-palexusos-x86_64-linux-safe-graphics.conf" '(?m)^options .*\bsplash\b' "UEFI Safe graphics entry passes no splash"
+check_file_contains "${SYSLINUX_CFG}" '^APPEND .* nowatchdog audit=0 .* copytoram$' "BIOS Copy to RAM entry uses the main entry's options"
+check_file_contains "${SDBOOT_DIR}/02-palexusos-x86_64-linux-copytoram.conf" '^options .* nowatchdog audit=0 .* copytoram$' "UEFI menu has a Copy to RAM entry with the main entry's options"
+check_file_contains "${REPO_ROOT}/build/archiso/airootfs/root/customize_airootfs.sh" '^ConditionKernelCommandLine=nomodeset$' "Safe graphics live boot logs into XFCE (Sway needs KMS)"
+check_file_contains "${REPO_ROOT}/packages/installer/calamares/modules/shellprocess@cleanup.conf" 'rm -f /etc/systemd/system/palexus-safe-graphics\.service' "Installer removes the live-only safe graphics unit"
 
 if [[ -x "${CUSTOMIZE_SH}" ]] && bash -n "${CUSTOMIZE_SH}"; then
     pass "customize_airootfs.sh is executable and syntactically valid"
@@ -631,6 +650,9 @@ check_file_contains "${PLY_DIR}/palexusos.script.in" 'Plymouth\.SetQuitFunction'
 check_file_contains "${PLY_DIR}/PKGBUILD" "^source=\\('palexus-boot\\.mp4'" "Boot splash is built from the official palexus-boot.mp4"
 check_file_contains "${PLY_DIR}/PKGBUILD" "ffmpeg .*-an" "Boot splash frames are extracted without audio"
 check_file_contains "${PLY_DIR}/PKGBUILD" '^install=palexus-plymouth\.install$' "Boot splash package selects its theme on install/upgrade"
+# Boot 3: the frames live in every initramfs; budget 8 MB (tests/test_plymouth_size.py builds and measures them)
+check_file_contains "${PLY_DIR}/PKGBUILD" '^_width=480$' "Boot animation frames are 480x270 (initramfs budget)"
+check_file_contains "${PLY_DIR}/PKGBUILD" '^_ticks=4$' "Boot animation runs at 12.5 fps, 4 Plymouth ticks per frame"
 check_file_contains "${PLY_DIR}/95-palexus-plymouth.hook" '^Target = usr/share/plymouth/themes/palexusos/\*$' "Initramfs is rebuilt when the boot animation changes"
 check_file_contains "${PLY_DIR}/95-palexus-plymouth.hook" '^When = PostTransaction$' "Initramfs rebuild waits for the whole transaction"
 if bash -n "${PLY_DIR}/palexus-plymouth.install" 2>/dev/null && ! grep -q 'mkinitcpio\|-R ' <(grep -v '^ *#\|echo' "${PLY_DIR}/palexus-plymouth.install"); then
@@ -650,7 +672,18 @@ for wp in palexus-monolith-{mauve,tungsten,sapphire,emerald} palexus-tower-{mauv
     check_file_contains "${THEMES_DIR}/PKGBUILD" "^  .${wp}\\.jpg.$" "palexus-themes ships ${wp}.jpg"
 done
 check_file_contains "${THEMES_DIR}/palexus-theme" '^DEFAULT_THEME="monolith-mauve"$' "Default system theme is monolith-mauve"
-check_file_contains "${THEMES_DIR}/palexus-theme" 'pkexec tee .*GREETER_CONF' "palexus-theme can sync the login screen variant (pkexec)"
+# Literal $ in the patterns: grep must see the variable names, not their values
+# shellcheck disable=SC2016
+check_file_contains "${THEMES_DIR}/palexus-theme" 'pkexec "\$GREETER_SYNC"' "palexus-theme syncs the login screen through the polkit helper"
+# shellcheck disable=SC2016
+check_file_contains "${THEMES_DIR}/palexus-theme" '^        auto_sync_greeter "\$1"$' "Theme change from the command line also updates the login screen"
+check_file_contains "${THEMES_DIR}/palexus-theme" 'apply_theme "\$\{selected%% —\*\}" && auto_sync_greeter' "Theme change from the menu also updates the login screen"
+check_file_contains "${THEMES_DIR}/org.palexusos.theme.policy" 'exec.path">/usr/lib/palexus/palexus-greeter-sync<' "Polkit action is limited to the greeter sync helper"
+check_file_contains "${THEMES_DIR}/org.palexusos.theme.policy" '<allow_active>auth_admin_keep</allow_active>' "Greeter sync asks for the admin password once (auth_admin_keep)"
+check_file_contains "${THEMES_DIR}/PKGBUILD" 'usr/lib/palexus/palexus-greeter-sync' "palexus-themes installs the greeter sync helper"
+check_file_contains "${THEMES_DIR}/PKGBUILD" 'usr/share/polkit-1/actions/org.palexusos.theme.policy' "palexus-themes installs the polkit action"
+check_file_contains "${REPO_ROOT}/overlay/etc/skel/.config/sway/config" '^exec /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1$' "Sway starts a polkit agent so pkexec can prompt"
+check_file_contains "${REPO_ROOT}/overlay/etc/xdg/autostart/palexus-polkit-agent.desktop" '^Exec=/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1$' "XFCE autostarts a polkit agent so pkexec can prompt"
 check_file_contains "${THEMES_DIR}/palexus-theme" '<Primary><Super>t' "XFCE Super+Ctrl+T opens the theme menu"
 check_file_contains "${REPO_ROOT}/overlay/etc/skel/.config/sway/config" 'Ctrl\+t exec palexus-theme --menu' "Sway Super+Ctrl+T opens the theme menu"
 check_file_contains "${REPO_ROOT}/overlay/etc/skel/.config/sway/config" "palexus-screensaver --launch" "Sway idle launches the torus screensaver"
@@ -695,6 +728,11 @@ check_file_contains "${HUD_PKG}/palexus-oobe-apply" 'remove_partial_account\(r\[
 # ~/.bashrc returns at once for non-interactive shells, so its ask-*/squash aliases don't exist in bash -c
 check_file_lacks "${HUD_PKG}/palexus-hud" 'ask-qwen "' "HUD Ask AI calls ollama directly, not a ~/.bashrc alias"
 check_file_lacks "${HUD_PKG}/Main.qml" '&& (ask-qwen|ask-llama|squash )' "HUD menu commands do not rely on ~/.bashrc aliases"
+# Boot 2: the HUD and ask-qwen use the coder model this user installed (light tier = 1.5b)
+check_file_contains "${HUD_PKG}/PKGBUILD" 'usr/bin/palexus-code-model' "palexus-hud installs palexus-code-model"
+check_file_lacks "${HUD_PKG}/palexus-hud" 'qwen2\.5-coder:latest' "HUD Ask AI names no coder model the user may not have"
+check_file_lacks "${HUD_PKG}/Main.qml" 'qwen2\.5-coder:latest' "HUD menu names no coder model the user may not have"
+check_file_lacks "${REPO_ROOT}/overlay/etc/skel/.bashrc" 'qwen2\.5-coder:latest' "ask-qwen and ollama-warm use the installed coder model"
 # QEMU boot smoke test harness check
 TEST_BOOT_SH="${REPO_ROOT}/build/test-iso-boot.sh"
 if [[ -f "${TEST_BOOT_SH}" ]] && [[ -x "${TEST_BOOT_SH}" ]]; then

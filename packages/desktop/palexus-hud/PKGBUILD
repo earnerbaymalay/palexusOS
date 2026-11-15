@@ -1,7 +1,7 @@
 # Maintainer: PalexusOS Engineering Team <maintainers@palexusos.org>
 pkgname=palexus-hud
 pkgver=0.1.0
-pkgrel=14
+pkgrel=15
 pkgdesc="Native Qt6/QML Material You Command HUD, Palexus Settings Control Center, Brain Notes, Metallic Icon Suites, and Neural Governor"
 arch=('any')
 url="https://github.com/earnerbaymalay/palexusOS"
@@ -12,6 +12,7 @@ backup=('etc/palexus/governor.toml')
 depends=('python' 'python-pyqt6' 'qt6-declarative' 'qt6-svg' 'qt6-5compat' 'qt6-wayland' 'kitty' 'sway' 'sudo')
 source=(
   "palexus-hud"
+  "palexus-code-model"
   "palexus-settings"
   "palexus-notes"
   "palexus-setup"
@@ -85,6 +86,7 @@ sha256sums=(
   'SKIP'
   'SKIP'
   'SKIP'
+  'SKIP'
 )
 
 package() {
@@ -106,6 +108,8 @@ package() {
   install -Dm644 "${srcdir}/palexus-oobe-recovery.service" "${pkgdir}/usr/lib/systemd/system/palexus-oobe-recovery.service"
 
   install -Dm755 "${srcdir}/sec-status" "${pkgdir}/usr/bin/sec-status"
+  # The coder model this user has (HUD, ask-qwen); see the script header
+  install -Dm755 "${srcdir}/palexus-code-model" "${pkgdir}/usr/bin/palexus-code-model"
   install -Dm755 "${srcdir}/audio-switch" "${pkgdir}/usr/bin/audio-switch"
   install -Dm644 "${srcdir}/palexus-governor.service" "${pkgdir}/usr/lib/systemd/system/palexus-governor.service"
   install -Dm644 "${srcdir}/governor.toml" "${pkgdir}/etc/palexus/governor.toml"

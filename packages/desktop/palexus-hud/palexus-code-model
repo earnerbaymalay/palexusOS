@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+# palexus-code-model — print the qwen2.5-coder model this user actually has.
+# Used by the HUD, its menu, and the ask-qwen / ollama-warm shell helpers, so a
+# question never silently starts a multi-GB download the user didn't agree to.
+#
+# Order:
+#   1. A qwen2.5-coder model already installed in Ollama (the larger one if both are)
+#   2. The one the first-boot wizard chose (~/.config/palexus/ai_models); it may still
+#      be downloading, and `ollama run` then waits for the pull the user already agreed to
+#   3. qwen2.5-coder:1.5b, the smallest (~1 GB), same default as palexus-setup
+set -uo pipefail
+
+FALLBACK="qwen2.5-coder:1.5b"
+AI_MODELS_FILE="${XDG_CONFIG_HOME:-$HOME/.config}/palexus/ai_models"
+
+installed=""
+if command -v ollama >/dev/null 2>&1; then
+    installed="$(timeout 3 ollama list 2>/dev/null | awk 'NR>1 {print $1}')"
+fi
+for pick in "qwen2.5-coder:latest" "qwen2.5-coder:7b" "qwen2.5-coder:3b" "qwen2.5-coder:1.5b"; do
+    if grep -qxF "$pick" <<< "$installed"; then
+        printf '%s\n' "$pick"
+        exit 0
+    fi
+done
+other="$(grep -m1 '^qwen2\.5-coder:' <<< "$installed" || true)"
+if [[ -n "$other" ]]; then
+    printf '%s\n' "$other"
+    exit 0
+fi
+
+if [[ -r "$AI_MODELS_FILE" ]]; then
+    chosen="$(grep -m1 -E '^qwen2\.5-coder:[A-Za-z0-9._-]+$' "$AI_MODELS_FILE" || true)"
+    if [[ -n "$chosen" ]]; then
+        printf '%s\n' "$chosen"
+        exit 0
+    fi
+fi
+
+printf '%s\n' "$FALLBACK"

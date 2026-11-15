@@ -866,7 +866,7 @@ Presentation {
                         color: "#cdd6f4"
                     }
                     Text {
-                        text: "Dark Glass Aesthetics, Dual Kawase Blur & Liquid Silver Chrome"
+                        text: "Dark Glass Aesthetics & Liquid Silver Chrome"
                         font.family: "DejaVu Sans, Inter, sans-serif"
                         font.pixelSize: 13
                         color: "#a6adc8"
@@ -952,14 +952,14 @@ Presentation {
                             anchors.margins: 12
                             spacing: 3
                             Text {
-                                text: "Dual Kawase Translucency"
+                                text: "Tear-Free Compositing"
                                 font.family: "DejaVu Sans, Inter, sans-serif"
                                 font.pixelSize: 12
                                 font.bold: true
                                 color: "#a6e3a1"
                             }
                             Text {
-                                text: "Hardware-accelerated window compositor with GPU dual-kawase blur and smooth corner radii."
+                                text: "xfwm4's built-in compositor on XFCE and Sway on Wayland: smooth, tear-free windows that also work in VMs."
                                 font.family: "DejaVu Sans, Inter, sans-serif"
                                 font.pixelSize: 11
                                 color: "#a6adc8"

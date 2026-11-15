@@ -77,7 +77,6 @@ qt6-svg
 qt6-declarative
 qt6-5compat
 python-pyqt6
-picom
 kitty
 rofi
 xcape
@@ -94,6 +93,11 @@ python-cairo
 python-gobject
 gtk3
 gtk4
+
+# --- Accessibility (L9: Alt+Super+S starts the screen reader) ---
+orca
+# orca speaks through speech-dispatcher, which has no voice of its own
+espeak-ng
 
 # --- Productivity, Text & Hardened Zero-Telemetry Web ---
 chromium

@@ -14,8 +14,19 @@ from PyQt6.QtCore import QObject, pyqtSlot, QUrl
 from PyQt6.QtGui import QGuiApplication
 from PyQt6.QtQml import QQmlApplicationEngine
 
-# Same model as the ask-qwen shell helper in ~/.bashrc
-AI_MODEL = "qwen2.5-coder:latest"
+# Used when palexus-code-model can't run; the smallest coder model (~1 GB)
+FALLBACK_AI_MODEL = "qwen2.5-coder:1.5b"
+
+
+def code_model(env) -> str:
+    """The qwen2.5-coder model this user installed (or chose at first boot), so a
+    question never starts a surprise multi-GB download. Same as ask-qwen in ~/.bashrc."""
+    try:
+        out = subprocess.run(["palexus-code-model"], env=env, capture_output=True,
+                             text=True, timeout=5).stdout.strip()
+    except (OSError, subprocess.SubprocessError):
+        out = ""
+    return out or FALLBACK_AI_MODEL
 
 
 class HudBackend(QObject):
@@ -58,7 +69,7 @@ class HudBackend(QObject):
                     "kitty", "--title", f"AI Prompt: {prompt}",
                     "bash", "-c",
                     'ollama run "$1" "$2"; echo; read -r -p "Press enter to close..."',
-                    "palexus-ai-prompt", AI_MODEL, prompt,
+                    "palexus-ai-prompt", code_model(env), prompt,
                 ], env=env, start_new_session=True)
         else:
             # Execute command detached with prepared environment

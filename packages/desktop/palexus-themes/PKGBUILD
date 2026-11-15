@@ -1,20 +1,22 @@
 # Maintainer: PalexusOS Engineering Team <maintainers@palexusos.org>
 pkgname=palexus-themes
 pkgver=0.1.0
-pkgrel=8
-pkgdesc="PalexusOS wallpapers (3 designs x accent variants), system theme switcher for wallpaper, terminal, launcher, Waybar and Sway (Super+Ctrl+T), and geodesic torus screensaver"
+pkgrel=9
+pkgdesc="PalexusOS wallpapers (3 designs x accent variants), system theme switcher for wallpaper, terminal, launcher, Waybar, Sway and the login screen (Super+Ctrl+T), and geodesic torus screensaver"
 arch=('any')
 url="https://github.com/earnerbaymalay/palexusOS"
 license=('MIT')
 provides=('synapse-themes' 'palexus-themes')
 conflicts=('synapse-themes')
-depends=('bash' 'python' 'rofi' 'kitty' 'xfconf' 'xorg-xrandr' 'xprintidle' 'swaybg' 'libnotify')
+depends=('bash' 'python' 'rofi' 'kitty' 'xfconf' 'xorg-xrandr' 'xprintidle' 'swaybg' 'libnotify' 'polkit')
 optdepends=(
   'python-terminaltexteffects: tte effects for the screensaver brand reveal (AUR)'
   'foot: Wayland fallback terminal for the screensaver'
 )
 source=(
   'palexus-theme'
+  'palexus-greeter-sync'
+  'org.palexusos.theme.policy'
   'palexus-screensaver'
   'palexus-idle'
   'palexus-theme-restore.desktop'
@@ -35,7 +37,9 @@ source=(
   'palexus-tower-sapphire.jpg'
   'palexus-tower-tungsten.jpg'
 )
-sha256sums=('c02993ce6b245a63b8626787d28de114a90ea78cc5809f787075bc4eb5ed9435'
+sha256sums=('9f9fd0eed9dba3069b1c7fae8c320a4f8188f860131c37e77e544d1427a21f2b'
+            'f7e571c629f8bdbef51aa4a28ba4719940ae803ac220113d4c4d26b748070072'
+            '355c35dc02eace9a87391b680687b583dac57b5543c90e8a2d52c7d2b3cbb394'
             'b332b37bc0310a7ef58280683b072c5295263874ab10fad8da055d9cec2de8d8'
             '23a9d2960afead31f14059da99631f0485bdffbd30f50f40c1ff2971e9ea7bc8'
             '85cddd56836b6fce2d074789c9a3bfabfe1599e0cca63f8a6a2dea5153bdb4a9'
@@ -59,6 +63,9 @@ sha256sums=('c02993ce6b245a63b8626787d28de114a90ea78cc5809f787075bc4eb5ed9435'
 package() {
   install -Dm755 palexus-theme "$pkgdir/usr/bin/palexus-theme"
   ln -sf "palexus-theme" "$pkgdir/usr/bin/synapse-theme"
+  # Root helper for the login screen theme; polkit allows it after one admin prompt
+  install -Dm755 palexus-greeter-sync "$pkgdir/usr/lib/palexus/palexus-greeter-sync"
+  install -Dm644 org.palexusos.theme.policy "$pkgdir/usr/share/polkit-1/actions/org.palexusos.theme.policy"
 
   install -Dm755 palexus-screensaver "$pkgdir/usr/bin/palexus-screensaver"
   ln -sf "palexus-screensaver" "$pkgdir/usr/bin/synapse-screensaver"

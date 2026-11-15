@@ -100,7 +100,7 @@ class TestPalexusHudQml:
 
         # Test local LLM commands
         qwen_cmd = root.findFirstMatch("qwen")
-        assert "ollama run qwen2.5-coder:latest" in qwen_cmd
+        assert 'ollama run \"$(palexus-code-model)\"' in qwen_cmd or 'ollama run "$(palexus-code-model)"' in qwen_cmd
 
         # Test key shortcut matching
         key1_cmd = root.findFirstMatch("1")
@@ -128,6 +128,9 @@ class TestPalexusHudQml:
             mock_popen.assert_called_with(["bash", "-c", "palexus-notes"], env=ANY, start_new_session=True)
             mock_quit.assert_called()
 
+        # Boot 2: the HUD asks the model this user has (palexus-code-model), never a hard-coded one
+        hud_mod.code_model = lambda env: "qwen2.5-coder:1.5b"
+
         with patch("subprocess.Popen") as mock_popen, patch.object(qapp, "quit") as mock_quit:
             # Test AI prompt launch with prefix strip
             backend.launch("AI_PROMPT:?how to list files")
@@ -137,7 +140,7 @@ class TestPalexusHudQml:
             assert "AI Prompt: how to list files" in argv[2]
             # ollama is called directly (shell aliases don't exist in bash -c) ...
             assert argv[5].startswith('ollama run "$1" "$2"')
-            assert argv[-2:] == ["qwen2.5-coder:latest", "how to list files"]
+            assert argv[-2:] == ["qwen2.5-coder:1.5b", "how to list files"]
 
         with patch("subprocess.Popen") as mock_popen, patch.object(qapp, "quit") as mock_quit:
             # Test AI prompt launch with 'ai ' strip
@@ -160,7 +163,9 @@ class TestPalexusHudQml:
         content = (HUD_DIR / "Main.qml").read_text(encoding="utf-8")
         for alias in ("&& ask-qwen", "&& ask-llama", "&& squash "):
             assert alias not in content
-        assert "&& ollama run qwen2.5-coder:latest" in content
+        assert '&& ollama run \\"$(palexus-code-model)\\"' in content
+        # Boot 2: no menu entry names a coder model the user may not have installed
+        assert "qwen2.5-coder:latest" not in content
         assert "&& palexus squash $cmd" in content
 
     def test_hud_header_hint_and_placeholder_text(self, qapp):

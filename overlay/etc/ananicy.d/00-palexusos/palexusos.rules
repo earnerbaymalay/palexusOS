@@ -6,7 +6,6 @@
 # Interactive Desktop Shell & UI Cockpit (Zero latency stutter)
 { "name": "sway", "type": "LowLatency_RT" }
 { "name": "waybar", "type": "LowLatency_RT" }
-{ "name": "picom", "type": "LowLatency_RT" }
 { "name": "kitty", "type": "LowLatency_RT" }
 { "name": "foot", "type": "LowLatency_RT" }
 

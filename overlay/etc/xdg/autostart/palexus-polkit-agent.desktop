@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=PalexusOS authentication agent
+Comment=Shows the admin password prompt for polkit (theme sync, settings)
+Exec=/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1
+OnlyShowIn=XFCE;
+NoDisplay=true
+X-GNOME-AutoRestart=true

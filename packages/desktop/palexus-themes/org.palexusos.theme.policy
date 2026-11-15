@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE policyconfig PUBLIC "-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN"
+ "http://www.freedesktop.org/standards/PolicyKit/1/policyconfig.dtd">
+<policyconfig>
+  <vendor>PalexusOS</vendor>
+  <vendor_url>https://github.com/earnerbaymalay/palexusOS</vendor_url>
+  <!-- Lets palexus-theme match the login screen to the desktop theme.
+       auth_admin_keep: one password prompt, then no repeat for a few minutes. -->
+  <action id="org.palexusos.theme.sync-greeter">
+    <description>Match the login screen to your theme</description>
+    <message>Authentication is required to change the login screen theme</message>
+    <icon_name>preferences-desktop-theme</icon_name>
+    <defaults>
+      <allow_any>no</allow_any>
+      <allow_inactive>no</allow_inactive>
+      <allow_active>auth_admin_keep</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/lib/palexus/palexus-greeter-sync</annotate>
+  </action>
+</policyconfig>
