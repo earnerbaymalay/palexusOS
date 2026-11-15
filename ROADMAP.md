@@ -19,7 +19,7 @@
 
 ## Phase 3: Cyberdeck Desktop Interface & Seamless Transitions (Completed)
 - [x] Package unified Catppuccin Mocha Mauve + Liquid Silver Chrome GTK, xfwm4, Kitty, and icon themes.
-- [x] Configure Picom compositor (`overlay/etc/xdg/picom.conf`) with `dual_kawase` blur and rounded corners.
+- [x] ~~Configure Picom compositor with `dual_kawase` blur~~ Removed 2026-11-16 (L8): nothing started picom, and its GLX backend can black-screen VMs. XFCE uses xfwm4's compositor.
 - [x] Configure optional Sway/Wayland tiling session (`overlay/etc/skel/.config/sway/config` & `waybar/{config.jsonc,style.css}`).
 - [x] Bind standalone Super-key HUD toggle (`xcape` / `Mod4+space` / `Mod4+d`) and autostart `llm-quickfire-panel` / `palexus-hud`.
 

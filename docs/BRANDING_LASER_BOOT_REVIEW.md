@@ -20,7 +20,7 @@ The workshop/hazard-tape boot aesthetic has been completely replaced with a **Sl
 [SDDM Greeter]         ───► Chamfered Obsidian Glass, Animated Mauve Trails
            │
            ▼
-[Desktop Session]      ───► XFCE 4.20 / Sway Dual Compositor (Picom dual_kawase)
+[Desktop Session]      ───► XFCE 4.20 (xfwm4 compositor) / Sway
                             ├─ Material You Command HUD (palexus-hud, Super+Space)
                             ├─ First-Boot Onboarding (palexus-welcome)
                             ├─ System Settings (palexus-settings)

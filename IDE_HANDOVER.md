@@ -19,7 +19,7 @@ All structural specifications, packaging recipes, system overlays, and live ISO 
 | **Command HUD & Utilities** | [`packages/desktop/palexus-hud/PKGBUILD`](packages/desktop/palexus-hud/PKGBUILD) | Ready (`palexus-hud`, `palexus-welcome`, `palexus-settings`, `palexus-notes`, metallic icon themes) |
 | **Plymouth Boot Splash** | [`packages/desktop/palexus-plymouth/PKGBUILD`](packages/desktop/palexus-plymouth/PKGBUILD) | Ready (`palexusos` theme, Twin Hook laser engrave animation from `palexus-boot.mp4`) |
 | **Kernel, ZRAM & Stealth Overlay** | [`overlay/etc/`](overlay/etc) | Ready (`99-palexusos.conf`, `zram-generator.conf`, MAC randomization, RFC 4941 IPv6, Quad9 DoT) |
-| **Cyberdeck Desktop & User Skel** | [`overlay/etc/skel/`](overlay/etc/skel) & [`picom.conf`](overlay/etc/xdg/picom.conf) | Ready (`dual_kawase` blur, Kitty transparency, Sway/Waybar dual-session, `.palexus` config compatibility) |
+| **Cyberdeck Desktop & User Skel** | [`overlay/etc/skel/`](overlay/etc/skel) | Ready (Kitty transparency, Sway/Waybar dual-session, `.palexus` config compatibility) |
 | **Archiso Live Profile** | [`build/archiso/`](build/archiso) & [`build/build-iso.sh`](build/build-iso.sh) | Ready (`linux-cachyos`, UEFI `systemd-boot` + BIOS `syslinux`, `customize_airootfs.sh`) |
 | **Calamares Installer** | [`packages/installer/calamares/`](packages/installer/calamares) | Ready (Catppuccin Mauve + Liquid Silver Chrome + Obsidian Crust branding, Btrfs `@`/`@home`/`@snapshots` zstd layout) |
 | **V4 Theme Pack & Screensaver** | [`packages/desktop/palexus-themes/`](packages/desktop/palexus-themes) | Ready (14 wallpapers, `palexus-theme` switcher on `Super+Ctrl+T`, geodesic torus `palexus-screensaver`) |

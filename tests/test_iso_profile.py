@@ -84,7 +84,7 @@ class TestPalexusOSGates(unittest.TestCase):
         self.assertIn('sourcefs: "squashfs"', unpackfs)
 
     def test_greeter_and_compositor(self) -> None:
-        """Validate the palexusos SDDM greeter, its SDDM config, and Picom configuration."""
+        """Validate the palexusos SDDM greeter, its SDDM config, and that compositing needs no picom."""
         greeter = REPO_ROOT / "packages" / "desktop" / "palexus-greeter"
         qml = (greeter / "Main.qml").read_text(encoding="utf-8")
         self.assertIn("sddm.login(", qml)
@@ -99,10 +99,14 @@ class TestPalexusOSGates(unittest.TestCase):
         self.assertNotIn("Xsetup-palexusos", sddm_conf)
         self.assertNotIn("Xsetup-palexusos", sddm_conf)
 
-        picom_text = (REPO_ROOT / "overlay" / "etc" / "xdg" / "picom.conf").read_text(encoding="utf-8")
-        self.assertIn("dual_kawase", picom_text)
-        self.assertIn("corner-radius", picom_text)
-        self.assertNotIn("PS2", picom_text)
+        # L8: picom was never started and is gone; XFCE composites with xfwm4
+        self.assertFalse((REPO_ROOT / "overlay" / "etc" / "xdg" / "picom.conf").exists())
+        packages = (REPO_ROOT / "build" / "archiso" / "packages.x86_64").read_text(encoding="utf-8").split()
+        self.assertNotIn("picom", packages)
+        slideshow = (REPO_ROOT / "packages" / "installer" / "calamares" / "branding" / "palexusos" / "show.qml")
+        self.assertNotIn("kawase", slideshow.read_text(encoding="utf-8").lower())
+        xfwm = (REPO_ROOT / "overlay" / "etc" / "skel" / ".config" / "xfce4" / "xfconf" / "xfce-perchannel-xml" / "xfwm4.xml")
+        self.assertIn('name="use_compositing" type="bool" value="true"', xfwm.read_text(encoding="utf-8"))
 
     def test_pacman_siglevel_and_signing(self) -> None:
         """Validate explicit SigLevel and signing support in pacman configs and build-iso.sh."""

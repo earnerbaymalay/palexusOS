@@ -77,7 +77,6 @@ qt6-svg
 qt6-declarative
 qt6-5compat
 python-pyqt6
-picom
 kitty
 rofi
 xcape
