@@ -38,7 +38,7 @@
 
 - ~~**L7:** sync the login screen automatically when you change theme (one admin-password prompt), keep it manual, or drop per-user greeter theming?~~ Decided 2026-11-16: sync automatically.
 - ~~**L8:** start picom (prettier, but its GLX backend can show a black screen in some VMs), or remove `picom.conf` and the blur claim?~~ Decided 2026-11-16: remove.
-- **L9:** ship `orca` (screen reader, ~10 MB with deps), or unbind the shortcut?
+- ~~**L9:** ship `orca` (screen reader, ~10 MB with deps), or unbind the shortcut?~~ Decided 2026-11-16: ship it.
 
 ## Progress
 
@@ -52,6 +52,6 @@
 | L6 | ✅ fake and security-weakening Chromium flags removed from both flag files; FAQ corrected | 2 gates |
 | L7 | ✅ decided: sync automatically. Picking a theme (menu, command line or Settings) also updates the login screen through a small root helper (`/usr/lib/palexus/palexus-greeter-sync`, polkit action `org.palexusos.theme.sync-greeter`, `auth_admin_keep`): one password prompt, no repeat for a few minutes, no prompt if the login screen already matches or on `--restore` at login. Cancelling keeps the desktop theme, leaves the login screen as it was, and shows a notification with the retry command. Neither Sway nor XFCE started a polkit agent, so pkexec could never prompt; both now start `polkit-gnome`. VM check: the prompt appears on Sway and XFCE. | `tests/test_greeter_sync.py` (12 tests), 9 gates |
 | L8 | ✅ decided: remove picom. `picom.conf`, the `picom` package and its ananicy rule are gone; the slideshow, FAQ, roadmap and handover docs no longer promise blur. XFCE keeps xfwm4's own compositor. | 3 gates, `test_iso_profile.py` |
-| L9 | open: decision for you (above) | — |
+| L9 | ✅ decided: ship orca. `orca` and `espeak-ng` are on the ISO (and so on installed systems, which Calamares copies from the live image). Without `espeak-ng`, speech-dispatcher has no voice and orca would be silent. VM check: Alt+Super+S speaks. | 2 required-package gates, shortcut gate, `test_iso_profile.py` |
 
 On a clean Linux clone this branch passes 302/302 gates. Merged with `boot-firstboot-fixes`, the result passes 309/309 gates, 63/63 pytest and ShellCheck.

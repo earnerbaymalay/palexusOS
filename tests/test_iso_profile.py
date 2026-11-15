@@ -108,6 +108,15 @@ class TestPalexusOSGates(unittest.TestCase):
         xfwm = (REPO_ROOT / "overlay" / "etc" / "skel" / ".config" / "xfce4" / "xfconf" / "xfce-perchannel-xml" / "xfwm4.xml")
         self.assertIn('name="use_compositing" type="bool" value="true"', xfwm.read_text(encoding="utf-8"))
 
+    def test_screen_reader_shortcut_has_a_screen_reader(self) -> None:
+        """L9: XFCE binds Alt+Super+S to orca, so orca and a voice for it ship on the ISO."""
+        packages = (REPO_ROOT / "build" / "archiso" / "packages.x86_64").read_text(encoding="utf-8").split()
+        keys = (REPO_ROOT / "overlay" / "etc" / "skel" / ".config" / "xfce4" / "xfconf"
+                / "xfce-perchannel-xml" / "xfce4-keyboard-shortcuts.xml").read_text(encoding="utf-8")
+        self.assertIn('value="orca"', keys)
+        self.assertIn("orca", packages)
+        self.assertIn("espeak-ng", packages)
+
     def test_pacman_siglevel_and_signing(self) -> None:
         """Validate explicit SigLevel and signing support in pacman configs and build-iso.sh."""
         archiso_pacman = (REPO_ROOT / "build" / "archiso" / "pacman.conf").read_text(encoding="utf-8")
