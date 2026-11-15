@@ -67,7 +67,7 @@
 
 ### Q: How do I switch between the traditional desktop (XFCE) and the tiling session (Sway)?
 > **A:** PalexusOS ships with two fully tuned environments:
-> 1. **Default: XFCE 4.20**: Optimized for stability, multi-monitor docking, and classic workflows. Uses xfwm4's built-in compositor (no picom, no blur: its GLX backend can black-screen some VMs), Catppuccin Mocha Mauve GTK styling, and custom titlebar buttons.
+> 1. **Default: XFCE 4.20**: Optimized for stability, multi-monitor docking, and classic workflows. Uses xfwm4's built-in compositor (no separate blur compositor, which can black-screen some VMs), Catppuccin Mocha Mauve GTK styling, and custom titlebar buttons.
 > 2. **Optional: Sway Wayland**: Configured at `/etc/skel/.config/sway/config` with matching `waybar` statusbars, animations, and zero-tearing Wayland pipewire screensharing.
 > 
 > *To switch*: Log out, select the user avatar in `palexus-greeter`, and toggle between **XFCE Session** and **Sway** in the session dropdown. Both sessions share the exact same keybindings:
