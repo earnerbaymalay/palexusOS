@@ -672,7 +672,10 @@ for wp in palexus-monolith-{mauve,tungsten,sapphire,emerald} palexus-tower-{mauv
     check_file_contains "${THEMES_DIR}/PKGBUILD" "^  .${wp}\\.jpg.$" "palexus-themes ships ${wp}.jpg"
 done
 check_file_contains "${THEMES_DIR}/palexus-theme" '^DEFAULT_THEME="monolith-mauve"$' "Default system theme is monolith-mauve"
+# Literal $ in the patterns: grep must see the variable names, not their values
+# shellcheck disable=SC2016
 check_file_contains "${THEMES_DIR}/palexus-theme" 'pkexec "\$GREETER_SYNC"' "palexus-theme syncs the login screen through the polkit helper"
+# shellcheck disable=SC2016
 check_file_contains "${THEMES_DIR}/palexus-theme" '^        auto_sync_greeter "\$1"$' "Theme change from the command line also updates the login screen"
 check_file_contains "${THEMES_DIR}/palexus-theme" 'apply_theme "\$\{selected%% —\*\}" && auto_sync_greeter' "Theme change from the menu also updates the login screen"
 check_file_contains "${THEMES_DIR}/org.palexusos.theme.policy" 'exec.path">/usr/lib/palexus/palexus-greeter-sync<' "Polkit action is limited to the greeter sync helper"
