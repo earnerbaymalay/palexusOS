@@ -22,7 +22,7 @@ sha256sums=('f1f5830a7a105310aa6916100c162a4884a6312bbf45be39ffe59aa04b7545b1'
 #   the upscale costs little, while 640x360 needed 64 colours and showed banding.
 # - 128-colour palette PNG without dithering: dither noise doubles PNG size.
 # - 12.5 fps (50/4): each frame spans exactly 4 of Plymouth's 50 Hz refresh
-#   ticks, so the pacing stays even. Playback keeps the video's real 10 s duration.
+#   ticks, so the pacing stays even. Playback keeps the video's real duration (8 s).
 _width=480
 _height=270
 _ticks=4
