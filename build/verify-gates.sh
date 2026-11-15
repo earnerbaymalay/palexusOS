@@ -722,6 +722,11 @@ check_file_contains "${HUD_PKG}/palexus-oobe-apply" 'remove_partial_account\(r\[
 # ~/.bashrc returns at once for non-interactive shells, so its ask-*/squash aliases don't exist in bash -c
 check_file_lacks "${HUD_PKG}/palexus-hud" 'ask-qwen "' "HUD Ask AI calls ollama directly, not a ~/.bashrc alias"
 check_file_lacks "${HUD_PKG}/Main.qml" '&& (ask-qwen|ask-llama|squash )' "HUD menu commands do not rely on ~/.bashrc aliases"
+# Boot 2: the HUD and ask-qwen use the coder model this user installed (light tier = 1.5b)
+check_file_contains "${HUD_PKG}/PKGBUILD" 'usr/bin/palexus-code-model' "palexus-hud installs palexus-code-model"
+check_file_lacks "${HUD_PKG}/palexus-hud" 'qwen2\.5-coder:latest' "HUD Ask AI names no coder model the user may not have"
+check_file_lacks "${HUD_PKG}/Main.qml" 'qwen2\.5-coder:latest' "HUD menu names no coder model the user may not have"
+check_file_lacks "${REPO_ROOT}/overlay/etc/skel/.bashrc" 'qwen2\.5-coder:latest' "ask-qwen and ollama-warm use the installed coder model"
 # QEMU boot smoke test harness check
 TEST_BOOT_SH="${REPO_ROOT}/build/test-iso-boot.sh"
 if [[ -f "${TEST_BOOT_SH}" ]] && [[ -x "${TEST_BOOT_SH}" ]]; then

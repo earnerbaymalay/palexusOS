@@ -101,8 +101,19 @@ alias agy-palette='palexus-hud'
 alias hud='palexus-hud'
 
 # --- 5. Local LLM (Ollama) Orchestration Helpers ---
+# The qwen2.5-coder model you installed (1.5b on the light tier), so asking never
+# starts a surprise multi-GB download; see /usr/bin/palexus-code-model
+_palexus_code_model() {
+    if command -v palexus-code-model >/dev/null 2>&1; then
+        palexus-code-model
+    else
+        echo "qwen2.5-coder:1.5b"
+    fi
+}
+
 ask-ollama() {
-    local model="qwen2.5-coder:latest"
+    local model
+    model="$(_palexus_code_model)"
     local positional=()
 
     while [[ $# -gt 0 ]]; do
@@ -151,14 +162,16 @@ ask-ollama() {
     fi
 }
 
-alias ask-qwen='ask-ollama -m qwen2.5-coder:latest'
+alias ask-qwen='ask-ollama'
 alias ask-llama='ask-ollama -m llama3.2:latest'
 alias ask-dolphin='ask-ollama -m dolphin-mistral:latest'
 alias ask-hermes='ask-ollama -m nous-hermes2:latest'
 alias ask-ab='ask-ollama -m qwen-abliterated:latest'
 alias '?'='ask-qwen'
 
-alias ollama-warm='curl -s -X POST http://127.0.0.1:11434/api/generate -d '\''{"model": "qwen2.5-coder:latest"}'\'' >/dev/null 2>&1 &'
+ollama-warm() {
+    curl -s -X POST http://127.0.0.1:11434/api/generate -d "{\"model\": \"$(_palexus_code_model)\"}" >/dev/null 2>&1 &
+}
 
 ollama-stop() {
     if [[ -n "${1:-}" ]]; then

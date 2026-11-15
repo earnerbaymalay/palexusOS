@@ -175,12 +175,10 @@ pull_core_models() {
 warm_models() {
     if check_ollama; then
         echo "==> Pre-warming model cache in memory..."
-        local active_code="${PRIMARY_CODE_MODEL}"
-        if model_exists "qwen2.5-coder:latest"; then
-            active_code="qwen2.5-coder:latest"
-        elif model_exists "qwen2.5-coder:1.5b"; then
-            active_code="qwen2.5-coder:1.5b"
-        fi
+        # Same choice as the HUD and ask-qwen: the coder model this user has
+        local active_code
+        active_code="$(palexus-code-model 2>/dev/null)" || active_code=""
+        [[ -n "$active_code" ]] || active_code="${PRIMARY_CODE_MODEL}"
         curl -s -X POST "${OLLAMA_API}/api/generate" -d "{\"model\": \"${active_code}\", \"prompt\": \"Ready\"}" >/dev/null 2>&1 &
         echo "==> Pre-warmed: ${active_code}"
     fi
