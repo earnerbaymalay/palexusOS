@@ -1,0 +1,306 @@
+# TokenEconomizer Multi-LLM Configuration
+# Applies cost optimization across Claude Code, chat interfaces, and other LLM agents
+
+[global]
+# Global settings for all LLM interfaces
+name = "PalexusOS Multi-LLM Agent"
+repository = "palexusOS"
+owner = "earnerbaymalay"
+
+# Cost tracking
+track_costs = true
+track_per_session = true
+aggregate_costs = true
+report_format = "json"  # json, markdown, csv
+
+# Learning
+auto_learn = true
+learning_confidence = 0.75
+learning_sessions_required = 3
+
+[agents]
+# Configure for each LLM interface
+
+[agents.claude_code]
+name = "Claude Code"
+type = "IDE"
+enabled = true
+
+mechanisms = { micro_skills = true, tool_pruning = true, failure_intervention = true }
+
+tools_keep = [
+  "read",           # File reading
+  "edit",           # File editing
+  "write",          # File writing
+  "bash",           # Command execution
+  "grep",           # Code search
+  "glob",           # File discovery
+  "artifact",       # Artifact creation
+]
+
+tools_prune = [
+  "artifact_data",  # Rarely used
+  "web_search",     # Repo is local
+  "browser",        # Not needed
+  "notebook_edit",  # Not used
+]
+
+facts = [
+  "Build with: makepkg -si (Arch packages)",
+  "Test with: ./build/verify-gates.sh",
+  "ISO build: ./build/build-iso.sh",
+  "Design system: docs/design-system/",
+  "Monospace font: JetBrains Mono Nerd Font",
+  "Color: #cba6f7 (Electric Mauve, primary accent)",
+  "Theme: Catppuccin Mocha Mauve (obsidian dark)",
+]
+
+[agents.claude_chat]
+name = "Claude Web Chat"
+type = "Chat"
+enabled = true
+
+mechanisms = { micro_skills = true, tool_pruning = true, failure_intervention = true }
+
+tools_keep = [
+  "web_search",     # Research capability
+  "artifact",       # Create artifacts
+  "task_create",    # Task management
+]
+
+tools_prune = [
+  "bash",           # No CLI access
+  "edit",           # No file access
+]
+
+facts = [
+  "PalexusOS is AI-native sovereign workstation",
+  "Design system: https://claude.ai/artifact/DmyLwKLjPa6hRhsrUDofAm",
+  "Repository: https://github.com/earnerbaymalay/palexusOS",
+  "Architecture: Arch Linux + CachyOS kernel + Palexus AI subsystem",
+]
+
+[agents.copilot_cli]
+name = "GitHub Copilot CLI"
+type = "CLI"
+enabled = true
+
+mechanisms = { micro_skills = true, tool_pruning = true, failure_intervention = true }
+
+tools_keep = [
+  "bash",           # Command execution
+  "read",           # File reading
+]
+
+facts = [
+  "Build system: makepkg",
+  "Test suite: build/verify-gates.sh",
+  "Package structure: packages/*/PKGBUILD",
+]
+
+[agents.cursor]
+name = "Cursor AI Editor"
+type = "IDE"
+enabled = true
+
+mechanisms = { micro_skills = true, tool_pruning = true, failure_intervention = true }
+
+tools_keep = [
+  "read",
+  "edit",
+  "write",
+  "bash",
+]
+
+facts = [
+  "Design tokens: docs/design-system/tokens.json",
+  "Design CSS: docs/design-system/tokens.css",
+  "Integration guide: docs/design-system/INTEGRATION.md",
+]
+
+[agents.vscode_copilot]
+name = "VS Code Copilot"
+type = "IDE"
+enabled = true
+
+facts = [
+  "Repository root: /home/user/palexusOS",
+  "Main branch: main",
+  "Development branch: claude/funny-mayer-x895vy",
+]
+
+[learning]
+# Shared learning across all agents
+
+# Micro-skills: Repository facts
+[[learning.micro_skills]]
+fact = "Arch Linux package build command"
+command = "makepkg -si"
+context = "Use in packages/ directory for isolated chroot builds"
+confidence = 0.9
+learned_from = "claude_code"
+sessions_confirmed = 3
+
+[[learning.micro_skills]]
+fact = "Quality verification suite"
+command = "./build/verify-gates.sh"
+context = "Run after any changes to verify gates G1-G5"
+confidence = 0.95
+learned_from = "claude_code"
+sessions_confirmed = 2
+
+[[learning.micro_skills]]
+fact = "ISO image generation"
+command = "./build/build-iso.sh"
+context = "Builds reproducible PalexusOS ISO"
+confidence = 0.9
+learned_from = "claude_code"
+sessions_confirmed = 2
+
+[[learning.micro_skills]]
+fact = "Git workflow"
+command = "git add docs/design-system/ && git commit && git push -u origin main"
+context = "Design system changes follow this pattern"
+confidence = 0.85
+learned_from = "claude_code"
+
+[[learning.micro_skills]]
+fact = "Design system location"
+path = "docs/design-system/"
+files = ["tokens.css", "tokens.json", "README.md", "INTEGRATION.md"]
+confidence = 0.95
+learned_from = "claude_code"
+
+[[learning.micro_skills]]
+fact = "Monospace terminal font"
+value = "JetBrains Mono Nerd Font"
+context = "PalexusOS uses monospace for terminal, UI, and documentation"
+confidence = 0.9
+learned_from = "claude_code"
+
+[[learning.micro_skills]]
+fact = "Primary color"
+value = "#cba6f7"  # Electric Mauve
+name = "electric-mauve"
+context = "Use for active states, focus rings, primary accents"
+confidence = 0.95
+learned_from = "claude_code"
+
+# Tool usage patterns
+[[learning.tool_patterns]]
+tool = "read"
+frequency = "very_high"
+sessions = 5
+confidence = 0.98
+
+[[learning.tool_patterns]]
+tool = "edit"
+frequency = "high"
+sessions = 4
+confidence = 0.95
+
+[[learning.tool_patterns]]
+tool = "bash"
+frequency = "high"
+sessions = 4
+confidence = 0.90
+
+[[learning.tool_patterns]]
+tool = "artifact"
+frequency = "medium"
+sessions = 3
+confidence = 0.85
+
+[[learning.tool_patterns]]
+tool = "grep"
+frequency = "medium"
+sessions = 3
+confidence = 0.80
+
+# Common failure patterns
+[[learning.failure_patterns]]
+error = "PKGBUILD syntax"
+context = "Missing functions or incorrect variable names"
+solution = "Check packages/*/PKGBUILD template against Arch guidelines"
+redirects = ["Review PKGBUILD structure", "Run makepkg -f to test"]
+
+[[learning.failure_patterns]]
+error = "Build verification fails"
+context = "Gates G1-G5 not passing"
+solution = "Run ./build/verify-gates.sh to identify specific gate"
+redirects = ["Check build logs", "Review modified packages"]
+
+[[learning.failure_patterns]]
+error = "Git push rejected"
+context = "Branch tracking or unmerged commits"
+solution = "Fetch, merge, then push: git fetch origin && git merge && git push"
+redirects = ["Check branch status", "Verify commits"]
+
+[cost_optimization]
+# Cross-LLM cost optimization targets
+
+target_reduction = 0.25  # 25% reduction goal
+baseline_cost = 100     # Reference baseline
+
+[[cost_optimization.strategies]]
+name = "Micro-skills pruning"
+description = "Pre-populate sessions with learned repository facts"
+estimated_savings = 0.20  # 20% savings
+applies_to = ["claude_code", "cursor", "vscode_copilot"]
+
+[[cost_optimization.strategies]]
+name = "Tool pruning"
+description = "Disable tools not used in PalexusOS development"
+estimated_savings = 0.10  # 10% savings
+applies_to = ["claude_code", "cursor", "vscode_copilot", "copilot_cli"]
+
+[[cost_optimization.strategies]]
+name = "Failure prevention"
+description = "Redirect stuck loops before wasting tokens"
+estimated_savings = 0.15  # 15% savings
+applies_to = ["all"]
+
+[reporting]
+# Cost and usage reporting
+
+frequency = "per_session"  # Report after each session
+formats = ["json", "markdown"]
+include_metrics = [
+  "total_cost",
+  "cost_saved",
+  "tokens_used",
+  "tools_used",
+  "facts_applied",
+]
+
+[integration]
+# LLM provider integrations
+
+[integration.anthropic]
+api_provider = "Anthropic"
+models = ["claude-haiku", "claude-sonnet", "claude-opus"]
+cost_tracking = true
+fact_sharing = true
+
+[integration.openai]
+api_provider = "OpenAI"
+models = ["gpt-4", "gpt-4-turbo"]
+cost_tracking = true
+fact_sharing = true
+
+[integration.github]
+api_provider = "GitHub"
+tools = ["copilot-cli", "copilot-vscode"]
+cost_tracking = true
+fact_sharing = true
+
+[cache]
+# Learned facts cache
+
+cache_location = "~/.tokeneconomizer/palexusOS"
+cache_ttl = 86400  # 24 hours
+cache_size_limit = "100MB"
+
+# Shared cache between agents
+shared_cache = true
+cache_sync_interval = 3600  # 1 hour

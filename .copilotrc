@@ -1,0 +1,8 @@
+[tokeneconomizer]
+enabled = true
+config = ".tokeneconomizer/multi-llm.toml"
+
+[repository]
+name = "palexusOS"
+owner = "earnerbaymalay"
+url = "https://github.com/earnerbaymalay/palexusOS"
