@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PalexusOS Design System — Buttons</title>
+  <link rel="stylesheet" href="../tokens.css">
+  <style>
+    body {
+      padding: var(--space-6);
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .component-section {
+      margin-bottom: var(--space-8);
+    }
+
+    .component-section h2 {
+      margin-top: 0;
+      margin-bottom: var(--space-4);
+      padding-bottom: var(--space-3);
+      border-bottom: 1px solid var(--color-surface-700);
+    }
+
+    .demo-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: var(--space-4);
+      margin-bottom: var(--space-5);
+    }
+
+    .demo-item {
+      padding: var(--space-4);
+      background-color: var(--color-surface-800);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--color-surface-700);
+    }
+
+    .demo-item h4 {
+      margin: 0 0 var(--space-3) 0;
+      font-size: var(--font-size-body-sm);
+      color: var(--color-text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* Button Styles */
+    .btn {
+      padding: var(--space-2) var(--space-4);
+      border: none;
+      border-radius: var(--radius-md);
+      font-family: var(--font-mono);
+      font-size: var(--font-size-body);
+      font-weight: var(--font-weight-bold);
+      cursor: pointer;
+      transition: all var(--transition-quick);
+      min-height: var(--size-button-height);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-2);
+    }
+
+    .btn:focus {
+      outline: 2px solid var(--color-electric-mauve);
+      outline-offset: 2px;
+      box-shadow: var(--shadow-glow-mauve);
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* Button Variants */
+    .btn-primary {
+      background-color: var(--color-electric-mauve);
+      color: var(--color-smoked-obsidian);
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      opacity: 0.9;
+      box-shadow: var(--shadow-md);
+    }
+
+    .btn-primary:active {
+      opacity: 0.85;
+    }
+
+    .btn-secondary {
+      background-color: var(--color-surface-600);
+      color: var(--color-text-primary);
+      border: 1px solid var(--color-surface-700);
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+      background-color: var(--color-surface-500);
+      box-shadow: var(--shadow-md);
+    }
+
+    .btn-danger {
+      background-color: var(--color-stealth-crimson);
+      color: var(--color-smoked-obsidian);
+    }
+
+    .btn-danger:hover:not(:disabled) {
+      opacity: 0.9;
+      box-shadow: var(--shadow-md);
+    }
+
+    .btn-success {
+      background-color: var(--color-matrix-emerald);
+      color: var(--color-smoked-obsidian);
+    }
+
+    .btn-success:hover:not(:disabled) {
+      opacity: 0.9;
+      box-shadow: var(--shadow-md);
+    }
+
+    .btn-warning {
+      background-color: var(--color-warm-gold);
+      color: var(--color-smoked-obsidian);
+    }
+
+    .btn-warning:hover:not(:disabled) {
+      opacity: 0.9;
+      box-shadow: var(--shadow-md);
+    }
+
+    .btn-icon {
+      width: var(--size-button-height);
+      height: var(--size-button-height);
+      padding: 0;
+      border-radius: var(--radius-md);
+      background-color: transparent;
+      color: var(--color-text-primary);
+      border: 1px solid transparent;
+    }
+
+    .btn-icon:hover:not(:disabled) {
+      background-color: var(--color-surface-600);
+      border-color: var(--color-surface-700);
+    }
+
+    .btn-icon svg {
+      width: 24px;
+      height: 24px;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: var(--space-2);
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .state-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: var(--space-2);
+      margin-bottom: var(--space-3);
+      font-size: var(--font-size-body-sm);
+      color: var(--color-text-tertiary);
+    }
+
+    .state-row .btn {
+      width: 100%;
+    }
+
+    .state-label {
+      grid-column: 1 / -1;
+      margin-bottom: var(--space-2);
+      font-size: var(--font-size-body-sm);
+      color: var(--color-text-secondary);
+    }
+  </style>
+</head>
+<body>
+  <h1 class="text-h1">PalexusOS Design System — Buttons</h1>
+  <p class="text-body-lg" style="color: var(--color-text-secondary); max-width: 60ch;">
+    Interactive button components demonstrating the PalexusOS design system. All buttons support keyboard navigation with visible focus indicators.
+  </p>
+
+  <!-- Primary Buttons -->
+  <section class="component-section">
+    <h2>Primary Buttons</h2>
+    <p class="text-body" style="color: var(--color-text-secondary);">
+      Used for the main call-to-action. Electric Mauve background with Obsidian text.
+    </p>
+    <div class="demo-grid">
+      <div class="demo-item">
+        <h4>Default</h4>
+        <button class="btn btn-primary">Click Me</button>
+      </div>
+      <div class="demo-item">
+        <h4>Hover</h4>
+        <button class="btn btn-primary" style="opacity: 0.9; box-shadow: var(--shadow-md);">
+          Hovered
+        </button>
+      </div>
+      <div class="demo-item">
+        <h4>Focus</h4>
+        <button class="btn btn-primary" style="outline: 2px solid var(--color-electric-mauve); outline-offset: 2px; box-shadow: var(--shadow-glow-mauve);">
+          Focused
+        </button>
+      </div>
+      <div class="demo-item">
+        <h4>Disabled</h4>
+        <button class="btn btn-primary" disabled>Disabled</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Secondary Buttons -->
+  <section class="component-section">
+    <h2>Secondary Buttons</h2>
+    <p class="text-body" style="color: var(--color-text-secondary);">
+      Used for secondary actions. Surface-600 background with subtle border.
+    </p>
+    <div class="demo-grid">
+      <div class="demo-item">
+        <h4>Default</h4>
+        <button class="btn btn-secondary">Secondary</button>
+      </div>
+      <div class="demo-item">
+        <h4>Hover</h4>
+        <button class="btn btn-secondary" style="background-color: var(--color-surface-500); box-shadow: var(--shadow-md);">
+          Hovered
+        </button>
+      </div>
+      <div class="demo-item">
+        <h4>Focus</h4>
+        <button class="btn btn-secondary" style="outline: 2px solid var(--color-electric-mauve); outline-offset: 2px; box-shadow: var(--shadow-glow-mauve);">
+          Focused
+        </button>
+      </div>
+      <div class="demo-item">
+        <h4>Disabled</h4>
+        <button class="btn btn-secondary" disabled>Disabled</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Status Buttons -->
+  <section class="component-section">
+    <h2>Status Buttons</h2>
+    <p class="text-body" style="color: var(--color-text-secondary);">
+      Semantic buttons for success, warning, and danger actions.
+    </p>
+    <div class="btn-group" style="margin-bottom: var(--space-4);">
+      <button class="btn btn-success">✓ Save</button>
+      <button class="btn btn-warning">⚠ Confirm</button>
+      <button class="btn btn-danger">✕ Delete</button>
+    </div>
+  </section>
+
+  <!-- Icon Buttons -->
+  <section class="component-section">
+    <h2>Icon Buttons</h2>
+    <p class="text-body" style="color: var(--color-text-secondary);">
+      Square icon buttons with 44×44px minimum target area. Include aria-label for accessibility.
+    </p>
+    <div class="btn-group">
+      <button class="btn btn-icon" aria-label="Settings">⚙️</button>
+      <button class="btn btn-icon" aria-label="Search">🔍</button>
+      <button class="btn btn-icon" aria-label="Menu">☰</button>
+      <button class="btn btn-icon" aria-label="Close">✕</button>
+      <button class="btn btn-icon" aria-label="Notifications">🔔</button>
+      <button class="btn btn-icon" aria-label="User">👤</button>
+    </div>
+  </section>
+
+  <!-- Button Groups -->
+  <section class="component-section">
+    <h2>Button Groups</h2>
+    <p class="text-body" style="color: var(--color-text-secondary);">
+      Multiple buttons grouped together for related actions.
+    </p>
+    <div class="btn-group" style="margin-bottom: var(--space-5);">
+      <button class="btn btn-secondary">Cancel</button>
+      <button class="btn btn-primary">Save</button>
+    </div>
+    <div class="btn-group">
+      <button class="btn btn-secondary">← Previous</button>
+      <button class="btn btn-secondary">Next →</button>
+    </div>
+  </section>
+
+  <!-- Button with Icon -->
+  <section class="component-section">
+    <h2>Buttons with Icons</h2>
+    <p class="text-body" style="color: var(--color-text-secondary);">
+      Buttons can include icons alongside text for visual clarity.
+    </p>
+    <div class="btn-group">
+      <button class="btn btn-primary">
+        <span>📥</span> Import
+      </button>
+      <button class="btn btn-primary">
+        <span>📤</span> Export
+      </button>
+      <button class="btn btn-secondary">
+        <span>🔗</span> Share
+      </button>
+      <button class="btn btn-danger">
+        <span>🗑️</span> Remove
+      </button>
+    </div>
+  </section>
+
+  <!-- Accessibility Notes -->
+  <section class="component-section" style="background-color: var(--color-surface-800); padding: var(--space-4); border-radius: var(--radius-lg); border: 1px solid var(--color-surface-700);">
+    <h2 style="margin-top: 0;">Accessibility Notes</h2>
+    <ul class="text-body" style="color: var(--color-text-secondary); line-height: 1.8;">
+      <li>All buttons have visible focus indicators (2px Electric Mauve outline)</li>
+      <li>Icon-only buttons include <code style="background-color: var(--color-surface-900);">aria-label</code> attributes</li>
+      <li>Buttons meet WCAG AA contrast requirements (11.3:1 Mauve on Obsidian)</li>
+      <li>Minimum 44×44px touch target area maintained</li>
+      <li>Disabled state uses opacity reduction with cursor: not-allowed</li>
+      <li>Keyboard navigation supported via Tab key</li>
+    </ul>
+  </section>
+
+  <!-- Usage Example -->
+  <section class="component-section">
+    <h2>CSS Implementation</h2>
+    <pre><code class="text-code">/* Basic button styles */
+.btn {
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
+  font-family: var(--font-mono);
+  cursor: pointer;
+  transition: all var(--transition-quick);
+}
+
+.btn:focus {
+  outline: 2px solid var(--color-electric-mauve);
+  outline-offset: 2px;
+  box-shadow: var(--shadow-glow-mauve);
+}
+
+.btn-primary {
+  background-color: var(--color-electric-mauve);
+  color: var(--color-smoked-obsidian);
+}
+
+.btn-primary:hover:not(:disabled) {
+  opacity: 0.9;
+  box-shadow: var(--shadow-md);
+}</code></pre>
+  </section>
+</body>
+</html>

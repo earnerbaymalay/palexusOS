@@ -1,0 +1,324 @@
+/* PalexusOS Design System Tokens */
+/* Generated from design tokens specification */
+/* Theme: Obsidian Dark (Catppuccin Mocha Mauve variant) */
+
+:root {
+  /* ===== COLOR PALETTE ===== */
+  /* Primary Cyberdeck Colors */
+  --color-electric-mauve: #cba6f7;
+  --color-warm-gold: #fab387;
+  --color-stealth-crimson: #f38ba8;
+  --color-aerospace-sapphire: #74c7ec;
+  --color-matrix-emerald: #a6e3a1;
+  --color-liquid-chrome: #cdd6f4;
+  --color-smoked-obsidian: #11111b;
+
+  /* Surface Hierarchy */
+  --color-surface-900: #11111b;
+  --color-surface-800: #1e1e2e;
+  --color-surface-700: #2a2a3e;
+  --color-surface-600: #313244;
+  --color-surface-500: #45454f;
+
+  /* Text Colors */
+  --color-text-primary: #cdd6f4;
+  --color-text-secondary: #a6adc8;
+  --color-text-tertiary: #7f849c;
+
+  /* ===== FUNCTIONAL COLORS ===== */
+  --color-success: var(--color-matrix-emerald);
+  --color-warning: var(--color-warm-gold);
+  --color-error: var(--color-stealth-crimson);
+  --color-info: var(--color-aerospace-sapphire);
+
+  /* ===== TYPOGRAPHY ===== */
+  /* Font Families */
+  --font-mono: "JetBrains Mono Nerd Font", "Courier New", monospace;
+  --font-system: system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  /* Font Sizes */
+  --font-size-h1: 32px;
+  --font-size-h2: 24px;
+  --font-size-h3: 18px;
+  --font-size-body-lg: 16px;
+  --font-size-body: 14px;
+  --font-size-body-sm: 12px;
+  --font-size-terminal: 14px;
+  --font-size-code: 13px;
+
+  /* Font Weights */
+  --font-weight-regular: 400;
+  --font-weight-bold: 700;
+
+  /* Line Heights */
+  --line-height-tight: 1.2;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.6;
+
+  /* Letter Spacing */
+  --letter-spacing-tight: -0.02em;
+  --letter-spacing-normal: 0;
+  --letter-spacing-relaxed: 0.01em;
+
+  /* ===== SPACING SYSTEM ===== */
+  /* 8px base scale */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-8: 48px;
+
+  /* ===== BORDER RADIUS ===== */
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-lg: 8px;
+  --radius-xl: 16px;
+
+  /* ===== SHADOWS ===== */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.6);
+  --shadow-glow-mauve: 0 0 16px rgba(203, 166, 247, 0.3);
+
+  /* ===== Z-INDEX SCALE ===== */
+  --z-base: 0;
+  --z-raised: 1;
+  --z-floating: 2;
+  --z-modal: 3;
+  --z-overlay: 4;
+  --z-top: 5;
+
+  /* ===== TRANSITIONS ===== */
+  --transition-quick: 150ms cubic-bezier(0.4, 0, 1, 1);
+  --transition-standard: 300ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --transition-slow: 500ms cubic-bezier(0.25, 0.1, 0.25, 1);
+
+  /* ===== BREAKPOINTS ===== */
+  /* For responsive behavior */
+  --breakpoint-sm: 768px;
+  --breakpoint-md: 1024px;
+  --breakpoint-lg: 1440px;
+  --breakpoint-xl: 1920px;
+
+  /* ===== COMPONENT SIZES ===== */
+  /* Touch targets and UI dimensions */
+  --size-touch-min: 44px;
+  --size-icon-sm: 16px;
+  --size-icon-md: 24px;
+  --size-icon-lg: 32px;
+  --size-button-height: 40px;
+  --size-input-height: 40px;
+  --size-top-nav-height: 56px;
+  --size-sidebar-width: 240px;
+  --size-sidebar-width-collapsed: 56px;
+  --size-modal-max-width: 600px;
+}
+
+/* ===== UTILITY CLASSES ===== */
+
+/* Semantic color utilities */
+.color-primary { color: var(--color-text-primary); }
+.color-secondary { color: var(--color-text-secondary); }
+.color-tertiary { color: var(--color-text-tertiary); }
+.color-accent { color: var(--color-electric-mauve); }
+
+/* Background utilities */
+.bg-surface { background-color: var(--color-surface-800); }
+.bg-surface-raised { background-color: var(--color-surface-700); }
+.bg-surface-hover { background-color: var(--color-surface-600); }
+.bg-surface-active { background-color: var(--color-surface-500); }
+.bg-dark { background-color: var(--color-smoked-obsidian); }
+
+/* Typography utilities */
+.text-h1 {
+  font-size: var(--font-size-h1);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+  letter-spacing: var(--letter-spacing-tight);
+  font-family: var(--font-mono);
+}
+
+.text-h2 {
+  font-size: var(--font-size-h2);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-normal);
+  letter-spacing: var(--letter-spacing-tight);
+  font-family: var(--font-mono);
+}
+
+.text-h3 {
+  font-size: var(--font-size-h3);
+  font-weight: var(--font-weight-bold);
+  line-height: 1.4;
+  font-family: var(--font-mono);
+}
+
+.text-body-lg {
+  font-size: var(--font-size-body-lg);
+  line-height: var(--line-height-relaxed);
+  font-family: var(--font-mono);
+}
+
+.text-body {
+  font-size: var(--font-size-body);
+  line-height: var(--line-height-normal);
+  font-family: var(--font-mono);
+}
+
+.text-body-sm {
+  font-size: var(--font-size-body-sm);
+  line-height: var(--line-height-normal);
+  font-family: var(--font-mono);
+}
+
+.text-terminal {
+  font-size: var(--font-size-terminal);
+  line-height: var(--line-height-relaxed);
+  letter-spacing: var(--letter-spacing-relaxed);
+  font-family: var(--font-mono);
+}
+
+.text-code {
+  font-size: var(--font-size-code);
+  line-height: var(--line-height-normal);
+  font-family: var(--font-mono);
+}
+
+/* Spacing utilities */
+.p-1 { padding: var(--space-1); }
+.p-2 { padding: var(--space-2); }
+.p-3 { padding: var(--space-3); }
+.p-4 { padding: var(--space-4); }
+.p-5 { padding: var(--space-5); }
+.p-6 { padding: var(--space-6); }
+
+.px-2 { padding-left: var(--space-2); padding-right: var(--space-2); }
+.px-3 { padding-left: var(--space-3); padding-right: var(--space-3); }
+.px-4 { padding-left: var(--space-4); padding-right: var(--space-4); }
+
+.py-2 { padding-top: var(--space-2); padding-bottom: var(--space-2); }
+.py-3 { padding-top: var(--space-3); padding-bottom: var(--space-3); }
+.py-4 { padding-top: var(--space-4); padding-bottom: var(--space-4); }
+
+.m-1 { margin: var(--space-1); }
+.m-2 { margin: var(--space-2); }
+.m-3 { margin: var(--space-3); }
+.m-4 { margin: var(--space-4); }
+
+.gap-1 { gap: var(--space-1); }
+.gap-2 { gap: var(--space-2); }
+.gap-3 { gap: var(--space-3); }
+.gap-4 { gap: var(--space-4); }
+
+/* Border radius utilities */
+.rounded-sm { border-radius: var(--radius-sm); }
+.rounded-md { border-radius: var(--radius-md); }
+.rounded-lg { border-radius: var(--radius-lg); }
+.rounded-xl { border-radius: var(--radius-xl); }
+
+/* Shadow utilities */
+.shadow-sm { box-shadow: var(--shadow-sm); }
+.shadow-md { box-shadow: var(--shadow-md); }
+.shadow-lg { box-shadow: var(--shadow-lg); }
+.shadow-glow { box-shadow: var(--shadow-glow-mauve); }
+
+/* Border utilities */
+.border { border: 1px solid var(--color-surface-700); }
+.border-primary { border: 1px solid var(--color-electric-mauve); }
+.border-error { border: 1px solid var(--color-stealth-crimson); }
+.border-success { border: 1px solid var(--color-matrix-emerald); }
+
+/* Focus states */
+.focus-ring:focus {
+  outline: 2px solid var(--color-electric-mauve);
+  outline-offset: 2px;
+  box-shadow: var(--shadow-glow-mauve);
+}
+
+/* Disabled state */
+.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ===== GLOBAL DEFAULTS ===== */
+html {
+  font-family: var(--font-mono);
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--color-text-primary);
+  background-color: var(--color-smoked-obsidian);
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  color: var(--color-text-primary);
+  background-color: var(--color-smoked-obsidian);
+}
+
+/* Selection highlight */
+::selection {
+  background-color: var(--color-electric-mauve);
+  color: var(--color-smoked-obsidian);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--color-surface-700);
+  border-radius: var(--radius-md);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-surface-600);
+}
+
+/* Links */
+a {
+  color: var(--color-aerospace-sapphire);
+  text-decoration: none;
+  transition: color var(--transition-quick);
+}
+
+a:hover {
+  color: var(--color-electric-mauve);
+}
+
+a:visited {
+  color: var(--color-warm-gold);
+}
+
+/* Code blocks */
+code {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-code);
+  background-color: var(--color-surface-800);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  color: var(--color-liquid-chrome);
+}
+
+pre {
+  background-color: var(--color-surface-800);
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  overflow-x: auto;
+}
+
+pre code {
+  background-color: transparent;
+  padding: 0;
+  border-radius: 0;
+}
