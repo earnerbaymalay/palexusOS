@@ -1,0 +1,26 @@
+# PalexusOS Design System for XFCE
+# Generated from docs/design-system/tokens.json
+
+[Palexus]
+# Window manager colors
+title_font_color=#cdd6f4
+title_font_color_active=#cba6f7
+title_font_color_inactive=#7f849c
+
+# Window colors
+bg_color=#1e1e2e
+bg_color_active=#2a2a3e
+bg_color_inactive=#313244
+
+# Button colors
+button_bg_color=#cba6f7
+button_bg_color_active=#fab387
+button_bg_color_inactive=#313244
+
+# Border colors
+border_color_active=#cba6f7
+border_color_inactive=#313244
+
+# Focus colors
+focus_color=#cba6f7
+focus_color_active=#f38ba8
