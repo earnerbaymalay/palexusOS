@@ -38,42 +38,37 @@ log_info "Tokens: $TOKENS_JSON"
 log_info "Repository root: $REPO_ROOT"
 echo ""
 
-# Extract color values from tokens.json using Python
-extract_colors() {
+# Use TokenRegistry to export all formats
+export_designs() {
   python3 << 'PYTHON_EOF'
-import json
 import sys
+from pathlib import Path
 
-tokens_file = sys.argv[1] if len(sys.argv) > 1 else "tokens.json"
+# Add palexus module to path
+sys.path.insert(0, str(Path.cwd()))
+
+from palexus.design.token_registry import TokenRegistry
+from palexus.design.exporters import CSSExporter, ShellExporter, KittyExporter, XFCEExporter
+
+tokens_file = Path("docs/design-system/tokens.json")
 
 try:
-    with open(tokens_file) as f:
-        tokens = json.load(f)
+    # Load and validate tokens
+    registry = TokenRegistry(tokens_file)
 
-    colors = tokens['colors']
+    # Export formats
+    css_export = CSSExporter(registry).export()
+    shell_export = ShellExporter(registry).export()
+    kitty_export = KittyExporter(registry).export()
+    xfce_export = XFCEExporter(registry).export()
 
-    # Print color definitions
-    print("# Design System Colors")
-    for category, palette in colors.items():
-        for name, value in palette.items():
-            if isinstance(value, dict):
-                for subname, subvalue in value.items():
-                    print(f"COLOR_{category.upper()}_{name.upper()}_{subname.upper()}={subvalue}")
-            else:
-                print(f"COLOR_{category.upper()}_{name.upper()}={value}")
+    # Verify exports
+    assert css_export, "CSS export failed"
+    assert shell_export, "Shell export failed"
+    assert kitty_export, "Kitty export failed"
+    assert xfce_export, "XFCE export failed"
 
-    print("\n# Typography")
-    typography = tokens['typography']
-    for style_type, styles in typography.get('scales', {}).items():
-        print(f"FONT_{style_type.upper()}_SIZE={styles.get('size', '14px')}")
-
-    print("\n# Spacing")
-    for size, value in tokens['spacing'].items():
-        print(f"SPACE_{size}={value}")
-
-    print("\n# Radius")
-    for size, value in tokens['radius'].items():
-        print(f"RADIUS_{size}={value}")
+    print("✓ All token exports successful")
 
 except Exception as e:
     print(f"Error: {e}", file=sys.stderr)
