@@ -252,6 +252,32 @@ python -m pytest tests/ -q  # 160 passing
 
 ---
 
+## 🤝 Contributing & Community
+
+**For contributors, maintainers, and users:**
+
+| Guide | Purpose | Read Time |
+| :--- | :--- | :--- |
+| [**CONTRIBUTING.md**](CONTRIBUTING.md) | How to contribute code, write tests, submit PRs | 10 min |
+| [**INSTALL.md**](INSTALL.md) | Installation from source, wheel, or Arch package | 5 min |
+| [**RELEASE.md**](RELEASE.md) | Release process, versioning strategy (SemVer) | 10 min |
+| [**CHANGELOG.md**](CHANGELOG.md) | Version history and what's new in each release | 5 min |
+| [**PRE_LAUNCH_CHECKLIST.md**](PRE_LAUNCH_CHECKLIST.md) | Production readiness verification | 5 min |
+
+**Issue & PR Templates:**
+- Bug reports: [.github/ISSUE_TEMPLATE/bug_report.md](.github/ISSUE_TEMPLATE/bug_report.md)
+- Feature requests: [.github/ISSUE_TEMPLATE/feature_request.md](.github/ISSUE_TEMPLATE/feature_request.md)
+- Pull requests: [.github/pull_request_template.md](.github/pull_request_template.md)
+
+**Ralph Wiggum Methodology:**
+- **Explicit Intent**: Clear module ownership (ARCHITECTURE.md)
+- **Clear Boundaries**: Domain terms defined (CONTEXT.md)
+- **Intentional Design**: Decisions recorded (docs/adr/)
+- **Locality**: Changes scoped to modules
+- **Testability**: 160+ tests verify functionality
+
+---
+
 ## 🛡️ The Prime Directive (Zero-Telemetry Sovereignty)
 
 PalexusOS guarantees that no telemetry packet leaves your machine without your explicit consent:
