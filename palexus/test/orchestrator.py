@@ -52,6 +52,8 @@ class Suite:
 class TestOrchestrator:
     """Unified test orchestration framework."""
 
+    __test__ = False  # Prevent pytest from collecting this class
+
     def __init__(self, repo_root: Optional[Path] = None):
         """Initialize test orchestrator.
 
