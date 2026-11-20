@@ -1,0 +1,65 @@
+name: Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.10", "3.11", "3.12"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[test]"
+
+      - name: Run tests
+        run: |
+          python -m pytest tests/ -v --tb=short
+
+      - name: Verify test count
+        run: |
+          test_count=$(python -m pytest tests/ --co -q | tail -1 | grep -oE '[0-9]+ test' | grep -oE '[0-9]+')
+          if [ "$test_count" -lt 160 ]; then
+            echo "Error: Expected at least 160 tests, got $test_count"
+            exit 1
+          fi
+
+  code-quality:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install ruff black
+
+      - name: Lint with ruff
+        run: |
+          ruff check palexus/ tests/ --extend-ignore=E501
+
+      - name: Format check with black
+        run: |
+          black --check palexus/ tests/ --line-length=100
