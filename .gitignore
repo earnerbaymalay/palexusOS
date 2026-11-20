@@ -81,3 +81,14 @@ build/sprints/
 
 # Boost shell-output cache (local tooling)
 .boost/
+
+# Python packaging
+build/
+dist/
+*.egg-info/
+*.whl
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/

@@ -1,0 +1,42 @@
+# Maintainer: earnerbaymalay <earnerbaymalay@gmail.com>
+# Contributor: Claude Haiku 4.5 <noreply@anthropic.com>
+pkgname=palexus-lib
+pkgver=0.1.0
+pkgrel=1
+pkgdesc="PalexusOS core Python modules: TokenRegistry, GateRegistry, DesktopEnvironment, TestOrchestrator"
+arch=('any')
+url="https://github.com/earnerbaymalay/palexusOS"
+license=('MIT')
+depends=('python>=3.9')
+makedepends=('python-build' 'python-installer' 'python-setuptools' 'python-wheel')
+provides=('palexus-lib')
+conflicts=()
+source=("git+https://github.com/earnerbaymalay/palexusOS.git")
+sha256sums=('SKIP')
+
+build() {
+	cd "$srcdir/palexusOS"
+	python -m build --wheel --no-isolation
+}
+
+package() {
+	cd "$srcdir/palexusOS"
+	python -m installer --destdir="$pkgdir" dist/*.whl
+
+	# Install documentation
+	install -Dm644 CONTEXT.md "$pkgdir/usr/share/doc/palexus-lib/CONTEXT.md"
+	install -Dm644 ARCHITECTURE.md "$pkgdir/usr/share/doc/palexus-lib/ARCHITECTURE.md"
+	install -Dm644 QUICKSTART.md "$pkgdir/usr/share/doc/palexus-lib/QUICKSTART.md"
+	install -Dm644 README.md "$pkgdir/usr/share/doc/palexus-lib/README.md"
+
+	# Install ADRs
+	install -Dm644 docs/adr/0001-token-registry.md "$pkgdir/usr/share/doc/palexus-lib/adr/0001-token-registry.md"
+	install -Dm644 docs/adr/0002-gate-registry.md "$pkgdir/usr/share/doc/palexus-lib/adr/0002-gate-registry.md"
+	install -Dm644 docs/adr/0003-desktop-environment.md "$pkgdir/usr/share/doc/palexus-lib/adr/0003-desktop-environment.md"
+	install -Dm644 docs/adr/0004-test-orchestrator.md "$pkgdir/usr/share/doc/palexus-lib/adr/0004-test-orchestrator.md"
+}
+
+check() {
+	cd "$srcdir/palexusOS"
+	python -m pytest tests/ -q
+}
