@@ -96,7 +96,7 @@ python -m pytest tests/ --cov=palexus
 ```
 
 GitHub Actions will verify:
-- All tests pass on Python 3.9–3.12
+- All tests pass on Python 3.11–3.14
 - `ruff` linting passes
 - `black` formatting is correct
 - Test count ≥ 160
@@ -162,19 +162,22 @@ Fixes #123
 
 PalexusOS uses:
 
-- **Formatter**: `black` (line length: 100)
-- **Linter**: `ruff` (Python 3.9+)
-- **Type hints**: Optional but encouraged in public APIs
+- **Python**: 3.11+ (use `X | None` and `dict[str, ...]`, not `Optional`/`Dict`)
+- **Formatter**: `black` 26.10.1, line length 100
+- **Linter**: `ruff` 0.17.6 with `--extend-ignore=E501`
+- **Type hints**: on all public functions
+
+The versions match CI. `pre-commit install` runs both on every commit.
 
 ```python
 # Good: clear naming, type hints where useful
 class TokenRegistry:
-    def register_token(self, name: str, value: str) -> None:
-        """Register a new design token."""
-        self.tokens[name] = value
+    def color(self, category: str, name: str) -> str:
+        """Get specific color value. Raises KeyError if not found."""
+        return self.colors(category)[name]
 ```
 
-Run `make format` and `make lint` before committing.
+Run `make format` and `make lint`, or `pre-commit run --all-files`, before committing.
 
 ## Testing
 
@@ -191,17 +194,23 @@ tests/
 ├── test_design.py       # TokenRegistry tests
 ├── test_build.py        # GateRegistry tests
 ├── test_desktop.py      # DesktopEnvironment tests
-└── test_test.py         # TestOrchestrator tests
+├── test_orchestrator.py # TestOrchestrator tests
+├── test_cli.py          # palexus command-line tools
+└── test_examples.py     # every script in examples/ must run
 ```
 
 **Example test:**
 
 ```python
-def test_register_token_stores_value():
-    """TokenRegistry stores tokens and retrieves them."""
-    registry = TokenRegistry()
-    registry.register_token("color/primary", "#cba6f7")
-    assert registry.get_token("color/primary") == "#cba6f7"
+def test_color_lookup(tmp_path):
+    """TokenRegistry returns one colour by category and name."""
+    tokens = tmp_path / "tokens.json"
+    tokens.write_text(json.dumps({
+        "colors": {"primary": {"mauve": "#cba6f7"}},
+        "typography": {}, "spacing": {}, "radius": {},
+    }))
+    registry = TokenRegistry(tokens)
+    assert registry.color("primary", "mauve") == "#cba6f7"
 ```
 
 ## Documentation
