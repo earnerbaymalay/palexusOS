@@ -1,217 +1,36 @@
 # PalexusOS Examples
 
-Comprehensive examples demonstrating how to use each PalexusOS module.
+One runnable script per core module. Each one uses only the real public API,
+and `tests/test_examples.py` runs all of them in CI, so they cannot drift.
 
-## Structure
-
-Each module has a dedicated example file:
-
-- **01_token_registry_example.py** - Design token management
-- **02_gate_registry_example.py** - Quality gate verification
-- **03_desktop_environment_example.py** - Boot sequence orchestration
-- **04_test_orchestrator_example.py** - Unified test execution
-
-## Running Examples
-
-### Individual Examples
-
-Run any example directly:
-
-```bash
-python examples/01_token_registry_example.py
-python examples/02_gate_registry_example.py
-python examples/03_desktop_environment_example.py
-python examples/04_test_orchestrator_example.py
-```
-
-### From Project Root
-
-```bash
-cd /home/user/palexusOS
-python examples/01_token_registry_example.py
-```
-
-## Example Descriptions
-
-### 01: TokenRegistry
-
-Demonstrates design token management:
-
-- Register color, typography, and spacing tokens
-- Export to 4 formats: CSS, Shell, Kitty, XFCE
-- Build complete design systems
-- Manage token organization (primitives → semantics)
-
-**Key Operations:**
-```python
-registry = TokenRegistry()
-registry.register_token("color/primary", "#cba6f7")
-css = registry.export_css()
-shell = registry.export_shell()
-```
-
-### 02: GateRegistry
-
-Demonstrates quality gate verification:
-
-- List available gates (5 total: Package, ISO, Graphics, Boot, Performance)
-- Run all or specific gates
-- Understand gate dependencies and execution order
-- Track gate status and results
-- Filter gates by pattern
-
-**Key Operations:**
-```python
-registry = GateRegistry()
-results = registry.run()
-results = registry.run(selected=["Package", "Graphics"])
-```
-
-### 03: DesktopEnvironment
-
-Demonstrates boot sequence orchestration:
-
-- Understand 5 phases: GREETER → USER_SELECT → HUD → THEME → COMPLETE
-- Manage boot context state
-- Handle user selection and theme management
-- Initialize command HUD
-- Support multi-user boot scenarios
-
-**Key Operations:**
-```python
-context = BootContext()
-context.advance_phase(BootPhase.USER_SELECT)
-context.set_user("alice")
-context.set_theme("catppuccin-mocha")
-```
-
-### 04: TestOrchestrator
-
-Demonstrates unified test execution:
-
-- Run tests at different levels (unit, gate, integration)
-- Get summary statistics and failure reports
-- Track test performance
-- Coverage by module
-- Continuous testing patterns
-
-**Key Operations:**
-```python
-orchestrator = TestOrchestrator()
-results = orchestrator.run_level(Level.UNIT)
-results = orchestrator.run_all()
-summary = orchestrator.summary()
-```
-
-## Learning Path
-
-For new developers:
-
-1. **Start with TokenRegistry** (01) - Understanding design systems
-2. **Continue with GateRegistry** (02) - Understanding quality verification
-3. **Then DesktopEnvironment** (03) - Understanding boot sequences
-4. **Finally TestOrchestrator** (04) - Understanding test execution
-
-## Integration Between Modules
-
-The examples show how modules work together:
-
-- **Tokens** drive design system (used by DesktopEnvironment for theming)
-- **Gates** verify design quality and package integrity
-- **DesktopEnvironment** applies tokens during boot sequence
-- **TestOrchestrator** verifies all modules work correctly
-
-## Ralph Wiggum Methodology
-
-All examples follow Ralph Wiggum principles:
-
-✓ **Explicit Intent** - Each example clearly states what it's doing  
-✓ **Clear Boundaries** - Modules have distinct responsibilities  
-✓ **Intentional Design** - Decisions documented in ADRs  
-✓ **Locality** - Examples stay scoped to single modules  
-✓ **Testability** - Each module independently demonstrable  
-
-## Common Patterns
-
-### Error Handling
-
-Each example shows graceful error handling:
-
-```python
-try:
-    # Operation
-except Exception as e:
-    # Handle or log
-    pass
-```
-
-### Performance Tracking
-
-Examples include performance timing:
-
-```python
-import time
-start = time.time()
-# Operation
-duration = time.time() - start
-```
-
-### Status Reporting
-
-Examples show how to track status:
-
-```python
-if result.passed:
-    print("✓ PASS")
-else:
-    print(f"✗ FAIL: {result.error}")
-```
-
-## Extending Examples
-
-To create a new example:
-
-1. Follow the naming pattern: `NN_module_example.py`
-2. Include docstring with module description
-3. Create separate functions for each concept
-4. Use `if __name__ == "__main__"` for entry point
-5. Print clear section headers
-6. Add to this README with brief description
-
-## Troubleshooting
-
-### "ModuleNotFoundError: No module named 'palexus'"
-
-Install the package:
 ```bash
 pip install -e .
+python examples/01_token_registry_example.py   # works from any directory
 ```
 
-### Examples crash or fail
+| Script | Module | Shows |
+|---|---|---|
+| `01_token_registry_example.py` | `palexus.design` | Reading colours, spacing, radius and typography; exporting to CSS, shell, Kitty and XFCE; the errors for a missing or incomplete `tokens.json` |
+| `02_gate_registry_example.py` | `palexus.build` | Gate dependencies; running all or selected gates; how one failure skips everything that depends on it; gate self-tests |
+| `03_desktop_environment_example.py` | `palexus.desktop` | The boot sequence and `BootContext`; booting with the HUD off; pointing the theme loader at a token file; resetting between sessions |
+| `04_test_orchestrator_example.py` | `palexus.test` | Recording results in suites, then `run_all`, `run_level`, `summary` and `report_failures` |
 
-Ensure all tests pass first:
-```bash
-make test
-```
+## What the modules do today
 
-### Need more context?
+The examples print what the code really does, including its current limits:
 
-Read the documentation:
-- **QUICKSTART.md** - Developer onboarding
-- **ARCHITECTURE.md** - Module ownership
-- **CONTEXT.md** - Domain vocabulary
-- **docs/adr/*** - Architecture decisions
+- **Gates** check that the expected files exist; they do not build packages
+  or ISOs yet.
+- **Boot adapters** advance the phase and fill in the context without
+  launching the greeter or HUD binaries. The greeter sets the user to
+  `"default"` and skips the `USER_SELECT` phase; no adapter sets a theme.
+- **TestOrchestrator** aggregates results you give it; it does not discover
+  or run tests. Use `pytest` to run the suite.
 
-## Support
+## Adding an example
 
-For issues with examples:
-
-1. Check QUICKSTART.md
-2. Review the example docstrings
-3. Run tests to verify setup
-4. Open an issue with error output
-
----
-
-**All examples are verified to run successfully.**  
-**Last updated**: 2026-11-20
+1. Name it `NN_topic_example.py` so the test picks it up.
+2. Resolve paths from `Path(__file__)`, not the current directory: the test
+   runs each example from a temporary directory.
+3. Exit with status 0 and print something. That is all the test checks, so
+   make the output show the behaviour you are explaining.

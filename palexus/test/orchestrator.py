@@ -201,6 +201,7 @@ class TestOrchestrator:
             test_count=suite.test_count,
             passed=suite.passed,
             failed=suite.failed,
+            duration_ms=suite.duration_ms,
             tests=suite.tests,
         )
         return result
