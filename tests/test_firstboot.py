@@ -38,6 +38,7 @@ def oobe_apply(tmp_path, monkeypatch):
 def _run_apply(mod, monkeypatch, capsys, request):
     import io
     import json
+
     monkeypatch.setattr(mod.sys, "stdin", io.StringIO(json.dumps(request)))
     with pytest.raises(SystemExit):
         mod.apply()
@@ -49,6 +50,7 @@ REQUEST = {"username": "ada", "password": "secret1", "hostname": "palexus", "ful
 
 def test_failed_setup_removes_the_half_made_account(oobe_apply, monkeypatch, capsys):
     import subprocess
+
     accounts = set()
     removed = []
 
@@ -99,14 +101,17 @@ def _fake(tmp_path, name, body):
 def _run_wizard(tmp_path, welcome_body):
     import os
     import subprocess
+
     marker = tmp_path / "oobe-pending"
     marker.touch()
     log = tmp_path / "log"
-    env = dict(os.environ,
-               PALEXUS_OOBE_MARKER=str(marker),
-               PALEXUS_WELCOME=_fake(tmp_path, "welcome", f'echo welcome >> "{log}"; {welcome_body}'),
-               SWAYNAG=_fake(tmp_path, "swaynag", f'echo "nag $*" >> "{log}"'),
-               SWAYMSG=_fake(tmp_path, "swaymsg", f'echo "msg $*" >> "{log}"'))
+    env = dict(
+        os.environ,
+        PALEXUS_OOBE_MARKER=str(marker),
+        PALEXUS_WELCOME=_fake(tmp_path, "welcome", f'echo welcome >> "{log}"; {welcome_body}'),
+        SWAYNAG=_fake(tmp_path, "swaynag", f'echo "nag $*" >> "{log}"'),
+        SWAYMSG=_fake(tmp_path, "swaymsg", f'echo "msg $*" >> "{log}"'),
+    )
     subprocess.run(["bash", str(HUD_DIR / "palexus-oobe-wizard")], env=env, check=True, timeout=20)
     return log.read_text().splitlines()
 
@@ -147,7 +152,9 @@ def test_finalize_removes_the_live_seed(oobe_apply, tmp_path, monkeypatch):
     monkeypatch.setattr(oobe_apply, "SESSION_FILE", str(tmp_path / "c"))
     monkeypatch.setattr(oobe_apply.os, "geteuid", lambda: 0)
     monkeypatch.setattr(oobe_apply.time, "sleep", lambda s: None)
-    monkeypatch.setattr(oobe_apply.subprocess, "run", lambda *a, **k: type("r", (), {"returncode": 1})())
+    monkeypatch.setattr(
+        oobe_apply.subprocess, "run", lambda *a, **k: type("r", (), {"returncode": 1})()
+    )
     oobe_apply.finalize()
     assert not seed.exists()
 

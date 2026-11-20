@@ -4,15 +4,17 @@ Manages the boot lifecycle: greeter → user selection → HUD → theme applica
 Each adapter encapsulates environment-specific logic.
 """
 
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
-from typing import Optional
 
 
 class BootPhase(Enum):
     """Desktop boot sequence phases."""
+
     GREETER = "greeter"
     USER_SELECT = "user_select"
     HUD = "hud"
@@ -23,8 +25,9 @@ class BootPhase(Enum):
 @dataclass
 class BootContext:
     """Context maintained across boot phases."""
-    selected_user: Optional[str] = None
-    selected_theme: Optional[str] = None
+
+    selected_user: str | None = None
+    selected_theme: str | None = None
     hud_enabled: bool = True
     phase: BootPhase = BootPhase.GREETER
 
@@ -39,7 +42,6 @@ class Adapter(ABC):
         Args:
             context: Shared boot context
         """
-        pass
 
     @abstractmethod
     def test(self) -> bool:
@@ -48,7 +50,6 @@ class Adapter(ABC):
         Returns:
             True if adapter is properly configured
         """
-        pass
 
 
 class GreeterAdapter(Adapter):
@@ -112,11 +113,9 @@ class HUDAdapter(Adapter):
 class ThemeAdapter(Adapter):
     """Theme loader and UI style application."""
 
-    def __init__(self, design_tokens_path: Optional[Path] = None):
+    def __init__(self, design_tokens_path: Path | None = None):
         self.name = "theme-loader"
-        self.design_tokens_path = design_tokens_path or Path(
-            "docs/design-system/tokens.json"
-        )
+        self.design_tokens_path = design_tokens_path or Path("docs/design-system/tokens.json")
 
     def initialize(self, context: BootContext) -> None:
         """Apply theme and UI styles.
@@ -165,7 +164,7 @@ class DesktopEnvironment:
         self.theme.initialize(self.context)
         return self.context
 
-    def hud_interface(self) -> Optional[str]:
+    def hud_interface(self) -> str | None:
         """Get HUD interface state.
 
         Returns:
@@ -197,11 +196,7 @@ class DesktopEnvironment:
         Returns:
             True if all adapters pass tests
         """
-        return (
-            self.greeter.test()
-            and self.hud.test()
-            and self.theme.test()
-        )
+        return self.greeter.test() and self.hud.test() and self.theme.test()
 
     def reset(self) -> None:
         """Reset boot context for new session."""

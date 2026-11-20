@@ -23,7 +23,7 @@ def main() -> int:
     )
 
     # Validate tokens command
-    validate_parser = subparsers.add_parser("validate", help="Validate token schema")
+    subparsers.add_parser("validate", help="Validate token schema")
 
     # Export command
     export_parser = subparsers.add_parser("export", help="Export tokens to format")
@@ -48,7 +48,7 @@ def main() -> int:
 
     try:
         registry = TokenRegistry(tokens_file)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 - CLI boundary: report any failure as a clean error
         print(f"Error loading tokens: {e}", file=sys.stderr)
         return 1
 
@@ -85,7 +85,7 @@ def cmd_validate(registry: TokenRegistry) -> int:
         registry.validate()
         print("✓ Token schema valid")
         return 0
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 - CLI boundary: report any failure as a clean error
         print(f"✗ Token validation failed: {e}", file=sys.stderr)
         return 1
 
@@ -111,7 +111,7 @@ def cmd_export(registry: TokenRegistry, fmt: str, output: str) -> int:
 
         print(f"✓ Exported to {output}")
         return 0
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 - CLI boundary: report any failure as a clean error
         print(f"✗ Export failed: {e}", file=sys.stderr)
         return 1
 

@@ -2,11 +2,9 @@
 
 from pathlib import Path
 
-import pytest
-
 from palexus.desktop.environment import (
-    DesktopEnvironment,
     BootPhase,
+    DesktopEnvironment,
     GreeterAdapter,
     HUDAdapter,
     ThemeAdapter,

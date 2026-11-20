@@ -10,14 +10,16 @@ jobs:
   tests:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
-        python-version: ["3.9", "3.10", "3.11", "3.12"]
+        # 3.9 is end-of-life and no longer available on current ubuntu-latest runners
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
 
     steps:
       - uses: actions/checkout@v4
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
           cache: pip
@@ -46,7 +48,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: "3.11"
           cache: pip
@@ -54,7 +56,8 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install ruff black
+          # Pinned so a new linter release can't turn main red overnight
+          pip install "ruff==0.17.6" "black==26.10.1"
 
       - name: Lint with ruff
         run: |

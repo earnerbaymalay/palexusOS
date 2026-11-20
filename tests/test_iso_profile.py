@@ -1,8 +1,8 @@
 """PalexusOS Gate G3 & G4 Validation Suite for the greeter, Calamares installer and Archiso profile."""
 
 import os
-from pathlib import Path
 import unittest
+from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
@@ -28,9 +28,7 @@ class TestPalexusOSGates(unittest.TestCase):
         self.assertIn("services-systemd", settings)
 
         branding_dir = cal_root / "branding" / "palexusos"
-        branding = (branding_dir / "branding.desc").read_text(
-            encoding="utf-8"
-        )
+        branding = (branding_dir / "branding.desc").read_text(encoding="utf-8")
         self.assertIn("componentName:   palexusos", branding)
         self.assertNotIn("#00a8ff", branding.lower())
         self.assertIn("#11111b", branding.lower())
@@ -47,7 +45,9 @@ class TestPalexusOSGates(unittest.TestCase):
         ):
             asset_path = branding_dir / asset
             self.assertTrue(asset_path.is_file(), f"Calamares asset {asset} must exist")
-            self.assertGreater(asset_path.stat().st_size, 0, f"Calamares asset {asset} cannot be empty")
+            self.assertGreater(
+                asset_path.stat().st_size, 0, f"Calamares asset {asset} cannot be empty"
+            )
 
         # Validate show.qml structure (API 2 lifecycle and 4 slide themes)
         show_qml = (branding_dir / "show.qml").read_text(encoding="utf-8")
@@ -66,9 +66,7 @@ class TestPalexusOSGates(unittest.TestCase):
             self.assertIn(subvol, mount)
         self.assertNotIn("btrfsSubvolumes", partition)
 
-        services = (cal_root / "modules" / "services-systemd.conf").read_text(
-            encoding="utf-8"
-        )
+        services = (cal_root / "modules" / "services-systemd.conf").read_text(encoding="utf-8")
         for svc in (
             "sddm",
             "NetworkManager",
@@ -90,7 +88,9 @@ class TestPalexusOSGates(unittest.TestCase):
         self.assertIn("sddm.login(", qml)
         self.assertIn("model: sessionModel", qml)
         self.assertIn("#cba6f7", qml.lower())
-        self.assertIn("variant=monolith-mauve", (greeter / "theme.conf").read_text(encoding="utf-8"))
+        self.assertIn(
+            "variant=monolith-mauve", (greeter / "theme.conf").read_text(encoding="utf-8")
+        )
 
         sddm_conf = (REPO_ROOT / "overlay" / "etc" / "sddm.conf.d" / "10-palexusos.conf").read_text(
             encoding="utf-8"
@@ -101,25 +101,64 @@ class TestPalexusOSGates(unittest.TestCase):
 
         # L8: picom was never started and is gone; XFCE composites with xfwm4
         self.assertFalse((REPO_ROOT / "overlay" / "etc" / "xdg" / "picom.conf").exists())
-        packages = (REPO_ROOT / "build" / "archiso" / "packages.x86_64").read_text(encoding="utf-8").split()
+        packages = (
+            (REPO_ROOT / "build" / "archiso" / "packages.x86_64")
+            .read_text(encoding="utf-8")
+            .split()
+        )
         self.assertNotIn("picom", packages)
-        slideshow = (REPO_ROOT / "packages" / "installer" / "calamares" / "branding" / "palexusos" / "show.qml")
+        slideshow = (
+            REPO_ROOT
+            / "packages"
+            / "installer"
+            / "calamares"
+            / "branding"
+            / "palexusos"
+            / "show.qml"
+        )
         self.assertNotIn("kawase", slideshow.read_text(encoding="utf-8").lower())
-        xfwm = (REPO_ROOT / "overlay" / "etc" / "skel" / ".config" / "xfce4" / "xfconf" / "xfce-perchannel-xml" / "xfwm4.xml")
-        self.assertIn('name="use_compositing" type="bool" value="true"', xfwm.read_text(encoding="utf-8"))
+        xfwm = (
+            REPO_ROOT
+            / "overlay"
+            / "etc"
+            / "skel"
+            / ".config"
+            / "xfce4"
+            / "xfconf"
+            / "xfce-perchannel-xml"
+            / "xfwm4.xml"
+        )
+        self.assertIn(
+            'name="use_compositing" type="bool" value="true"', xfwm.read_text(encoding="utf-8")
+        )
 
     def test_screen_reader_shortcut_has_a_screen_reader(self) -> None:
         """L9: XFCE binds Alt+Super+S to orca, so orca and a voice for it ship on the ISO."""
-        packages = (REPO_ROOT / "build" / "archiso" / "packages.x86_64").read_text(encoding="utf-8").split()
-        keys = (REPO_ROOT / "overlay" / "etc" / "skel" / ".config" / "xfce4" / "xfconf"
-                / "xfce-perchannel-xml" / "xfce4-keyboard-shortcuts.xml").read_text(encoding="utf-8")
+        packages = (
+            (REPO_ROOT / "build" / "archiso" / "packages.x86_64")
+            .read_text(encoding="utf-8")
+            .split()
+        )
+        keys = (
+            REPO_ROOT
+            / "overlay"
+            / "etc"
+            / "skel"
+            / ".config"
+            / "xfce4"
+            / "xfconf"
+            / "xfce-perchannel-xml"
+            / "xfce4-keyboard-shortcuts.xml"
+        ).read_text(encoding="utf-8")
         self.assertIn('value="orca"', keys)
         self.assertIn("orca", packages)
         self.assertIn("espeak-ng", packages)
 
     def test_pacman_siglevel_and_signing(self) -> None:
         """Validate explicit SigLevel and signing support in pacman configs and build-iso.sh."""
-        archiso_pacman = (REPO_ROOT / "build" / "archiso" / "pacman.conf").read_text(encoding="utf-8")
+        archiso_pacman = (REPO_ROOT / "build" / "archiso" / "pacman.conf").read_text(
+            encoding="utf-8"
+        )
         self.assertIn("[palexusos]", archiso_pacman)
         self.assertIn("SigLevel = Optional DatabaseOptional", archiso_pacman)
 
@@ -135,8 +174,14 @@ class TestPalexusOSGates(unittest.TestCase):
         """Validate the official boot animation package and its boot wiring."""
         ply = REPO_ROOT / "packages" / "desktop" / "palexus-plymouth"
         script = (ply / "palexusos.script.in").read_text(encoding="utf-8")
-        for hook in ("SetRefreshFunction", "SetDisplayPasswordFunction", "SetDisplayQuestionFunction",
-                     "SetDisplayNormalFunction", "SetMessageFunction", "SetQuitFunction"):
+        for hook in (
+            "SetRefreshFunction",
+            "SetDisplayPasswordFunction",
+            "SetDisplayQuestionFunction",
+            "SetDisplayNormalFunction",
+            "SetMessageFunction",
+            "SetQuitFunction",
+        ):
             self.assertIn(f"Plymouth.{hook}", script)
         for placeholder in ("@FRAMES@", "@TICKS@", "@WIDTH@", "@HEIGHT@"):
             self.assertIn(placeholder, script)
@@ -146,11 +191,19 @@ class TestPalexusOSGates(unittest.TestCase):
         self.assertIn("-an", pkgbuild)
         self.assertIn("/usr/share/plymouth/themes/palexusos", pkgbuild)
         self.assertNotIn("palexusos-$name", pkgbuild)
-        hooks = (REPO_ROOT / "build" / "archiso" / "airootfs" / "etc" / "mkinitcpio.conf.d" / "archiso.conf").read_text(
+        hooks = (
+            REPO_ROOT
+            / "build"
+            / "archiso"
+            / "airootfs"
+            / "etc"
+            / "mkinitcpio.conf.d"
+            / "archiso.conf"
+        ).read_text(encoding="utf-8")
+        self.assertIn(" kms plymouth ", hooks)
+        conf = (REPO_ROOT / "overlay" / "etc" / "plymouth" / "plymouthd.conf").read_text(
             encoding="utf-8"
         )
-        self.assertIn(" kms plymouth ", hooks)
-        conf = (REPO_ROOT / "overlay" / "etc" / "plymouth" / "plymouthd.conf").read_text(encoding="utf-8")
         self.assertIn("Theme=palexusos\n", conf)
 
     def test_sway_and_waybar_session_configs(self) -> None:
@@ -188,7 +241,9 @@ class TestPalexusOSGates(unittest.TestCase):
         self.assertIn("Mod4+slash", sway_conf)
         self.assertIn("sudo -E /usr/bin/calamares", sway_conf)
         self.assertNotIn("calamares -d", sway_conf)
-        self.assertIn("output * bg /usr/share/backgrounds/palexusos/palexus-monolith-mauve.jpg", sway_conf)
+        self.assertIn(
+            "output * bg /usr/share/backgrounds/palexusos/palexus-monolith-mauve.jpg", sway_conf
+        )
         self.assertNotIn("exec swaybg", sway_conf)
         self.assertIn("Mod4+Ctrl+t", sway_conf)
         self.assertIn("Mod4+Shift+q", sway_conf)
@@ -253,6 +308,7 @@ class TestPalexusOSGates(unittest.TestCase):
         """Validate that palexus-greeter Main.qml parses and instantiates cleanly with zero warnings/errors under mock SDDM context."""
         try:
             import os
+
             os.environ["QT_QPA_PLATFORM"] = "offscreen"
             from PyQt6.QtCore import (
                 QAbstractListModel,
@@ -276,7 +332,7 @@ class TestPalexusOSGates(unittest.TestCase):
 
         qInstallMessageHandler(msg_handler)
 
-        app = QGuiApplication.instance() or QGuiApplication([])
+        QGuiApplication.instance() or QGuiApplication([])
         engine = QQmlApplicationEngine()
 
         class SessionModel(QAbstractListModel):
@@ -290,7 +346,7 @@ class TestPalexusOSGates(unittest.TestCase):
             def roleNames(self):
                 return {self.NameRole: b"name"}
 
-            def rowCount(self, parent=QModelIndex()):
+            def rowCount(self, parent=QModelIndex()):  # noqa: B008
                 return len(self._sessions)
 
             def data(self, index, role=Qt.ItemDataRole.DisplayRole):
@@ -315,7 +371,7 @@ class TestPalexusOSGates(unittest.TestCase):
             def roleNames(self):
                 return {self.NameRole: b"name"}
 
-            def rowCount(self, parent=QModelIndex()):
+            def rowCount(self, parent=QModelIndex()):  # noqa: B008
                 return len(self._users)
 
             def data(self, index, role=Qt.ItemDataRole.DisplayRole):
@@ -414,10 +470,16 @@ class TestPalexusOSGates(unittest.TestCase):
 
         qml_path = REPO_ROOT / "packages" / "desktop" / "palexus-greeter" / "Main.qml"
         comp = QQmlComponent(engine, str(qml_path))
-        self.assertEqual(comp.status(), QQmlComponent.Status.Ready, f"Errors: {[e.toString() for e in comp.errors()]}")
+        self.assertEqual(
+            comp.status(),
+            QQmlComponent.Status.Ready,
+            f"Errors: {[e.toString() for e in comp.errors()]}",
+        )
         obj = comp.create()
         self.assertIsNotNone(obj, "Main.qml component failed to instantiate")
-        self.assertEqual(len(comp.errors()), 0, f"Component errors: {[e.toString() for e in comp.errors()]}")
+        self.assertEqual(
+            len(comp.errors()), 0, f"Component errors: {[e.toString() for e in comp.errors()]}"
+        )
 
         critical_errors = [m for _, m in messages if "ReferenceError" in m or "TypeError" in m]
         self.assertEqual(critical_errors, [], f"Detected runtime QML JS errors: {critical_errors}")

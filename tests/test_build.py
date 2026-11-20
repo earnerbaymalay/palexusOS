@@ -1,17 +1,13 @@
 """Tests for build gate registry."""
 
-from pathlib import Path
-
-import pytest
-
 from palexus.build.gate_registry import (
-    GateRegistry,
-    PackageGate,
-    ISOGate,
-    GraphicsGate,
     BootGate,
-    PerfGate,
+    GateRegistry,
     GateStatus,
+    GraphicsGate,
+    ISOGate,
+    PackageGate,
+    PerfGate,
 )
 
 
@@ -144,15 +140,13 @@ class TestGateRegistry:
         """Each gate is independent and testable."""
         registry = GateRegistry()
 
-        for gate_name in registry.gates.keys():
+        for gate_name in registry.gates:
             assert registry.test(gate_name)
 
     def test_topological_sort(self):
         """Registry sorts gates by dependencies."""
         registry = GateRegistry()
-        order = registry._topological_sort(
-            {"package", "iso", "boot", "graphics", "perf"}
-        )
+        order = registry._topological_sort({"package", "iso", "boot", "graphics", "perf"})
 
         # package must come before iso
         assert order.index("package") < order.index("iso")

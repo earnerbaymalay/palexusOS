@@ -98,8 +98,24 @@ class FakeSystem:
     def set_ticks(self, pid: int, ticks: int) -> None:
         comm = (self.root / "proc" / str(pid) / "comm").read_text().strip()
         # utime is field 14 and stime field 15 (1-based); split them evenly.
-        rest = ["S", "1", "1", "1", "0", "-1", "0", "0", "0", "0", "0", str(ticks // 2), str(ticks - ticks // 2)]
-        (self.root / "proc" / str(pid) / "stat").write_text(f"{pid} ({comm}) {' '.join(rest)} 0 0 20 0 1 0\n")
+        rest = [
+            "S",
+            "1",
+            "1",
+            "1",
+            "0",
+            "-1",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            str(ticks // 2),
+            str(ticks - ticks // 2),
+        ]
+        (self.root / "proc" / str(pid) / "stat").write_text(
+            f"{pid} ({comm}) {' '.join(rest)} 0 0 20 0 1 0\n"
+        )
 
     def kill(self, pid: int) -> None:
         d = self.root / "proc" / str(pid)
@@ -108,7 +124,12 @@ class FakeSystem:
         d.rmdir()
 
     def epp_values(self) -> set[str]:
-        return {p.read_text().strip() for p in self.root.glob("sys/devices/system/cpu/cpu*/cpufreq/energy_performance_preference")}
+        return {
+            p.read_text().strip()
+            for p in self.root.glob(
+                "sys/devices/system/cpu/cpu*/cpufreq/energy_performance_preference"
+            )
+        }
 
     def pl(self) -> tuple[int, int]:
         return (
@@ -134,7 +155,7 @@ class OllamaStub(http.server.ThreadingHTTPServer):
         payload = json.dumps({"models": [{"name": "qwen2.5-coder:7b"}] if loaded else []}).encode()
 
         class Handler(http.server.BaseHTTPRequestHandler):
-            def do_GET(self):  # noqa: N802 - stdlib naming
+            def do_GET(self):
                 self.send_response(200 if self.path == "/api/ps" else 404)
                 self.send_header("Content-Type", "application/json")
                 self.end_headers()
@@ -270,20 +291,28 @@ class TestStates(GovernorTestCase):
         g = self.make_governor()
         g.start(now=0.0)
         g.tick(now=1.0)
-        govs = {p.read_text().strip() for p in self.sys.root.glob("sys/devices/system/cpu/cpu*/cpufreq/scaling_governor")}
+        govs = {
+            p.read_text().strip()
+            for p in self.sys.root.glob("sys/devices/system/cpu/cpu*/cpufreq/scaling_governor")
+        }
         self.assertEqual(govs, {"powersave"}, "balance_performance maps to powersave")
         self.sys.spawn(4242, "ollama_llama_se", ticks=0)
         self.ollama.loaded = True
         g.tick(now=2.0)
         self.sys.set_ticks(4242, CLK)
         g.tick(now=3.0)
-        govs = {p.read_text().strip() for p in self.sys.root.glob("sys/devices/system/cpu/cpu*/cpufreq/scaling_governor")}
+        govs = {
+            p.read_text().strip()
+            for p in self.sys.root.glob("sys/devices/system/cpu/cpu*/cpufreq/scaling_governor")
+        }
         self.assertEqual(govs, {"performance"})
 
 
 class TestRestore(GovernorTestCase):
     def test_restore_puts_back_boot_values(self) -> None:
-        for p in self.sys.root.glob("sys/devices/system/cpu/cpu*/cpufreq/energy_performance_preference"):
+        for p in self.sys.root.glob(
+            "sys/devices/system/cpu/cpu*/cpufreq/energy_performance_preference"
+        ):
             p.write_text("default\n")
         (self.sys.pkg / "constraint_0_power_limit_uw").write_text(f"{12 * W}\n")
         self.sys.spawn(777, "rustc")
@@ -302,7 +331,15 @@ class TestRestore(GovernorTestCase):
         conf.write_text(f'backend = "rapl"\npoll_interval_s = 0.05\n[ollama]\nurl = "{stub.url}"\n')
         self.sys.spawn(777, "rustc")
         proc = subprocess.Popen(
-            [sys.executable, str(GOVERNOR_PATH), "run", "--config", str(conf), "--sysroot", str(self.sys.root)],
+            [
+                sys.executable,
+                str(GOVERNOR_PATH),
+                "run",
+                "--config",
+                str(conf),
+                "--sysroot",
+                str(self.sys.root),
+            ],
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
@@ -363,12 +400,16 @@ class TestThrottled(GovernorTestCase):
         # throttled rewrites MSR 0x610 every few seconds, so RAPL writes would be undone.
         self.sys.spawn(99, "python3", cmdline="/usr/bin/python3 /usr/lib/throttled/throttled.py")
         cfg = gov.replace_config(self.cfg, throttled_conf=str(self.conf))
-        backend = gov.select_backend(cfg, self.sys.root, gov.ProcScanner(self.sys.root / "proc"), log=lambda m: None)
+        backend = gov.select_backend(
+            cfg, self.sys.root, gov.ProcScanner(self.sys.root / "proc"), log=lambda m: None
+        )
         self.assertEqual(backend.name, "throttled")
 
     def test_auto_uses_rapl_when_throttled_is_not_running(self) -> None:
         cfg = gov.replace_config(self.cfg, throttled_conf=str(self.conf))
-        backend = gov.select_backend(cfg, self.sys.root, gov.ProcScanner(self.sys.root / "proc"), log=lambda m: None)
+        backend = gov.select_backend(
+            cfg, self.sys.root, gov.ProcScanner(self.sys.root / "proc"), log=lambda m: None
+        )
         self.assertEqual(backend.name, "rapl")
 
     def test_auto_falls_back_to_epp_only(self) -> None:
@@ -392,12 +433,16 @@ class TestConfig(GovernorTestCase):
 
     def test_overrides_are_applied(self) -> None:
         p = self.tmp / "g.toml"
-        p.write_text('cooldown_s = 4\n[profiles.inference]\nepp = "performance"\npl1_w = 28\npl2_w = 40\n')
+        p.write_text(
+            'cooldown_s = 4\n[profiles.inference]\nepp = "performance"\npl1_w = 28\npl2_w = 40\n'
+        )
         cfg, warnings = gov.load_config(p)
         self.assertEqual(warnings, [])
         self.assertEqual(cfg.cooldown_s, 4.0)
         self.assertEqual(cfg.profiles[gov.State.INFERENCE], gov.Profile("performance", 28, 40))
-        self.assertEqual(cfg.profiles[gov.State.IDLE], gov.default_config().profiles[gov.State.IDLE])
+        self.assertEqual(
+            cfg.profiles[gov.State.IDLE], gov.default_config().profiles[gov.State.IDLE]
+        )
 
     def test_invalid_values_fall_back_with_warnings(self) -> None:
         p = self.tmp / "g.toml"
@@ -424,7 +469,11 @@ class TestLoopbackOnly(GovernorTestCase):
     """The daemon makes no network request other than loopback Ollama."""
 
     def test_remote_ollama_url_in_config_is_rejected(self) -> None:
-        for url in ("http://10.0.0.5:11434/api/ps", "http://ollama.example.com/api/ps", "https://127.0.0.1/api/ps"):
+        for url in (
+            "http://10.0.0.5:11434/api/ps",
+            "http://ollama.example.com/api/ps",
+            "https://127.0.0.1/api/ps",
+        ):
             p = self.tmp / "g.toml"
             p.write_text(f'[ollama]\nurl = "{url}"\n')
             cfg, warnings = gov.load_config(p)
@@ -436,7 +485,11 @@ class TestLoopbackOnly(GovernorTestCase):
             gov.OllamaProbe("http://192.168.1.20:11434/api/ps")
 
     def test_loopback_urls_are_accepted(self) -> None:
-        for url in ("http://127.0.0.1:11434/api/ps", "http://localhost:11434/api/ps", "http://[::1]:11434/api/ps"):
+        for url in (
+            "http://127.0.0.1:11434/api/ps",
+            "http://localhost:11434/api/ps",
+            "http://[::1]:11434/api/ps",
+        ):
             self.assertTrue(gov.is_loopback_url(url), url)
 
     def test_probe_ignores_proxy_environment(self) -> None:
@@ -506,7 +559,11 @@ class TestServiceUnit(unittest.TestCase):
             self.assertIn(directive, unit)
         rw = [line for line in unit.splitlines() if line.startswith("ReadWritePaths=")]
         self.assertTrue(rw, "unit must whitelist the paths it writes")
-        allowed_prefixes = ("/sys/devices/system/cpu", "/sys/devices/virtual/powercap", "/etc/throttled.conf")
+        allowed_prefixes = (
+            "/sys/devices/system/cpu",
+            "/sys/devices/virtual/powercap",
+            "/etc/throttled.conf",
+        )
         for path in " ".join(line.split("=", 1)[1] for line in rw).split():
             self.assertTrue(path.lstrip("-").startswith(allowed_prefixes), path)
 

@@ -2,9 +2,8 @@
 
 import argparse
 import sys
-from pathlib import Path
 
-from .orchestrator import TestOrchestrator, Level
+from .orchestrator import Level, TestOrchestrator
 
 
 def main() -> int:
@@ -44,10 +43,10 @@ def main() -> int:
     )
 
     # List tests command
-    list_parser = subparsers.add_parser("list", help="List available tests")
+    subparsers.add_parser("list", help="List available tests")
 
     # Report command
-    report_parser = subparsers.add_parser("report", help="Generate test report")
+    subparsers.add_parser("report", help="Generate test report")
 
     args = parser.parse_args()
 
@@ -96,17 +95,17 @@ def cmd_run(orchestrator: TestOrchestrator, args: argparse.Namespace) -> int:
         elif args.unit:
             # Run unit tests
             level = Level.UNIT
-            results = orchestrator.run_level(level)
+            orchestrator.run_level(level)
             print(orchestrator.summary())
             return 0 if not orchestrator.report_failures() else 1
 
         else:
             # Run all (default)
-            results = orchestrator.run_all()
+            orchestrator.run_all()
             print(orchestrator.summary())
             return 0 if not orchestrator.report_failures() else 1
 
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 - CLI boundary: report any failure as a clean error
         print(f"✗ Test execution failed: {e}", file=sys.stderr)
         return 1
 
