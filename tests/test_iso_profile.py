@@ -335,7 +335,8 @@ class TestPalexusOSGates(unittest.TestCase):
 
         qInstallMessageHandler(msg_handler)
 
-        QGuiApplication.instance() or QGuiApplication([])
+        # Keep a reference: an unreferenced QGuiApplication is collected and the QML engine aborts
+        app = QGuiApplication.instance() or QGuiApplication([])  # noqa: F841
         engine = QQmlApplicationEngine()
 
         class SessionModel(QAbstractListModel):
