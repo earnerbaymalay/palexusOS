@@ -26,7 +26,7 @@ def systemd_boot_entries():
     entries = {}
     for conf in sorted(ENTRIES.glob("*.conf")):
         text = conf.read_text(encoding="utf-8")
-        opts = re.search(r"^options\s+(.*)$", text, re.M)
+        opts = re.search(r"^options\s+(.*)$", text, re.MULTILINE)
         entries[conf.name] = opts.group(1).split() if opts else []
     return entries
 
@@ -49,9 +49,11 @@ def test_syslinux_entries_match_main():
 def test_systemd_boot_entries_match_main():
     e = systemd_boot_entries()
     assert "splash" in e["01-palexusos-x86_64-linux.conf"]
-    check_menu(e["01-palexusos-x86_64-linux.conf"],
-               e["02-palexusos-x86_64-linux-copytoram.conf"],
-               e["03-palexusos-x86_64-linux-safe-graphics.conf"])
+    check_menu(
+        e["01-palexusos-x86_64-linux.conf"],
+        e["02-palexusos-x86_64-linux-copytoram.conf"],
+        e["03-palexusos-x86_64-linux-safe-graphics.conf"],
+    )
 
 
 def test_bios_and_uefi_menus_boot_the_same_options():

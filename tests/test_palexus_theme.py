@@ -1,6 +1,5 @@
 """palexus-theme applies the chosen accent beyond the wallpaper: Kitty, Rofi, Waybar and Sway."""
 
-import os
 import shutil
 import stat
 import subprocess
@@ -20,7 +19,11 @@ def run_theme(tmp_path, *args, sway=False):
     bindir.mkdir(exist_ok=True)
     log = tmp_path / "swaymsg.log"
     # Stand-ins so the test never touches a real session
-    for name, body in {"swaymsg": f'echo "$@" >> "{log}"', "pkill": "exit 1", "notify-send": "exit 0"}.items():
+    for name, body in {
+        "swaymsg": f'echo "$@" >> "{log}"',
+        "pkill": "exit 1",
+        "notify-send": "exit 0",
+    }.items():
         p = bindir / name
         p.write_text(f"#!/bin/sh\n{body}\n")
         p.chmod(p.stat().st_mode | stat.S_IEXEC)
@@ -33,7 +36,9 @@ def run_theme(tmp_path, *args, sway=False):
     }
     if sway:
         env["SWAYSOCK"] = str(tmp_path / "sway.sock")
-    proc = subprocess.run(["bash", str(THEME), *args], env=env, capture_output=True, text=True)
+    proc = subprocess.run(
+        ["bash", str(THEME), *args], env=env, capture_output=True, text=True, check=False
+    )
     return proc, log
 
 

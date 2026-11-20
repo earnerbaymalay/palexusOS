@@ -14,7 +14,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: "3.11"
           cache: pip
@@ -27,17 +27,17 @@ jobs:
       - name: Verify package builds
         run: |
           python -m pip install build
-          python -m build --wheel --no-isolation
+          python -m build --wheel
 
       - name: Check package structure
         run: |
           unzip -l dist/*.whl | grep palexus/ || exit 1
-          echo "✓ Package structure verified"
+          echo "Package structure verified"
 
       - name: Run all tests
         run: |
           python -m pytest tests/ -q
-          echo "✓ All tests passed"
+          echo "All tests passed"
 
       - name: Verify test count
         run: |
@@ -46,7 +46,7 @@ jobs:
             echo "Error: Expected at least 160 tests, got $test_count"
             exit 1
           fi
-          echo "✓ $test_count tests verified"
+          echo "$test_count tests verified"
 
   package-build:
     runs-on: ubuntu-latest
@@ -55,22 +55,18 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: "3.11"
           cache: pip
 
-      - name: Build wheel
+      - name: Build wheel and sdist
         run: |
           python -m pip install build
-          python -m build --wheel --no-isolation
-
-      - name: Build sdist
-        run: |
-          python -m build --sdist --no-isolation
+          python -m build
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: dist
           path: dist/
@@ -79,4 +75,4 @@ jobs:
       - name: Verify distribution
         run: |
           ls -lh dist/
-          echo "✓ Distribution built successfully"
+          echo "Distribution built successfully"

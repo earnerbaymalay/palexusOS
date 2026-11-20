@@ -27,17 +27,25 @@ def resolve(tmp_path, installed=None, chosen=None):
         (cfg / "palexus").mkdir(parents=True, exist_ok=True)
         (cfg / "palexus" / "ai_models").write_text("\n".join(chosen) + "\n")
     env = {"PATH": f"{bindir}:/usr/bin:/bin", "HOME": str(tmp_path), "XDG_CONFIG_HOME": str(cfg)}
-    proc = subprocess.run(["bash", str(RESOLVER)], env=env, capture_output=True, text=True)
+    proc = subprocess.run(
+        ["bash", str(RESOLVER)], env=env, capture_output=True, text=True, check=False
+    )
     assert proc.returncode == 0, proc.stderr
     return proc.stdout.strip()
 
 
 def test_light_tier_uses_the_installed_1_5b(tmp_path):
-    assert resolve(tmp_path, installed=["llama3.2:latest", "qwen2.5-coder:1.5b"]) == "qwen2.5-coder:1.5b"
+    assert (
+        resolve(tmp_path, installed=["llama3.2:latest", "qwen2.5-coder:1.5b"])
+        == "qwen2.5-coder:1.5b"
+    )
 
 
 def test_larger_installed_model_wins(tmp_path):
-    assert resolve(tmp_path, installed=["qwen2.5-coder:1.5b", "qwen2.5-coder:latest"]) == "qwen2.5-coder:latest"
+    assert (
+        resolve(tmp_path, installed=["qwen2.5-coder:1.5b", "qwen2.5-coder:latest"])
+        == "qwen2.5-coder:latest"
+    )
 
 
 def test_wizard_choice_while_download_is_pending(tmp_path):

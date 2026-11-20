@@ -2,13 +2,11 @@
 
 from pathlib import Path
 
-import pytest
-
 from palexus.test.orchestrator import (
-    TestOrchestrator,
     Level,
-    Suite,
     Result,
+    Suite,
+    TestOrchestrator,
 )
 
 

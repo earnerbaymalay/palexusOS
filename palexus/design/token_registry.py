@@ -4,22 +4,25 @@ Single source of truth for all design tokens (colors, typography, spacing, etc.)
 Provides typed access and format-specific exporters.
 """
 
+from __future__ import annotations
+
 import json
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 
 @dataclass
 class TokenSchema:
     """Design token schema definition."""
+
     version: str
     name: str
-    colors: Dict[str, Dict[str, Any]]
-    typography: Dict[str, Any]
-    spacing: Dict[str, str]
-    radius: Dict[str, str]
-    shadows: Dict[str, str]
+    colors: dict[str, dict[str, Any]]
+    typography: dict[str, Any]
+    spacing: dict[str, str]
+    radius: dict[str, str]
+    shadows: dict[str, str]
 
 
 class TokenRegistry:
@@ -36,7 +39,7 @@ class TokenRegistry:
             ValueError: If tokens JSON invalid or schema violated
         """
         self.tokens_file = Path(tokens_file)
-        self._data: Dict[str, Any] = {}
+        self._data: dict[str, Any] = {}
         self.load()
 
     def load(self) -> None:
@@ -60,7 +63,7 @@ class TokenRegistry:
         if missing:
             raise ValueError(f"Missing required token sections: {missing}")
 
-    def colors(self, category: Optional[str] = None) -> Dict[str, Any]:
+    def colors(self, category: str | None = None) -> dict[str, Any]:
         """Get color tokens.
 
         Args:
@@ -89,11 +92,11 @@ class TokenRegistry:
         """
         return self.colors(category)[name]
 
-    def typography(self) -> Dict[str, Any]:
+    def typography(self) -> dict[str, Any]:
         """Get typography tokens."""
         return self._data.get("typography", {})
 
-    def spacing(self) -> Dict[str, str]:
+    def spacing(self) -> dict[str, str]:
         """Get spacing tokens."""
         return self._data.get("spacing", {})
 
@@ -111,15 +114,15 @@ class TokenRegistry:
         """
         return self.spacing()[size]
 
-    def radius(self) -> Dict[str, str]:
+    def radius(self) -> dict[str, str]:
         """Get border radius tokens."""
         return self._data.get("radius", {})
 
-    def shadows(self) -> Dict[str, str]:
+    def shadows(self) -> dict[str, str]:
         """Get shadow tokens."""
         return self._data.get("shadows", {})
 
-    def all(self) -> Dict[str, Any]:
+    def all(self) -> dict[str, Any]:
         """Get all tokens."""
         return self._data.copy()
 
@@ -221,12 +224,14 @@ class KittyExporter:
         primary = self.registry.colors("primary")
         surface = self.registry.colors("surface")
 
-        lines.extend([
-            f"foreground {primary.get('chrome', '#cdd6f4')}",
-            f"background {surface.get('900', '#11111b')}",
-            f"cursor {primary.get('mauve', '#cba6f7')}",
-            f"selection_background {primary.get('mauve', '#cba6f7')}",
-        ])
+        lines.extend(
+            [
+                f"foreground {primary.get('chrome', '#cdd6f4')}",
+                f"background {surface.get('900', '#11111b')}",
+                f"cursor {primary.get('mauve', '#cba6f7')}",
+                f"selection_background {primary.get('mauve', '#cba6f7')}",
+            ]
+        )
 
         return "\n".join(lines) + "\n"
 
@@ -253,11 +258,13 @@ class XFCEExporter:
         primary = self.registry.colors("primary")
         surface = self.registry.colors("surface")
 
-        lines.extend([
-            f"title_font_color={primary.get('chrome', '#cdd6f4')}",
-            f"title_font_color_active={primary.get('mauve', '#cba6f7')}",
-            f"bg_color={surface.get('800', '#1e1e2e')}",
-            f"border_color_active={primary.get('mauve', '#cba6f7')}",
-        ])
+        lines.extend(
+            [
+                f"title_font_color={primary.get('chrome', '#cdd6f4')}",
+                f"title_font_color_active={primary.get('mauve', '#cba6f7')}",
+                f"bg_color={surface.get('800', '#1e1e2e')}",
+                f"border_color_active={primary.get('mauve', '#cba6f7')}",
+            ]
+        )
 
         return "\n".join(lines) + "\n"

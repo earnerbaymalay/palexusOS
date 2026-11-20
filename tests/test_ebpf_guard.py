@@ -52,16 +52,14 @@ class TestPalexusEbpfGuard(unittest.TestCase):
     def test_config_loading_custom_toml(self):
         """Verify custom TOML file overrides default values correctly."""
         conf_file = self.root / "ebpf-guard.toml"
-        conf_file.write_text(
-            """
+        conf_file.write_text("""
 [general]
 mode = "enforce"
 
 [patterns]
 entropy_threshold = 4.80
 block_private_keys = false
-"""
-        )
+""")
         os.environ["PALEXUS_EBPF_CONF"] = str(conf_file)
         cfg = self.guard.load_config()
         self.assertEqual(cfg["general"]["mode"], "enforce")
@@ -218,35 +216,55 @@ block_private_keys = false
             [sys.executable, str(GUARD_BIN), "test", "harmless payload"],
             capture_output=True,
             text=True,
+            check=False,
         )
         self.assertEqual(proc_test_clean.returncode, 0)
         self.assertIn("[ALLOW]", proc_test_clean.stdout)
 
         # 3. Test command with secret in audit mode (exit 0, logged)
         proc_test_audit = subprocess.run(
-            [sys.executable, str(GUARD_BIN), "--mode", "audit", "test", "-----BEGIN OPENSSH PRIVATE KEY-----"],
+            [
+                sys.executable,
+                str(GUARD_BIN),
+                "--mode",
+                "audit",
+                "test",
+                "-----BEGIN OPENSSH PRIVATE KEY-----",
+            ],
             capture_output=True,
             text=True,
+            check=False,
         )
         self.assertEqual(proc_test_audit.returncode, 0)
         self.assertIn("[AUDIT]", proc_test_audit.stdout)
 
         # 4. Test command with secret in enforce mode (exit 1, -EPERM)
         proc_test_enforce = subprocess.run(
-            [sys.executable, str(GUARD_BIN), "--mode", "enforce", "test", "-----BEGIN OPENSSH PRIVATE KEY-----"],
+            [
+                sys.executable,
+                str(GUARD_BIN),
+                "--mode",
+                "enforce",
+                "test",
+                "-----BEGIN OPENSSH PRIVATE KEY-----",
+            ],
             capture_output=True,
             text=True,
+            check=False,
         )
         self.assertEqual(proc_test_enforce.returncode, 1)
         self.assertIn("-EPERM", proc_test_enforce.stderr)
 
         # 5. Test command inspecting file
         secret_file = self.root / "sample_key.pem"
-        secret_file.write_text("-----BEGIN RSA PRIVATE KEY-----\nMIIE\n-----END RSA PRIVATE KEY-----")
+        secret_file.write_text(
+            "-----BEGIN RSA PRIVATE KEY-----\nMIIE\n-----END RSA PRIVATE KEY-----"
+        )
         proc_test_file = subprocess.run(
             [sys.executable, str(GUARD_BIN), "--mode", "enforce", "test", str(secret_file)],
             capture_output=True,
             text=True,
+            check=False,
         )
         self.assertEqual(proc_test_file.returncode, 1)
         self.assertIn("-EPERM", proc_test_file.stderr)

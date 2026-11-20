@@ -7,10 +7,10 @@ from pathlib import Path
 import pytest
 
 from palexus.design.token_registry import (
-    TokenRegistry,
     CSSExporter,
-    ShellExporter,
     KittyExporter,
+    ShellExporter,
+    TokenRegistry,
     XFCEExporter,
 )
 
@@ -61,9 +61,7 @@ def sample_tokens():
 @pytest.fixture
 def tokens_file(sample_tokens):
     """Create temporary tokens.json file."""
-    with tempfile.NamedTemporaryFile(
-        mode="w", suffix=".json", delete=False
-    ) as f:
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
         json.dump(sample_tokens, f)
         path = Path(f.name)
 

@@ -11,13 +11,10 @@ Executes offscreen automated testing across all PalexusOS desktop user interface
 
 import os
 import sys
-import shutil
-import tempfile
-from pathlib import Path
-from importlib.machinery import SourceFileLoader
-from unittest.mock import ANY, patch, MagicMock
-
 import unittest
+from importlib.machinery import SourceFileLoader
+from pathlib import Path
+from unittest.mock import ANY, MagicMock, patch
 
 try:
     import pytest
@@ -28,9 +25,10 @@ except ImportError:
 os.environ["QT_QPA_PLATFORM"] = "offscreen"
 
 try:
-    from PyQt6.QtCore import Qt, QUrl
-    from PyQt6.QtWidgets import QApplication, QPushButton, QRadioButton
+    from PyQt6.QtCore import Qt, QUrl  # noqa: F401
     from PyQt6.QtQml import QQmlApplicationEngine
+    from PyQt6.QtWidgets import QApplication, QPushButton, QRadioButton  # noqa: F401
+
     HAS_PYQT6 = True
 except ImportError:
     HAS_PYQT6 = False
@@ -47,6 +45,7 @@ def load_script_module(name: str, path: Path):
     """Load a Python script without .py extension as a module."""
     loader = SourceFileLoader(name, str(path))
     import importlib.util
+
     spec = importlib.util.spec_from_loader(name, loader)
     mod = importlib.util.module_from_spec(spec)
     sys.modules[name] = mod
@@ -66,6 +65,7 @@ def qapp():
 # ============================================================================
 # 1. PALEXUS-HUD TESTS (QML Engine, Signals, findFirstMatch, AI Search)
 # ============================================================================
+
 
 class TestPalexusHudQml:
     """Test palexus-hud QML engine, signals, and command search logic."""
@@ -100,7 +100,10 @@ class TestPalexusHudQml:
 
         # Test local LLM commands
         qwen_cmd = root.findFirstMatch("qwen")
-        assert 'ollama run \"$(palexus-code-model)\"' in qwen_cmd or 'ollama run "$(palexus-code-model)"' in qwen_cmd
+        assert (
+            'ollama run "$(palexus-code-model)"' in qwen_cmd
+            or 'ollama run "$(palexus-code-model)"' in qwen_cmd
+        )
 
         # Test key shortcut matching
         key1_cmd = root.findFirstMatch("1")
@@ -125,7 +128,9 @@ class TestPalexusHudQml:
         with patch("subprocess.Popen") as mock_popen, patch.object(qapp, "quit") as mock_quit:
             # Test direct command launch (no ~/.bashrc: it exits at once for non-interactive shells)
             backend.launch("palexus-notes")
-            mock_popen.assert_called_with(["bash", "-c", "palexus-notes"], env=ANY, start_new_session=True)
+            mock_popen.assert_called_with(
+                ["bash", "-c", "palexus-notes"], env=ANY, start_new_session=True
+            )
             mock_quit.assert_called()
 
         # Boot 2: the HUD asks the model this user has (palexus-code-model), never a hard-coded one
@@ -182,6 +187,7 @@ class TestPalexusHudQml:
 # ============================================================================
 # 2. PALEXUS-WELCOME TESTS (OnboardingWizard, Steps, GTK Settings)
 # ============================================================================
+
 
 class TestPalexusWelcome:
     """Test palexus-welcome onboarding backend, QML loading, and GTK config sync."""
@@ -240,6 +246,7 @@ class TestPalexusWelcome:
 
         assert (cfg / ".onboarding_complete").read_text().strip() == "completed"
         import json
+
         profile = json.loads((cfg / "operator_profile.json").read_text())
         assert profile["wallpaper_variant"] == "tower-emerald"
         assert profile["ai_engine"] == "local"
@@ -279,7 +286,9 @@ class TestPalexusWelcome:
         assert ok is False and "rejected" in msg
 
     @pytest.mark.parametrize("mode,expected", [("session", 4), ("live", 3), ("oobe", 5)])
-    def test_welcome_qml_loads_cleanly(self, qapp, welcome_mod, sandbox, monkeypatch, mode, expected):
+    def test_welcome_qml_loads_cleanly(
+        self, qapp, welcome_mod, sandbox, monkeypatch, mode, expected
+    ):
         """Welcome.qml must load in every mode with no QML warnings and reach the last step."""
         if mode == "live":
             marker = Path(welcome_mod.CONFIG_DIR).parent / "live-marker"
@@ -345,9 +354,18 @@ class TestOobeHelper:
         return load_script_module("palexus_oobe_apply_mod", HUD_DIR / "palexus-oobe-apply")
 
     def good(self, **over):
-        req = {"full_name": "Ada Lovelace", "username": "zz-oobe-test", "password": "secret1",
-               "hostname": "ada-palexus", "variant": "tower-emerald", "icon_theme": "Palexus-Liquid-Chrome",
-               "ai_engine": "local", "ai_models": ["qwen2.5-coder:1.5b"], "anthropic_key": "", "profile": {}}
+        req = {
+            "full_name": "Ada Lovelace",
+            "username": "zz-oobe-test",
+            "password": "secret1",
+            "hostname": "ada-palexus",
+            "variant": "tower-emerald",
+            "icon_theme": "Palexus-Liquid-Chrome",
+            "ai_engine": "local",
+            "ai_models": ["qwen2.5-coder:1.5b"],
+            "anthropic_key": "",
+            "profile": {},
+        }
         req.update(over)
         return req
 
@@ -355,19 +373,36 @@ class TestOobeHelper:
         r = helper.validate(self.good())
         assert r["username"] == "zz-oobe-test" and r["ai_models"] == ["qwen2.5-coder:1.5b"]
 
-    @pytest.mark.parametrize("field,value", [
-        ("username", "root"), ("username", "Has Space"), ("username", "../etc"),
-        ("full_name", "Evil:0:0"), ("password", "short"), ("password", "a\nroot:x"),
-        ("hostname", "-bad"), ("variant", "monolith-crimson"), ("icon_theme", "../../x"),
-        ("ai_engine", "shell"), ("ai_models", ["$(rm -rf /)"]),
-    ])
+    @pytest.mark.parametrize(
+        "field,value",
+        [
+            ("username", "root"),
+            ("username", "Has Space"),
+            ("username", "../etc"),
+            ("full_name", "Evil:0:0"),
+            ("password", "short"),
+            ("password", "a\nroot:x"),
+            ("hostname", "-bad"),
+            ("variant", "monolith-crimson"),
+            ("icon_theme", "../../x"),
+            ("ai_engine", "shell"),
+            ("ai_models", ["$(rm -rf /)"]),
+        ],
+    )
     def test_rejects_bad_fields(self, helper, field, value):
         with pytest.raises(helper.Invalid):
             helper.validate(self.good(**{field: value}))
 
     def test_key_only_kept_for_claude(self, helper):
-        assert helper.validate(self.good(anthropic_key="sk-ant-abcdefghijklmnopqrstuvwxyz"))["anthropic_key"] == ""
-        r = helper.validate(self.good(ai_engine="claude", anthropic_key="sk-ant-abcdefghijklmnopqrstuvwxyz"))
+        assert (
+            helper.validate(self.good(anthropic_key="sk-ant-abcdefghijklmnopqrstuvwxyz"))[
+                "anthropic_key"
+            ]
+            == ""
+        )
+        r = helper.validate(
+            self.good(ai_engine="claude", anthropic_key="sk-ant-abcdefghijklmnopqrstuvwxyz")
+        )
         assert r["anthropic_key"].startswith("sk-ant-") and r["ai_models"] == []
 
     def test_refuses_after_setup_finished(self, helper, monkeypatch, tmp_path, capsys):
@@ -403,6 +438,7 @@ class TestPalexusWelcomeGtk:
 # ============================================================================
 # 3. PALEXUS-SETTINGS TESTS (PalexusSettingsWindow, Tabs, Accents)
 # ============================================================================
+
 
 class TestPalexusSettings:
     """Test palexus-settings control center, tab structure, and accent actions."""
@@ -448,6 +484,7 @@ class TestPalexusSettings:
 # 4. PALEXUS-NOTES TESTS (PalexusNotesWindow, Scratchpad, Hotkeys)
 # ============================================================================
 
+
 class TestPalexusNotes:
     """Test palexus-notes scratchpad, Markdown highlighting, and sync logic."""
 
@@ -490,6 +527,7 @@ class TestPalexusNotes:
 # ============================================================================
 # 5. PALEXUS-SCREENSAVER TESTS (CLI Options, Glyphs, Geometry)
 # ============================================================================
+
 
 class TestPalexusScreensaver:
     """Test palexus-screensaver CLI flags, brand glyphs, and torus wireframe math."""

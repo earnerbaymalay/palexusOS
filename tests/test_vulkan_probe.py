@@ -1,13 +1,13 @@
 """Unit tests for palexus-vulkan-probe (Vulkan GPU offload profiler & Ollama autotuning)."""
 
-import os
-import sys
 import json
+import os
+import subprocess
+import sys
 import tempfile
 import unittest
-import subprocess
-from pathlib import Path
 from importlib.machinery import SourceFileLoader
+from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 PROBE_BIN = REPO_ROOT / "packages" / "desktop" / "palexus-hud" / "palexus-vulkan-probe"
@@ -116,6 +116,7 @@ GPU0:
 def load_probe_module():
     loader = SourceFileLoader("palexus_vulkan_probe_mod", str(PROBE_BIN))
     import importlib.util
+
     spec = importlib.util.spec_from_loader("palexus_vulkan_probe_mod", loader)
     mod = importlib.util.module_from_spec(spec)
     sys.modules["palexus_vulkan_probe_mod"] = mod
@@ -262,7 +263,9 @@ class TestVulkanProbe(unittest.TestCase):
     def test_cli_status(self):
         """Verify palexus-vulkan-probe status prints formatted hardware summary."""
         self.mock_vulkan_file.write_text(MOCK_INTEL_UHD_620)
-        proc = subprocess.run([str(PROBE_BIN), "status"], capture_output=True, text=True)
+        proc = subprocess.run(
+            [str(PROBE_BIN), "status"], capture_output=True, text=True, check=False
+        )
         self.assertEqual(proc.returncode, 0)
         self.assertIn("PalexusOS Vulkan AI Offload Profiler", proc.stdout)
         self.assertIn("Intel", proc.stdout)
@@ -271,7 +274,7 @@ class TestVulkanProbe(unittest.TestCase):
     def test_cli_json(self):
         """Verify palexus-vulkan-probe json returns valid machine-readable JSON."""
         self.mock_vulkan_file.write_text(MOCK_INTEL_IRIS_XE)
-        proc = subprocess.run([str(PROBE_BIN), "json"], capture_output=True, text=True)
+        proc = subprocess.run([str(PROBE_BIN), "json"], capture_output=True, text=True, check=False)
         self.assertEqual(proc.returncode, 0)
         data = json.loads(proc.stdout)
         self.assertTrue(data["detected"])
@@ -281,7 +284,9 @@ class TestVulkanProbe(unittest.TestCase):
     def test_cli_apply_writes_dropin(self):
         """Verify palexus-vulkan-probe apply writes systemd service drop-in."""
         self.mock_vulkan_file.write_text(MOCK_AMD_VEGA)
-        proc = subprocess.run([str(PROBE_BIN), "apply"], capture_output=True, text=True)
+        proc = subprocess.run(
+            [str(PROBE_BIN), "apply"], capture_output=True, text=True, check=False
+        )
         self.assertEqual(proc.returncode, 0)
 
         dropin = self.mock_dropin_dir / "10-vulkan.conf"
@@ -297,19 +302,25 @@ class TestVulkanProbe(unittest.TestCase):
         """Verify palexus-vulkan-probe test exits with code 0 on GPU and 1 on CPU fallback."""
         # 1. Success on Vulkan GPU
         self.mock_vulkan_file.write_text(MOCK_INTEL_IRIS_XE)
-        proc_ok = subprocess.run([str(PROBE_BIN), "test"], capture_output=True, text=True)
+        proc_ok = subprocess.run(
+            [str(PROBE_BIN), "test"], capture_output=True, text=True, check=False
+        )
         self.assertEqual(proc_ok.returncode, 0)
         self.assertIn("[PASS]", proc_ok.stdout)
 
         # 2. Failure on CPU fallback
         self.mock_vulkan_file.write_text(MOCK_CPU_ONLY)
-        proc_fail = subprocess.run([str(PROBE_BIN), "test"], capture_output=True, text=True)
+        proc_fail = subprocess.run(
+            [str(PROBE_BIN), "test"], capture_output=True, text=True, check=False
+        )
         self.assertEqual(proc_fail.returncode, 1)
         self.assertIn("[WARN]", proc_fail.stdout)
 
     def test_cli_help(self):
         """Verify palexus-vulkan-probe --help displays usage instructions."""
-        proc = subprocess.run([str(PROBE_BIN), "--help"], capture_output=True, text=True)
+        proc = subprocess.run(
+            [str(PROBE_BIN), "--help"], capture_output=True, text=True, check=False
+        )
         self.assertEqual(proc.returncode, 0)
         self.assertIn("usage: palexus-vulkan-probe", proc.stdout)
 
