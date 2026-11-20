@@ -156,7 +156,7 @@ else
 fi
 check_file_lacks "${REPO_ROOT}/build/archiso/packages.x86_64" '(?m)^picom$' "ISO does not ship picom (L8)"
 if grep -rIqiE 'picom|kawase' "${REPO_ROOT}/packages" "${REPO_ROOT}/overlay" \
-        "${REPO_ROOT}/build/archiso/packages.x86_64" "${REPO_ROOT}/docs/TECHNICAL_FAQ.md"; then
+        "${REPO_ROOT}/build/archiso/packages.x86_64" "${REPO_ROOT}/docs/guides/TECHNICAL_FAQ.md"; then
     fail "No picom or kawase-blur claims in packages, overlay, slideshow or FAQ (L8)"
 else
     pass "No picom or kawase-blur claims in packages, overlay, slideshow or FAQ (L8)"

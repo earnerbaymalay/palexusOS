@@ -7,7 +7,7 @@
 
 ## 1. Release Channel Architecture
 
-PalexusOS (formerly SynapseOS) combines the rapid innovation of Arch Linux rolling packages with deterministic engineering gates. To serve both production mission-critical workstations and bleeding-edge testers, PalexusOS provides three distinct release streams:
+PalexusOS combines the rapid innovation of Arch Linux rolling packages with deterministic engineering gates. To serve both production mission-critical workstations and bleeding-edge testers, PalexusOS provides three distinct release streams:
 
 ```
 ┌────────────────────────────────────────────────────────────────────────┐

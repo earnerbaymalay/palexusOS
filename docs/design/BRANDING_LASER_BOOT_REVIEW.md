@@ -1,8 +1,8 @@
 # PalexusOS Review Brief: Brand Identity & Monolithic Laser Boot Splash
 
 **Target:** Claude Code / Antigravity Agent Cross-Evaluation  
-**Repository:** `palexusOS` (formerly SynapseOS)  
-**Harness Status:** **269/269 Gates Passing** | **17/17 pytest UI/UX Tests Passing**
+**Repository:** `palexusOS`  
+**Harness Status:** see CI: every gate in `build/verify-gates.sh` and every pytest case must pass
 
 ---
 
@@ -36,7 +36,7 @@ The workshop/hazard-tape boot aesthetic has been completely replaced with a **Sl
 ## 2. Plymouth Laser Boot Splash Deep-Dive
 
 ### Architectural Overview
-- **Location:** [`packages/desktop/palexus-plymouth/`](../packages/desktop/palexus-plymouth/)
+- **Location:** [`packages/desktop/palexus-plymouth/`](../../packages/desktop/palexus-plymouth)
 - **Source Video:** `palexus-boot.mp4` (Twin Hook Laser Monolith render)
 - **Driver Script:** `palexusos.script.in` $\rightarrow$ `palexusos.script`
 - **Output:** 120 pre-rendered PNG frames per accent (`frame-000.png` ... `frame-119.png`), 480x448 base asset scaled and centered on active display.
@@ -58,7 +58,7 @@ The workshop/hazard-tape boot aesthetic has been completely replaced with a **Sl
    - Hairline bottom progress track with leading-edge pip responsive to live `plymouth --update="..."` boot telemetry.
 
 ### Visible Container Validation
-- **Runner:** [`build/test-plymouth-container.sh`](../build/test-plymouth-container.sh)
+- **Runner:** [`build/test-plymouth-container.sh`](../../build/test-plymouth-container.sh)
 - **Container Technology:** `systemd-nspawn` on the live `airootfs`.
 - **Display Bridging:** X11 passthrough on `DISPLAY=:0.0` with `XShm` interception shim allowing non-root/root UID compatibility without Xorg crashes.
 - **Verification Result:** Clean graphical initialization, window creation on host X11 display, 7-stage boot simulation, and clean exit code `0`.
@@ -68,7 +68,7 @@ The workshop/hazard-tape boot aesthetic has been completely replaced with a **Sl
 ## 3. Brand Identity & UI/UX Ecosystem Review
 
 ### A. Calamares Installer Branding
-- **Path:** [`packages/installer/calamares/branding/palexusos/`](../packages/installer/calamares/branding/palexusos/)
+- **Path:** [`packages/installer/calamares/branding/palexusos/`](../../packages/installer/calamares/branding/palexusos)
 - **Components:**
   - `palexusos-icon.svg`: Master mathematical vector bezier definition for the twin-hook cipher.
   - `palexusos-logo.svg`: Horizontal badge with Liquid Chrome wordmark.
@@ -76,7 +76,7 @@ The workshop/hazard-tape boot aesthetic has been completely replaced with a **Sl
   - `welcome.conf` & `locale.conf`: Zero GeoIP lookups, privacy-preserving defaults.
 
 ### B. SDDM Greeter (`palexus-greeter`)
-- **Path:** [`packages/desktop/palexus-greeter/`](../packages/desktop/palexus-greeter/)
+- **Path:** [`packages/desktop/palexus-greeter/`](../../packages/desktop/palexus-greeter)
 - **Features:** Right-aligned digital clock + system readout, chamfered obsidian credentials card with animated mauve border glow, responsive user switcher and session selector (XFCE / Sway).
 - **Theme Sync:** Automatic synchronization via `palexus-theme --sync-greeter`.
 

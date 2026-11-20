@@ -1,5 +1,5 @@
 # PalexusOS — Comprehensive UX/UI Design & Interaction Audit
-**Target:** PalexusOS (formerly SynapseOS) Desktop, Cockpit & Greeter Suite  
+**Target:** PalexusOS Desktop, Cockpit & Greeter Suite  
 **Evaluation Standard:** Catppuccin Mocha Mauve + Liquid Silver Chrome + Obsidian Crust Identity  
 **Audit Scope:** 100% of all UI buttons, keyboard shortcuts, window controls, state transitions, focus paths, and accessibility contracts.
 

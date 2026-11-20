@@ -2,7 +2,7 @@
 
 - **Scope:** `packages/desktop/palexus-themes`, `packages/desktop/palexus-greeter`, `overlay/etc/skel`, `overlay/etc/sddm.conf.d`, `overlay/etc/xdg`
 - **Branch:** `desktop-look-fixes` from `main` @ `17814cf`. Audited 2026-11-12.
-- **Out of scope:** the boot screen and first-boot wizard are covered by `docs/BOOT_FIRSTBOOT_AUDIT.md`.
+- **Out of scope:** the boot screen and first-boot wizard are covered by `docs/audits/BOOT_FIRSTBOOT_AUDIT.md`.
 
 **Evidence tags:**
 - **[verified]**: checked against repo package databases or by running the code

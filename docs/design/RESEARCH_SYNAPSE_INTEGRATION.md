@@ -1,8 +1,8 @@
-# Research: Integrating the Synapse Repository into SynapseOS
+# Research: Integrating the Synapse Repository into PalexusOS
 
 ## 1. Architectural Challenge
 
-The user needs the `synapse` repository to be deeply embedded into **SynapseOS** as a first-class core OS package. However, in Linux distribution engineering, improper repo coupling leads to:
+The user needs the `synapse` repository to be deeply embedded into **PalexusOS** as a first-class core OS package. However, in Linux distribution engineering, improper repo coupling leads to:
 - Bloated git repositories (mixing large ISO build systems with application source trees).
 - Submodule synchronization drift and merge hell.
 - Fragile build dependencies where OS ISO compilation fails if application tests break.
@@ -13,9 +13,9 @@ The user needs the `synapse` repository to be deeply embedded into **SynapseOS**
 
 | Model | Mechanics | Pros | Cons | Recommendation |
 | :--- | :--- | :--- | :--- | :--- |
-| **1. Monorepo Copy** | Entire `synapse` source committed inside `synapseOS/src/synapse` | Single repository | Merging upstream updates is chaotic; git history pollution; breaks independent release tags | ❌ Not Recommended |
+| **1. Monorepo Copy** | Entire `synapse` source committed inside `palexusOS/src/synapse` | Single repository | Merging upstream updates is chaotic; git history pollution; breaks independent release tags | ❌ Not Recommended |
 | **2. Git Submodule** | `packages/core/synapse/src` tracks `earnerbaymalay/synapse.git` | Direct branch tracking; precise commit pinning | Submodule checkout friction for new contributors; dirty worktree states | ⚠️ Secondary Option |
-| **3. Native PKGBUILD Package Pipeline** | Dedicated `PKGBUILD` pulling signed releases/commits into binary repo `[synapseos]` | **Distribution standard** (Arch, Fedora, Debian); builds in clean chroots; zero repo bloat; reproducible | Requires package build repository pipeline | ✅ **Strongly Recommended** |
+| **3. Native PKGBUILD Package Pipeline** | Dedicated `PKGBUILD` pulling signed releases/commits into binary repo `[palexusos]` | **Distribution standard** (Arch, Fedora, Debian); builds in clean chroots; zero repo bloat; reproducible | Requires package build repository pipeline | ✅ **Strongly Recommended** |
 
 ---
 
@@ -25,7 +25,7 @@ The user needs the `synapse` repository to be deeply embedded into **SynapseOS**
 Inside `packages/core/synapse-core/PKGBUILD`:
 
 ```bash
-# Maintainer: SynapseOS Engineering Team
+# Maintainer: PalexusOS Engineering Team
 pkgname=synapse-core
 pkgver=0.1.0
 pkgrel=1
@@ -79,16 +79,16 @@ package() {
 
 ### Step 2: System Integration Hooks
 1. **User Profile Skeleton (`/etc/skel/.synapse`)**:
-   - Every new user account on SynapseOS automatically has `~/.synapse/` initialized with:
+   - Every new user account on PalexusOS automatically has `~/.synapse/` initialized with:
      - `config.toml`: pre-configured loopback gateway (`127.0.0.1:8000`).
      - Memory directory structure (`~/.synapse/memory/`).
      - Pre-configured shell hooks for `UserPromptSubmit`, `PostToolUse`, and `SessionStart`.
 2. **System Service Activation (`preset`)**:
-   - In `/usr/lib/systemd/system-preset/50-synapseos.preset`:
+   - In `/usr/lib/systemd/system-preset/50-palexusos.preset`:
      ```ini
      enable synapse.service
      enable ollama.service
      enable ananicy-cpp.service
      ```
 3. **Claude Code & Agent Autowiring**:
-   - When a user launches an AI CLI (`claude`, `antigravity`, or terminal chat), SynapseOS's global environment (`/etc/profile.d/synapse-agent.sh`) auto-detects and points agent hooks directly to the local daemon without manual user setup!
+   - When a user launches an AI CLI (`claude`, `antigravity`, or terminal chat), PalexusOS's global environment (`/etc/profile.d/synapse-agent.sh`) auto-detects and points agent hooks directly to the local daemon without manual user setup!
