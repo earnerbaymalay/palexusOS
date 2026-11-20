@@ -1,6 +1,7 @@
 """PalexusOS Gate G3 & G4 Validation Suite for the greeter, Calamares installer and Archiso profile."""
 
 import os
+import sys
 import unittest
 from pathlib import Path
 
@@ -329,6 +330,8 @@ class TestPalexusOSGates(unittest.TestCase):
 
         def msg_handler(msg_type, context, msg):
             messages.append((msg_type, msg))
+            # Echo so a qFatal (which aborts the process) still leaves its reason in the log
+            print(f"[qt] {msg}", file=sys.stderr, flush=True)
 
         qInstallMessageHandler(msg_handler)
 
