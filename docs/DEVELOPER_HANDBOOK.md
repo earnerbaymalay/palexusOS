@@ -223,148 +223,77 @@ Gate("Boot", "Verify boot sequence", dependencies=["Graphics"])
 Gate("Performance", "Verify performance metrics", dependencies=["Boot"])
 ```
 
-### Add a New Gate: `Security`
+### Add a New Gate: `security`
 
-**Step 1: Define Gate Class**
+A gate subclasses `Gate`, names its dependencies, and implements
+`run(repo_root) -> GateResult` and `test() -> bool`. The registry handles
+ordering and skips the gate if a dependency fails.
+
+**Step 1: Write the test first**
 
 ```python
-# In palexus/build/gate_registry.py
+# tests/test_build.py
+def test_security_gate_fails_on_eval(tmp_path):
+    (tmp_path / "palexus").mkdir()
+    (tmp_path / "palexus" / "bad.py").write_text("eval(input())\n")
 
+    result = SecurityGate().run(tmp_path)
+
+    assert result.status == GateStatus.FAILED
+    assert "eval" in result.message
+
+
+def test_security_gate_passes_on_clean_code(tmp_path):
+    (tmp_path / "palexus").mkdir()
+    (tmp_path / "palexus" / "ok.py").write_text("x = 1\n")
+
+    assert SecurityGate().run(tmp_path).status == GateStatus.PASSED
+```
+
+**Step 2: Implement the gate**
+
+```python
+# palexus/build/gate_registry.py
 class SecurityGate(Gate):
-    """Security verification gate.
-    
-    Checks:
-    - No hardcoded secrets
-    - No dangerous functions used
-    - Dependencies audited for CVEs
-    - Code signing ready
-    """
-    
+    """G6: No dangerous calls in the Python sources."""
+
+    DANGEROUS = ("eval(", "exec(", "pickle.load", "__import__(")
+
     def __init__(self):
-        super().__init__(
-            name="Security",
-            description="Verify security requirements",
-            dependencies=["Package"]  # Must build first
+        super().__init__("security", dependencies={"package"})
+
+    def run(self, repo_root: Path) -> GateResult:
+        src = repo_root / "palexus"
+        if not src.exists():
+            return GateResult(self.name, GateStatus.SKIPPED, "No palexus/ sources")
+        found = sorted(
+            {call for f in src.rglob("*.py") for call in self.DANGEROUS if call in f.read_text()}
         )
-    
-    def verify(self) -> Result:
-        """Run security checks."""
-        checks = [
-            self._check_no_secrets(),
-            self._check_no_dangerous_functions(),
-            self._check_dependencies_audited(),
-        ]
-        
-        passed = all(c.passed for c in checks)
-        error = "; ".join(c.error for c in checks if not c.passed)
-        
-        return Result(
-            name=self.name,
-            passed=passed,
-            error=error or None
-        )
-    
-    def _check_no_secrets(self) -> Result:
-        """Check for hardcoded secrets."""
-        import re
-        
-        patterns = [
-            r"password\s*=\s*['\"].*['\"]",
-            r"api[_-]?key\s*=\s*['\"].*['\"]",
-            r"secret\s*=\s*['\"].*['\"]",
-        ]
-        
-        found = []
-        for pattern in patterns:
-            # Search codebase
-            matches = re.finditer(pattern, self._read_codebase())
-            if matches:
-                found.extend(str(m) for m in matches)
-        
-        return Result(
-            name="No hardcoded secrets",
-            passed=len(found) == 0,
-            error=f"Found {len(found)} potential secrets" if found else None
-        )
-    
-    def _check_no_dangerous_functions(self) -> Result:
-        """Check for dangerous function usage."""
-        dangerous = ["eval", "exec", "pickle.load", "__import__"]
-        
-        found = []
-        for func in dangerous:
-            if func in self._read_codebase():
-                found.append(func)
-        
-        return Result(
-            name="No dangerous functions",
-            passed=len(found) == 0,
-            error=f"Found dangerous: {', '.join(found)}" if found else None
-        )
-    
-    def _check_dependencies_audited(self) -> Result:
-        """Check dependencies are audited."""
-        # Run: pip audit
-        try:
-            import subprocess
-            result = subprocess.run(
-                ["pip", "audit"],
-                capture_output=True,
-                timeout=30
-            )
-            
-            return Result(
-                name="Dependencies audited",
-                passed=result.returncode == 0,
-                error="CVEs found in dependencies" if result.returncode != 0 else None
-            )
-        except Exception as e:
-            return Result(
-                name="Dependencies audited",
-                passed=False,
-                error=str(e)
-            )
-    
-    def _read_codebase(self) -> str:
-        """Read all source code."""
-        from pathlib import Path
-        
-        code = []
-        for file in Path("palexus").rglob("*.py"):
-            with open(file) as f:
-                code.append(f.read())
-        
-        return "\n".join(code)
+        if found:
+            return GateResult(self.name, GateStatus.FAILED, f"Found: {', '.join(found)}")
+        return GateResult(self.name, GateStatus.PASSED, "No dangerous calls")
+
+    def test(self) -> bool:
+        return self.name == "security" and self.dependencies == {"package"}
 ```
 
-**Step 2: Register Gate**
+A substring check like this is a tripwire, not an audit: it will flag
+`eval(` in a comment and miss `getattr(builtins, "eval")`. Say so in the
+gate's docstring if you ship it.
+
+**Step 3: Register it**
 
 ```python
-class GateRegistry:
-    def __init__(self):
-        self.gates = [
-            # ... existing gates ...
-            SecurityGate(),
-        ]
+# GateRegistry.__init__
+self.gates: dict[str, Gate] = {
+    "package": PackageGate(),
+    # ... existing gates ...
+    "security": SecurityGate(),
+}
 ```
 
-**Step 3: Write Integration Test**
-
-```python
-def test_security_gate_runs():
-    """SecurityGate executes and returns result."""
-    registry = GateRegistry()
-    
-    security_gate = next(
-        g for g in registry.gates 
-        if g.name == "Security"
-    )
-    
-    result = security_gate.verify()
-    assert result is not None
-    assert hasattr(result, "passed")
-    assert hasattr(result, "error")
-```
+`palexus build list` and `palexus build run --gates security` pick it up with
+no CLI changes.
 
 ---
 
@@ -385,37 +314,48 @@ After USER_SELECT but before HUD initialization, collect credentials.
 ```python
 # In palexus/desktop/environment.py
 
-from enum import Enum, auto
-
 class BootPhase(Enum):
-    """Boot sequence phases."""
-    GREETER = auto()
-    USER_SELECT = auto()
-    CREDENTIALS = auto()  # NEW
-    HUD = auto()
-    THEME = auto()
-    COMPLETE = auto()
+    """Desktop boot sequence phases."""
+
+    GREETER = "greeter"
+    USER_SELECT = "user_select"
+    CREDENTIALS = "credentials"  # NEW
+    HUD = "hud"
+    THEME = "theme"
+    COMPLETE = "complete"
 ```
 
-**Step 2: Update BootContext**
+**Step 2: Add a context field and an adapter**
+
+`BootContext` is a dataclass; add a field. Each phase is handled by an
+`Adapter` that acts only when the context is in its phase, then advances it.
 
 ```python
+@dataclass
 class BootContext:
+    selected_user: str | None = None
+    selected_theme: str | None = None
+    hud_enabled: bool = True
+    phase: BootPhase = BootPhase.GREETER
+    credentials: dict | None = None  # NEW
+
+
+class CredentialsAdapter(Adapter):
     def __init__(self):
-        self.current_phase = BootPhase.GREETER
-        self.user = None
-        self.credentials = None  # NEW
-        self.hud_enabled = False
-        self.theme = None
-    
-    def set_credentials(self, creds: dict) -> None:
-        """Store credentials collected at CREDENTIALS phase."""
-        self.credentials = creds
-    
-    def get_credentials(self) -> Optional[dict]:
-        """Retrieve stored credentials."""
-        return self.credentials
+        self.name = "credentials"
+
+    def initialize(self, context: BootContext) -> None:
+        if context.phase != BootPhase.CREDENTIALS:
+            return
+        context.credentials = {}  # collect here; keep in memory only
+        context.phase = BootPhase.HUD
+
+    def test(self) -> bool:
+        return self.name == "credentials"
 ```
+
+Then have the greeter advance to `CREDENTIALS` instead of `HUD`, and call the
+new adapter in `DesktopEnvironment.boot()` between the greeter and the HUD.
 
 **Step 3: Document Phase**
 
@@ -448,61 +388,46 @@ UNIT → GATE → INTEGRATION
 
 ### Add Level: `PERFORMANCE`
 
-Run performance benchmarks and profile critical paths.
+`TestOrchestrator` aggregates suites; it does not execute tests. So a new
+level means: add the enum value, produce a `Suite` at that level from real
+measurements, and register it.
 
 ```python
-# In palexus/test/orchestrator.py
-
-from enum import Enum
-
+# palexus/test/orchestrator.py
 class Level(Enum):
-    """Test levels."""
     UNIT = "unit"
     GATE = "gate"
     INTEGRATION = "integration"
     PERFORMANCE = "performance"  # NEW
-
-
-class TestOrchestrator:
-    def run_level(self, level: Level) -> Optional[List[Result]]:
-        """Run tests at specified level."""
-        if level == Level.PERFORMANCE:
-            return self._run_performance_tests()
-        
-        # ... existing levels ...
-    
-    def _run_performance_tests(self) -> List[Result]:
-        """Run performance benchmarks."""
-        import time
-        
-        results = []
-        
-        # Benchmark TokenRegistry
-        start = time.time()
-        registry = TokenRegistry(Path("docs/design-system/tokens.json"))
-        registry.colors()
-        duration = time.time() - start
-        
-        results.append(Result(
-            name="TokenRegistry.colors() < 10ms",
-            passed=duration < 0.01,
-            error=f"Took {duration*1000:.2f}ms" if duration >= 0.01 else None
-        ))
-        
-        # Benchmark GateRegistry
-        start = time.time()
-        gate_registry = GateRegistry()
-        gate_registry.run()
-        duration = time.time() - start
-        
-        results.append(Result(
-            name="GateRegistry.run() < 5s",
-            passed=duration < 5,
-            error=f"Took {duration:.2f}s" if duration >= 5 else None
-        ))
-        
-        return results
+    ALL = "all"
 ```
+
+```python
+# Build the suite from scripts/perf_baseline.py, which already measures
+# medians and owns the budgets.
+import sys; sys.path.insert(0, "scripts")
+from perf_baseline import BUDGETS_MS, measure
+
+timings = measure(runs=10, with_tests=False)
+tests = [
+    Result(
+        name=f"{op} <= {BUDGETS_MS[op]:.0f}ms",
+        level=Level.PERFORMANCE,
+        passed=ms <= BUDGETS_MS[op],
+        duration_ms=ms,
+        error=None if ms <= BUDGETS_MS[op] else f"took {ms:.2f}ms",
+    )
+    for op, ms in timings.items()
+]
+passed = sum(t.passed for t in tests)
+orchestrator.register_suite(
+    Suite("performance", Level.PERFORMANCE, len(tests), passed, len(tests) - passed, tests=tests)
+)
+orchestrator.run_level(Level.PERFORMANCE)
+```
+
+Keep the budgets in one place (`BUDGETS_MS`); do not copy thresholds into
+the orchestrator.
 
 ---
 
@@ -625,7 +550,7 @@ def validate_phase(phase: BootPhase) -> bool:
 def test_token_registry_color_lookup():
     """Single responsibility: lookup by name."""
     registry = TokenRegistry(test_file)
-    result = registry.color("accent", "primary")
+    result = registry.color("primary", "mauve")
     assert result == "#cba6f7"
 
 
@@ -633,21 +558,20 @@ def test_token_registry_color_lookup():
 def test_package_gate_verifies_build():
     """Gate verifies expected behavior."""
     gate = PackageGate()
-    result = gate.verify()
-    assert result.passed
+    result = gate.run(REPO_ROOT)
+    assert result.status == GateStatus.PASSED
 
 
 # 3. Integration Tests (module interactions)
-def test_tokens_applied_during_boot():
-    """Tokens flow through boot sequence."""
-    registry = TokenRegistry(test_file)
-    context = BootContext()
-    
-    # Apply theme
-    context.set_theme("tokens-from-registry")
-    
-    # Verify tokens available
-    assert context.get_theme() is not None
+def test_boot_uses_configured_tokens(tmp_path):
+    """The theme loader uses the token file it was given, and boot completes."""
+    tokens = tmp_path / "tokens.json"
+    tokens.write_text(test_file.read_text())
+    env = DesktopEnvironment()
+    env.set_design_tokens(tokens)
+
+    assert env.theme_loader() == tokens
+    assert env.boot().phase == BootPhase.COMPLETE
 ```
 
 ### Edge Case Testing
@@ -659,22 +583,22 @@ def test_token_registry_missing_file():
         TokenRegistry(Path("nonexistent.json"))
 
 
-def test_boot_phase_invalid_transition():
-    """Prevent invalid phase transitions."""
-    context = BootContext()
-    context.current_phase = BootPhase.COMPLETE
-    
-    # Should not allow backwards
-    # (Implementation depends on actual API)
+def test_boot_without_hud_skips_theme():
+    """With the HUD disabled, boot still completes."""
+    env = DesktopEnvironment()
+    env.context.hud_enabled = False
+
+    assert env.boot().phase == BootPhase.COMPLETE
+    assert env.hud_interface() is None
 
 
-def test_gate_dependency_cycle():
-    """Prevent circular gate dependencies."""
-    gate = Gate("Test", "test", dependencies=["Test"])
-    
-    with pytest.raises(ValueError):
-        registry = GateRegistry()
-        registry.add(gate)
+def test_gate_dependency_cycle(tmp_path):
+    """A dependency cycle is reported, not looped on."""
+    registry = GateRegistry()
+    registry.gates["package"].dependencies = {"perf"}  # perf -> boot -> ... -> package
+
+    with pytest.raises(ValueError, match="Circular dependency"):
+        registry.run(tmp_path)
 ```
 
 ---

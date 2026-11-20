@@ -320,7 +320,7 @@ A build automation file defining common tasks:
 - `make test` → run tests
 - `make lint` → lint code
 - `make format` → format code
-- `make setup` → setup development environment
+- `make install-dev` → install with development dependencies
 
 **Usage**: `make <target>`
 
