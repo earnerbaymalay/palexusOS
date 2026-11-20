@@ -4,13 +4,15 @@ Coordinates unit tests, gate tests, and integration tests from one interface.
 Enables selective test execution and cross-test reporting.
 """
 
+from __future__ import annotations
+
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
 from typing import Dict, List, Optional, Set
 
 
-class TestLevel(Enum):
+class Level(Enum):
     """Test execution levels."""
     UNIT = "unit"
     GATE = "gate"
@@ -19,32 +21,32 @@ class TestLevel(Enum):
 
 
 @dataclass
-class TestCase:
+class Result:
     """Single test case execution record."""
     name: str
-    level: TestLevel
+    level: Level
     passed: bool
     duration_ms: float = 0.0
     error: Optional[str] = None
 
 
 @dataclass
-class TestSuite:
+class Suite:
     """Collection of related test cases."""
     name: str
-    level: TestLevel
+    level: Level
     test_count: int = 0
     passed: int = 0
     failed: int = 0
     duration_ms: float = 0.0
-    tests: List[TestCase] = field(default_factory=list)
+    tests: List[Result] = field(default_factory=list)
 
     @property
     def pass_rate(self) -> float:
         """Get pass rate as percentage."""
         if self.test_count == 0:
             return 0.0
-        return (self.passed / self.test_count) * 100
+        return (self.passed / self.test_count) * 100  # noqa: E501
 
 
 class TestOrchestrator:
@@ -57,18 +59,18 @@ class TestOrchestrator:
             repo_root: Repository root for test discovery
         """
         self.repo_root = repo_root or Path.cwd()
-        self.suites: Dict[str, TestSuite] = {}
-        self.results: Dict[str, TestSuite] = {}
+        self.suites: Dict[str, Suite] = {}
+        self.results: Dict[str, Suite] = {}
 
-    def register_suite(self, suite: TestSuite) -> None:
+    def register_suite(self, suite: Suite) -> None:
         """Register a test suite.
 
         Args:
-            suite: TestSuite to register
+            suite: Suite to register
         """
         self.suites[suite.name] = suite
 
-    def run_all(self) -> Dict[str, TestSuite]:
+    def run_all(self) -> Dict[str, Suite]:
         """Execute all registered test suites.
 
         Returns:
@@ -79,22 +81,22 @@ class TestOrchestrator:
             self.results[suite_name] = self._execute_suite(suite)
         return self.results
 
-    def run_level(self, level: TestLevel) -> Dict[str, TestSuite]:
+    def run_level(self, level: Level) -> Dict[str, Suite]:
         """Execute tests at specific level.
 
         Args:
-            level: TestLevel to run
+            level: Level to run
 
         Returns:
             Dict of suite name to results for that level
         """
         self.results = {}
         for suite_name, suite in self.suites.items():
-            if suite.level == level or level == TestLevel.ALL:
+            if suite.level == level or level == Level.ALL:
                 self.results[suite_name] = self._execute_suite(suite)
         return self.results
 
-    def run_gate(self, gate_name: str) -> Optional[TestSuite]:
+    def run_gate(self, gate_name: str) -> Optional[Suite]:
         """Execute tests for specific gate.
 
         Args:
@@ -112,7 +114,7 @@ class TestOrchestrator:
         self.results[suite_name] = result
         return result
 
-    def run_integration(self) -> Optional[TestSuite]:
+    def run_integration(self) -> Optional[Suite]:
         """Execute integration tests.
 
         Returns:
@@ -127,7 +129,7 @@ class TestOrchestrator:
         self.results[suite_name] = result
         return result
 
-    def test_specific(self, suite_name: str, test_name: str) -> Optional[TestCase]:
+    def test_specific(self, suite_name: str, test_name: str) -> Optional[Result]:
         """Run specific test case.
 
         Args:
@@ -135,7 +137,7 @@ class TestOrchestrator:
             test_name: Name of test case
 
         Returns:
-            TestCase result, or None if not found
+            Result, or None if not found
         """
         if suite_name not in self.suites:
             return None
@@ -178,18 +180,18 @@ class TestOrchestrator:
             f"Time: {total_time:.0f}ms"
         )
 
-    def _execute_suite(self, suite: TestSuite) -> TestSuite:
+    def _execute_suite(self, suite: Suite) -> Suite:
         """Execute a test suite.
 
         Args:
-            suite: TestSuite to execute
+            suite: Suite to execute
 
         Returns:
-            TestSuite with updated results
+            Suite with updated results
         """
         # In real implementation, would discover and run tests
         # This is a placeholder that returns the suite as-is
-        result = TestSuite(
+        result = Suite(
             name=suite.name,
             level=suite.level,
             test_count=suite.test_count,

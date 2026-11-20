@@ -105,9 +105,14 @@ class TestDesktopEnvironment:
         # Context should progress through phases
         assert context.phase == BootPhase.COMPLETE
 
-    def test_hud_interface_enabled(self):
+    def test_hud_interface_enabled(self, tmp_path):
         """HUD interface returns status when enabled."""
+        # Create mock HUD config to prevent disabling
         env = DesktopEnvironment()
+        hud_conf = tmp_path / "hud.conf"
+        hud_conf.write_text("[hud]\nenabled=true\n")
+        env.hud.config_path = hud_conf
+
         env.boot()
 
         status = env.hud_interface()

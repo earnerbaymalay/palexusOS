@@ -7,10 +7,16 @@ import pytest
 
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
-from PyQt6.QtCore import QAbstractListModel, QMetaObject, QModelIndex, QObject, Qt, QUrl, pyqtProperty, pyqtSignal, pyqtSlot  # noqa: E402
-from PyQt6.QtGui import QGuiApplication  # noqa: E402
-from PyQt6.QtQuick import QQuickView  # noqa: E402
-from PyQt6.QtTest import QTest  # noqa: E402
+try:
+    from PyQt6.QtCore import QAbstractListModel, QMetaObject, QModelIndex, QObject, Qt, QUrl, pyqtProperty, pyqtSignal, pyqtSlot  # noqa: E402, E501
+    from PyQt6.QtGui import QGuiApplication  # noqa: E402
+    from PyQt6.QtQuick import QQuickView  # noqa: E402
+    from PyQt6.QtTest import QTest  # noqa: E402
+    HAS_PYQT6 = True
+except ImportError:
+    HAS_PYQT6 = False
+
+pytestmark = pytest.mark.skipif(not HAS_PYQT6, reason="PyQt6 not available")
 
 GREETER = Path(__file__).resolve().parent.parent / "packages" / "desktop" / "palexus-greeter" / "Main.qml"
 NAME_ROLE = Qt.ItemDataRole.UserRole + 1
