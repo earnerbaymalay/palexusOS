@@ -11,12 +11,10 @@ Usage:
     python scripts/health_check.py --module token  # Check specific module
 """
 
-import sys
 import subprocess
-import json
-from pathlib import Path
+import sys
 from datetime import datetime
-from typing import Dict, List, Tuple, Optional
+from pathlib import Path
 
 
 class HealthChecker:
@@ -57,25 +55,24 @@ class HealthChecker:
         """Verify package is installed correctly."""
         self.print_header("Installation")
 
-        try:
-            import palexus
-            self.print_check("Package installed", True)
-        except ImportError as e:
-            self.print_check("Package installed", False, str(e))
-            return False
+        import importlib
 
-        # Check modules
-        try:
-            from palexus.design.token_registry import TokenRegistry
-            from palexus.build.gate_registry import GateRegistry
-            from palexus.desktop.environment import DesktopEnvironment
-            from palexus.test.orchestrator import TestOrchestrator
-
-            self.print_check("All modules importable", True)
-            return True
-        except ImportError as e:
-            self.print_check("All modules importable", False, str(e))
-            return False
+        modules = [
+            "palexus",
+            "palexus.build.gate_registry",
+            "palexus.design.token_registry",
+            "palexus.desktop.environment",
+            "palexus.test.orchestrator",
+        ]
+        ok = True
+        for name in modules:
+            try:
+                importlib.import_module(name)
+                self.print_check(f"Import {name}", True)
+            except ImportError as e:
+                self.print_check(f"Import {name}", False, str(e))
+                ok = False
+        return ok
 
     # ========== File Structure Checks ==========
 
@@ -92,8 +89,8 @@ class HealthChecker:
             "tests/test_design.py",
             "tests/test_build.py",
             "tests/test_desktop.py",
-            "tests/test_test.py",
-            "docs/ARCHITECTURE.md",
+            "tests/test_orchestrator.py",
+            "docs/design/ARCHITECTURE.md",
             "docs/API_REFERENCE.md",
             "Makefile",
             "pyproject.toml",
@@ -137,7 +134,7 @@ class HealthChecker:
                     self.print_check(f"Token category: {cat}", False)
 
             # Check data integrity
-            data_ok = hasattr(registry, '_data') and len(registry._data) > 0
+            data_ok = hasattr(registry, "_data") and len(registry._data) > 0
             self.print_check("Token data loaded", data_ok)
 
             return True
@@ -157,23 +154,16 @@ class HealthChecker:
             registry = GateRegistry()
             self.print_check(f"Gates initialized ({len(registry.gates)} gates)", True)
 
-            # Run gates (they need repo_root)
-            results = registry.run(repo_root=self.project_root)
-            if results is None:
-                self.print_check("Gates run", False, "No results returned")
-                return False
+            from palexus.build.gate_registry import GateStatus
 
-            # Results is a dict of gate_name -> result
-            if isinstance(results, dict):
-                gate_names = list(results.keys())
-                self.print_check(f"Gates run: {len(gate_names)} gates completed", True,
-                               f"({', '.join(gate_names)})")
-                return True
-            else:
-                self.print_check("Gates run", False, f"Unexpected result type: {type(results)}")
-                return False
-
-            return failed == 0
+            results = registry.run(self.project_root)
+            failed = []
+            for name, result in results.items():
+                ok = result.status != GateStatus.FAILED
+                self.print_check(f"Gate {name}: {result.status.value}", ok, result.message)
+                if not ok:
+                    failed.append(name)
+            return not failed
         except Exception as e:
             self.print_check("Gate system", False, str(e))
             return False
@@ -181,36 +171,19 @@ class HealthChecker:
     # ========== Boot System Checks ==========
 
     def check_boot_system(self) -> bool:
-        """Verify boot system integrity."""
+        """Verify the desktop boot sequence completes."""
         self.print_header("Boot System")
 
         try:
-            from palexus.desktop.environment import DesktopEnvironment, BootPhase
+            from palexus.desktop.environment import DesktopEnvironment
 
             env = DesktopEnvironment()
-            context = env.boot_context
+            adapters_ok = env.test_adapters()
+            self.print_check("Adapters pass self-test", adapters_ok)
 
-            # Test boot sequence
-            phases = [
-                BootPhase.GREETER,
-                BootPhase.USER_SELECT,
-                BootPhase.HUD,
-                BootPhase.THEME,
-                BootPhase.COMPLETE,
-            ]
-
-            context.set_user("test-user")
-            context.set_theme("catppuccin-mocha")
-
-            for phase in phases:
-                try:
-                    context.advance_phase(phase)
-                    self.print_check(f"Boot phase: {phase.name}", True)
-                except Exception as e:
-                    self.print_check(f"Boot phase: {phase.name}", False, str(e))
-                    return False
-
-            return True
+            context = env.boot()
+            self.print_check("Boot sequence runs", True, f"final phase: {context.phase.value}")
+            return adapters_ok
         except Exception as e:
             self.print_check("Boot system", False, str(e))
             return False
@@ -218,37 +191,23 @@ class HealthChecker:
     # ========== Test System Checks ==========
 
     def check_test_system(self) -> bool:
-        """Verify test system integrity."""
+        """Run the pytest suite."""
         self.print_header("Test System")
 
-        try:
-            from palexus.test.orchestrator import TestOrchestrator, Level
-
-            orchestrator = TestOrchestrator()
-
-            # Run tests
-            print("Running test suite (this may take a minute)...")
-            results = orchestrator.run_all()
-
-            if results is None:
-                self.print_check("Test suite runs", False, "No results returned")
-                return False
-
-            passed = sum(1 for r in results if r.passed)
-            failed = sum(1 for r in results if not r.passed)
-            total = len(results)
-
-            self.print_check(f"Tests: {passed}/{total} passed", failed == 0)
-
-            if self.verbose and failed > 0:
-                for result in results:
-                    if not result.passed:
-                        self.print_warning(f"Test failed: {result.name}")
-
-            return failed == 0
-        except Exception as e:
-            self.print_check("Test system", False, str(e))
-            return False
+        print("Running test suite...")
+        result = subprocess.run(
+            [sys.executable, "-m", "pytest", "tests/", "-q", "-p", "no:cacheprovider"],
+            cwd=self.project_root,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        lines = result.stdout.strip().splitlines()
+        summary = lines[-1].strip("= ") if lines else "no output"
+        self.print_check("Test suite passes", result.returncode == 0, summary)
+        if self.verbose and result.returncode != 0:
+            print(result.stdout[-2000:])
+        return result.returncode == 0
 
     # ========== Code Quality Checks ==========
 
@@ -308,7 +267,7 @@ class HealthChecker:
 
         required_docs = [
             "README.md",
-            "docs/ARCHITECTURE.md",
+            "docs/design/ARCHITECTURE.md",
             "docs/API_REFERENCE.md",
             "docs/GETTING_STARTED_TUTORIAL.md",
             "docs/DEVELOPER_HANDBOOK.md",
@@ -335,8 +294,9 @@ class HealthChecker:
         self.print_header("Performance")
 
         try:
-            from palexus.design.token_registry import TokenRegistry
             import time
+
+            from palexus.design.token_registry import TokenRegistry
 
             token_file = self.project_root / "docs/design-system/tokens.json"
 
@@ -346,15 +306,15 @@ class HealthChecker:
             load_duration = time.time() - start
 
             load_ok = load_duration < 1.0  # Should be <1 second
-            self.print_check(f"Token loading (<1s)", load_ok, f"{load_duration*1000:.1f}ms")
+            self.print_check("Token loading (<1s)", load_ok, f"{load_duration*1000:.1f}ms")
 
             # Data access speed
             start = time.time()
-            colors = registry.colors()
+            registry.colors()
             access_duration = time.time() - start
 
             access_ok = access_duration < 0.1  # Should be <100ms
-            self.print_check(f"Token access (<100ms)", access_ok, f"{access_duration*1000:.1f}ms")
+            self.print_check("Token access (<100ms)", access_ok, f"{access_duration*1000:.1f}ms")
 
             return load_ok and access_ok
         except Exception as e:
@@ -400,9 +360,7 @@ class HealthChecker:
             print("\n✓ All checks passed! System is healthy.\n")
             return 0
         else:
-            print(
-                f"\n✗ {self.checks_failed} check(s) failed. Please review above.\n"
-            )
+            print(f"\n✗ {self.checks_failed} check(s) failed. Please review above.\n")
             return 1
 
     def run_quick_health_check(self) -> int:
@@ -430,7 +388,7 @@ class HealthChecker:
             print("\n✓ Quick check passed!\n")
             return 0
         else:
-            print(f"\n✗ Issues found. Run full check: python scripts/health_check.py\n")
+            print("\n✗ Issues found. Run full check: python scripts/health_check.py\n")
             return 1
 
 
@@ -439,12 +397,8 @@ def main() -> int:
     import argparse
 
     parser = argparse.ArgumentParser(description="PalexusOS Health Check")
-    parser.add_argument(
-        "--quick", action="store_true", help="Run quick 5-minute check"
-    )
-    parser.add_argument(
-        "--verbose", action="store_true", help="Show detailed output"
-    )
+    parser.add_argument("--quick", action="store_true", help="Run quick 5-minute check")
+    parser.add_argument("--verbose", action="store_true", help="Show detailed output")
     parser.add_argument(
         "--module", type=str, help="Check specific module (token, gate, boot, test)"
     )

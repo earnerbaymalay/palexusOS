@@ -41,6 +41,7 @@ __pycache__/
 .venv/
 venv/
 *.egg-info/
+.perf/
 
 # Credentials, Keys & Local Secrets
 *.pem
@@ -82,8 +83,9 @@ build/sprints/
 # Boost shell-output cache (local tooling)
 .boost/
 
-# Python packaging
-build/
+# Python packaging (root-level setuptools output only; build/ itself holds the archiso profile)
+/build/lib/
+/build/bdist.*/
 dist/
 *.egg-info/
 *.whl

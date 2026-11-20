@@ -5,14 +5,14 @@ composable, and testable in isolation.
 """
 
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
-from typing import Dict, List, Optional, Set
 
 
 class GateStatus(Enum):
     """Gate execution status."""
+
     PENDING = "pending"
     PASSED = "passed"
     FAILED = "failed"
@@ -22,6 +22,7 @@ class GateStatus(Enum):
 @dataclass
 class GateResult:
     """Result of a gate execution."""
+
     name: str
     status: GateStatus
     message: str = ""
@@ -31,7 +32,7 @@ class GateResult:
 class Gate(ABC):
     """Base class for verification gates."""
 
-    def __init__(self, name: str, dependencies: Optional[Set[str]] = None):
+    def __init__(self, name: str, dependencies: set[str] | None = None):
         """Initialize gate.
 
         Args:
@@ -51,7 +52,6 @@ class Gate(ABC):
         Returns:
             GateResult with status and message
         """
-        pass
 
     @abstractmethod
     def test(self) -> bool:
@@ -60,7 +60,6 @@ class Gate(ABC):
         Returns:
             True if gate implementation is sound
         """
-        pass
 
 
 class PackageGate(Gate):
@@ -163,20 +162,20 @@ class GateRegistry:
 
     def __init__(self):
         """Initialize gate registry."""
-        self.gates: Dict[str, Gate] = {
+        self.gates: dict[str, Gate] = {
             "package": PackageGate(),
             "iso": ISOGate(),
             "graphics": GraphicsGate(),
             "boot": BootGate(),
             "perf": PerfGate(),
         }
-        self.results: Dict[str, GateResult] = {}
+        self.results: dict[str, GateResult] = {}
 
     def run(
         self,
         repo_root: Path,
-        selected: Optional[List[str]] = None,
-    ) -> Dict[str, GateResult]:
+        selected: list[str] | None = None,
+    ) -> dict[str, GateResult]:
         """Execute gates in dependency order.
 
         Args:
@@ -191,20 +190,24 @@ class GateRegistry:
         order = self._topological_sort(to_run)
 
         self.results = {}
+        # Gates that failed, or were skipped because something below them failed.
+        blocked: set[str] = set()
         for gate_name in order:
             gate = self.gates[gate_name]
+            blocking = sorted(gate.dependencies & blocked)
+            if blocking:
+                self.results[gate_name] = GateResult(
+                    gate_name,
+                    GateStatus.SKIPPED,
+                    f"Skipped (dependency failed: {', '.join(blocking)})",
+                )
+                blocked.add(gate_name)
+                continue
+
             result = gate.run(repo_root)
             self.results[gate_name] = result
-
-            # Skip dependent gates if this one failed
             if result.status == GateStatus.FAILED:
-                for other_name, other_gate in self.gates.items():
-                    if gate_name in other_gate.dependencies:
-                        self.results[other_name] = GateResult(
-                            other_name,
-                            GateStatus.SKIPPED,
-                            f"Skipped (dependency failed: {gate_name})",
-                        )
+                blocked.add(gate_name)
 
         return self.results
 
@@ -222,7 +225,7 @@ class GateRegistry:
         """
         return self.gates[gate_name].test()
 
-    def _topological_sort(self, gate_names: Set[str]) -> List[str]:
+    def _topological_sort(self, gate_names: set[str]) -> list[str]:
         """Sort gates by dependencies.
 
         Args:

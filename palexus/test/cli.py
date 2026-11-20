@@ -6,7 +6,7 @@ import sys
 from .orchestrator import Level, TestOrchestrator
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
     """Test orchestration CLI entry point."""
     parser = argparse.ArgumentParser(
         description="PalexusOS Test Framework: Run unified tests",
@@ -48,7 +48,7 @@ def main() -> int:
     # Report command
     subparsers.add_parser("report", help="Generate test report")
 
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     if not args.command:
         parser.print_help()
