@@ -33,14 +33,20 @@ classifiers = [
 dev = ["pytest>=7.0", "black", "mypy", "ruff"]
 test = ["pytest>=7.0"]
 
+[project.scripts]
+palexus = "palexus.cli:main"
+palexus-design = "palexus.design.cli:main"
+palexus-build = "palexus.build.cli:main"
+palexus-test = "palexus.test.cli:main"
+
 [project.urls]
 Homepage = "https://github.com/earnerbaymalay/palexusOS"
 Repository = "https://github.com/earnerbaymalay/palexusOS.git"
 Documentation = "https://github.com/earnerbaymalay/palexusOS#development--architecture"
 Issues = "https://github.com/earnerbaymalay/palexusOS/issues"
 
-[tool.setuptools]
-packages = ["palexus"]
+[tool.setuptools.packages.find]
+include = ["palexus", "palexus.*"]
 
 [tool.setuptools.package-data]
 palexus = ["py.typed"]

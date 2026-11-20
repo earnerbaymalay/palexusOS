@@ -155,3 +155,14 @@ class TestGateRegistry:
         assert order.index("graphics") < order.index("boot")
         # boot must come before perf
         assert order.index("boot") < order.index("perf")
+
+    def test_failed_gate_skips_dependents_transitively(self, tmp_path):
+        """A failed gate skips every gate that depends on it, directly or not."""
+        # An empty repo root makes the graphics gate fail (design system missing).
+        results = GateRegistry().run(tmp_path)
+
+        assert results["graphics"].status == GateStatus.FAILED
+        # boot depends on graphics; perf depends on boot.
+        for name in ("boot", "perf"):
+            assert results[name].status == GateStatus.SKIPPED
+            assert "dependency failed" in results[name].message

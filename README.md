@@ -31,10 +31,6 @@
 
 <br/>
 
-<img src="docs/assets/palexus-banner.png" alt="PalexusOS Monolithic Cyberdeck Banner" width="100%"/>
-
-<br/>
-
 PalexusOS breaks the telemetry paradigm. Built on the high-throughput CachyOS BORE kernel and an EndeavourOS-style Arch foundation, it runs AI models directly on your own hardware. No telemetry, no token meters, and nothing leaves the machine unless you choose a cloud model.
 
 <img src="docs/assets/palexusos-teaser.gif" alt="Animated concept render: a PalexusOS laptop booting into its neural HUD" width="480"/>
