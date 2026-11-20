@@ -200,6 +200,58 @@ cd palexusOS
 
 ---
 
+## 👨‍💻 Development & Architecture
+
+**For developers and contributors**: PalexusOS has deep architectural modularity focused on **locality** and **testability**.
+
+### Key Modules (Deepenings)
+
+| Module | Purpose | Tests |
+| :--- | :--- | :--- |
+| **TokenRegistry** | Design system (colors, typography, spacing) | 14 ✓ |
+| **GateRegistry** | Quality verification gates (5 gates) | 15 ✓ |
+| **DesktopEnvironment** | Boot sequence orchestration | 14 ✓ |
+| **TestOrchestrator** | Unified testing framework | 23 ✓ |
+
+**All 160 tests passing.**
+
+### Getting Started
+
+1. **Quick start**: Read [QUICKSTART.md](QUICKSTART.md) (5 min)
+2. **Domain model**: Read [CONTEXT.md](CONTEXT.md) (10 min)
+3. **Architecture**: Read [ARCHITECTURE.md](ARCHITECTURE.md) (15 min)
+4. **Decisions**: Browse [docs/adr/](docs/adr/) (ADRs 0001–0004)
+
+### Common Tasks
+
+**Add a design token**:
+```bash
+vim docs/design-system/tokens.json
+python -m pytest tests/test_design.py -v
+git commit -m "feat: Add animation token"
+```
+
+**Add a quality gate**:
+```bash
+# Edit palexus/build/gates.py, write test, commit
+python -m pytest tests/test_build.py -v
+```
+
+**Run all tests**:
+```bash
+python -m pytest tests/ -q  # 160 passing
+```
+
+### Design Principles
+
+- **Locality**: Changes to one concept stay localized
+- **Testability**: Modules can be tested independently
+- **Extensibility**: Adding features doesn't require rewriting existing code
+- **Clarity**: Module ownership and contracts explicit
+- **Intentionality**: Every design decision documented (ADRs)
+
+---
+
 ## 🛡️ The Prime Directive (Zero-Telemetry Sovereignty)
 
 PalexusOS guarantees that no telemetry packet leaves your machine without your explicit consent:
