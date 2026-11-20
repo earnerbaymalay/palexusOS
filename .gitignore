@@ -82,8 +82,9 @@ build/sprints/
 # Boost shell-output cache (local tooling)
 .boost/
 
-# Python packaging
-build/
+# Python packaging (setuptools output only: build/ itself holds the ISO tooling)
+/build/lib/
+/build/bdist.*/
 dist/
 *.egg-info/
 *.whl
