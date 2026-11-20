@@ -24,3 +24,13 @@
    - `overlay/`: System configuration overlays (`/etc`, `/usr/share`, `/etc/skel`).
    - `docs/`: Comprehensive technical specifications and research whitepapers.
 3. **Reproducibility**: All packages must build cleanly with `makepkg -si` in isolated chroots (`arch-nspawn` / `extra-x86_64-build`).
+
+## Agent skills
+
+### Issue tracker
+
+Issues and specs live in GitHub Issues. Skills like `to-spec`, `to-tickets`, and `triage` use the `gh` CLI. See `docs/agents/issue-tracker.md`.
+
+### Domain docs
+
+Single-context repo layout: one `CONTEXT.md` + `docs/adr/` at the repo root. See `docs/agents/domain.md`.
