@@ -12,8 +12,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # 3.9 is end-of-life and no longer available on current ubuntu-latest runners
-        python-version: ["3.10", "3.11", "3.12", "3.13"]
+        # Matches requires-python (>=3.11: the code uses tomllib); PalexusOS itself ships 3.14
+        python-version: ["3.11", "3.12", "3.13", "3.14"]
 
     steps:
       - uses: actions/checkout@v4
