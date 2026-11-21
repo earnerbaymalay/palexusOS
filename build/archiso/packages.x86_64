@@ -94,6 +94,11 @@ python-gobject
 gtk3
 gtk4
 
+# --- Shell welcome (overlay/etc/skel/.config/palexus/shell-welcome.sh) ---
+fastfetch
+fish
+lolcat
+
 # --- Accessibility (L9: Alt+Super+S starts the screen reader) ---
 orca
 # orca speaks through speech-dispatcher, which has no voice of its own
