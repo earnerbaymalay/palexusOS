@@ -21,22 +21,29 @@
 ### **The AI-Native Sovereign Workstation**  
 *Surgical Precision. Zero Cloud Friction. One Brain. All Models.*
 
-[![Build & Engineering Gates](https://img.shields.io/github/actions/workflow/status/earnerbaymalay/palexusOS/build-iso.yml?branch=main&label=Build%20%26%20Gates&logo=githubactions&logoColor=cdd6f4&color=cba6f7&style=flat-square)](https://github.com/earnerbaymalay/palexusOS/actions/workflows/build-iso.yml)
-[![Verification Gates](https://img.shields.io/badge/Gates-G1%E2%80%93G5%20automated-3fb950?style=flat-square&logo=shield&logoColor=ffffff)](build/verify-gates.sh)
-[![Release](https://img.shields.io/github/v/release/earnerbaymalay/palexusOS?include_prereleases&label=Latest%20Release&color=74c7ec&style=flat-square)](https://github.com/earnerbaymalay/palexusOS/releases)
-[![Rolling Base](https://img.shields.io/badge/Rolling%20Base-Arch%20Linux-1793d1?style=flat-square&logo=archlinux&logoColor=ffffff)](https://archlinux.org)
-[![Kernel](https://img.shields.io/badge/Kernel-linux--cachyos%20(BORE)-fab387?style=flat-square&logo=linux&logoColor=ffffff)](https://github.com/CachyOS/linux-cachyos)
-[![Telemetry](https://img.shields.io/badge/Telemetry-0%20(Prime%20Directive)-f38ba8?style=flat-square&logo=privatedivision&logoColor=ffffff)](#-the-prime-directive-zero-telemetry-sovereignty)
-[![License](https://img.shields.io/badge/License-MIT%20%2F%20GPLv3-d4dae2?style=flat-square)](LICENSE)
+[![Build & Gates](https://img.shields.io/github/actions/workflow/status/earnerbaymalay/palexusOS/build-iso.yml?branch=main&label=Build%20%26%20Gates&logo=githubactions&logoColor=cba6f7&color=cba6f7&style=for-the-badge&labelColor=11111b)](https://github.com/earnerbaymalay/palexusOS/actions/workflows/build-iso.yml)
+[![Gates](https://img.shields.io/badge/Gates-G1%E2%80%93G5%20automated-a6e3a1?logo=shield&logoColor=a6e3a1&style=for-the-badge&labelColor=11111b)](build/verify-gates.sh)
+[![Release](https://img.shields.io/github/v/release/earnerbaymalay/palexusOS?include_prereleases&label=Release&color=74c7ec&style=for-the-badge&labelColor=11111b)](https://github.com/earnerbaymalay/palexusOS/releases)
+[![Base](https://img.shields.io/badge/Base-Arch%20Linux-74c7ec?logo=archlinux&logoColor=74c7ec&style=for-the-badge&labelColor=11111b)](https://archlinux.org)
+[![Kernel](https://img.shields.io/badge/Kernel-linux--cachyos%20BORE-fab387?logo=linux&logoColor=fab387&style=for-the-badge&labelColor=11111b)](https://github.com/CachyOS/linux-cachyos)
+[![Telemetry](https://img.shields.io/badge/Telemetry-0%20%C2%B7%20Prime%20Directive-f38ba8?logo=privatedivision&logoColor=f38ba8&style=for-the-badge&labelColor=11111b)](#-the-prime-directive-zero-telemetry-sovereignty)
+[![License](https://img.shields.io/badge/License-MIT%20%2F%20GPLv3-cdd6f4?style=for-the-badge&labelColor=11111b)](LICENSE)
 
 <br/>
 
 PalexusOS breaks the telemetry paradigm. Built on the high-throughput CachyOS BORE kernel and an EndeavourOS-style Arch foundation, it runs AI models directly on your own hardware. No telemetry, no token meters, and nothing leaves the machine unless you choose a cloud model.
 
+```text
+PALEXUS SECURITY SUBSYSTEM // TTY7
+[  OK  ] Reached target Graphical Interface & Neural Cockpit.
+[  OK  ] Started Palexus AI gateway on 127.0.0.1:8000.
+[  OK  ] Resolver: Quad9 over TLS · MAC randomized.
+```
+
 <img src="docs/assets/palexusos-teaser.gif" alt="Real render: PalexusOS boots through its Plymouth animation and the SDDM greeter into Sway, where Super+Space opens the Command HUD" width="640"/>
 <br/><sub><i>Real render: Plymouth boot → SDDM greeter → Sway and the Command HUD</i></sub>
 
-[**60-Second Virtual Test Drive**](#-60-second-virtual-test-drive-no-usb-required) • [**Install in 3 Steps**](#-get-started-in-3-steps) • [**System Architecture**](#-system-architecture--subsystems) • [**Hardware Matrix**](#-supported-hardware-matrix) • [**UI/UX Verification**](docs/audits/UI_UX_AUDIT_REPORT.md) • [**Boot Video Suite**](docs/design/PALEXUS_BOOT_VIDEO_SUITE.md)
+[`VIRTUAL TEST DRIVE`](#-virtual-test-drive) ◆ [`INSTALL`](INSTALL.md) ◆ [`ARCHITECTURE`](#-system-architecture--subsystems) ◆ [`HARDWARE`](docs/guides/HARDWARE_COMPATIBILITY.md) ◆ [`UI/UX AUDIT`](docs/audits/UI_UX_AUDIT_REPORT.md) ◆ [`BOOT VIDEO SUITE`](docs/design/PALEXUS_BOOT_VIDEO_SUITE.md)
 
 </div>
 
@@ -59,40 +66,44 @@ PalexusOS breaks the telemetry paradigm. Built on the high-throughput CachyOS BO
 </tr>
 </table>
 
----
+<p align="center"><img src="docs/assets/readme/divider.svg" width="100%" alt=""/></p>
 
-## ⚡ Why PalexusOS? (Core Philosophy)
+## ◆ Why PalexusOS
+<sub><code>01 // CORE PHILOSOPHY</code></sub>
 
 Commercial operating systems treat your silicon as a thin client terminal to ingest telemetry, harvest keystrokes, and bill ongoing subscriptions for basic machine intelligence.
 
 **PalexusOS shifts the paradigm:**
 
-* 🧠 **Your AI Lives on Your Silicon**: Tap **`Super + Space`** from any screen to summon your local AI assistant. Query documentation, generate code, draft technical reports, and execute system commands. The weights run **100% locally on your CPU and GPU via resident Ollama models**—no internet connection required, zero token meters, and total privacy on airplane mode.
-* 🛡️ **The Prime Directive (Zero Telemetry)**: Every network interface enforces hardware MAC address randomization. IPv6 privacy extensions (RFC 4941) are active by default. Outbound DNS queries are encrypted over TLS via Quad9 (`9.9.9.9:853`), and system daemons operate with a default-drop inbound firewall posture.
-* 🚀 **Instantaneous Response (BORE Scheduler & AVX2)**: Utilizing `linux-cachyos` with the **Burst-Oriented Response Enhancer (BORE)**, interactive terminal typing and UI animations retain zero-latency priority even during 100% CPU multi-threaded local AI inference or kernel compilation.
-* 🛡️ **Btrfs Foundation**: Installs onto a Btrfs subvolume layout by default. Automatic per-update snapshots with boot-menu rollback (snapper + snap-pac + grub-btrfs) are planned but not shipped yet.
-* 🎨 **Bespoke Cyberdeck Aesthetic**: Built with dark obsidian glass, liquid chrome typography, Catppuccin Mocha Mauve palettes, laser-engraved Plymouth boot animations, and 4 precision CNC vector icon suites.
+* **Your AI Lives on Your Silicon**: Tap **`Super + Space`** from any screen to summon your local AI assistant. Query documentation, generate code, draft technical reports, and execute system commands. The weights run **100% locally on your CPU and GPU via resident Ollama models**—no internet connection required, zero token meters, and total privacy on airplane mode.
+* **The Prime Directive (Zero Telemetry)**: Every network interface enforces hardware MAC address randomization. IPv6 privacy extensions (RFC 4941) are active by default. Outbound DNS queries are encrypted over TLS via Quad9 (`9.9.9.9:853`), and system daemons operate with a default-drop inbound firewall posture.
+* **Instantaneous Response (BORE Scheduler & AVX2)**: Utilizing `linux-cachyos` with the **Burst-Oriented Response Enhancer (BORE)**, interactive terminal typing and UI animations retain zero-latency priority even during 100% CPU multi-threaded local AI inference or kernel compilation.
+* **Btrfs Foundation**: Installs onto a Btrfs subvolume layout by default. Automatic per-update snapshots with boot-menu rollback (snapper + snap-pac + grub-btrfs) are planned but not shipped yet.
+* **Bespoke Cyberdeck Aesthetic**: Built with dark obsidian glass, liquid chrome typography, Catppuccin Mocha Mauve palettes, laser-engraved Plymouth boot animations, and 4 precision CNC vector icon suites.
 
----
+<p align="center"><img src="docs/assets/readme/divider.svg" width="100%" alt=""/></p>
 
-## 📊 How PalexusOS Compares
+## ◆ How PalexusOS Compares
+<sub><code>02 // FIELD COMPARISON</code></sub>
 
 | Feature | Windows 11 Copilot+ | Ubuntu 24.04 LTS | Vanilla Arch Linux | CachyOS | **PalexusOS** |
 | :--- | :---: | :---: | :---: | :---: | :---: |
-| **Local AI Subsystem** | ❌ Cloud / NPU Only | ❌ None | ❌ DIY | ❌ DIY | **✅ Native Core & HUD** |
-| **Context & Secret Firewall**| ❌ Telemetry Ingestion | ❌ None | ❌ None | ❌ None | **✅ Bidirectional Proxy** |
-| **System Telemetry** | ⚠️ Pervasive / Diagnostic | ⚠️ Opt-out Metrics | ✅ Zero Default | ✅ Minimal | **🛡️ 0 (Prime Directive)** |
-| **CPU Scheduler Tuning** | Standard Round-Robin | CFS / EEVDF | Standard EEVDF | BORE / BMQ | **🚀 BORE + Auto-Nicing** |
-| **Microarchitecture Binaries**| Generic x86-64 | Generic x86-64 | Generic x86-64 | x86-64-v3/v4 | **⚡ x86-64-v3 (AVX2/BMI2)** |
-| **Memory Compression** | Basic Pagefile | Basic Swap | DIY | ZRAM zstd | **💾 8GB ZRAM (180 Swappiness)** |
-| **Rollback Time Machine** | System Restore (Slow) | Manual TimeShift | DIY Btrfs | Automated Snapper | **✅ 5-Second Boot Snapshots** |
-| **First-Boot Experience** | Mandatory Online Account | Generic Installer | Terminal CLI | Calamares | **✨ Cyberdeck Cockpit Wizard** |
+| **Local AI Subsystem** | ❌ Cloud / NPU Only | ❌ None | ❌ DIY | ❌ DIY | **◆ Native Core & HUD** |
+| **Context & Secret Firewall**| ❌ Telemetry Ingestion | ❌ None | ❌ None | ❌ None | **◆ Bidirectional Proxy** |
+| **System Telemetry** | ⚠️ Pervasive / Diagnostic | ⚠️ Opt-out Metrics | ✅ Zero Default | ✅ Minimal | **◆ 0 (Prime Directive)** |
+| **CPU Scheduler Tuning** | Standard Round-Robin | CFS / EEVDF | Standard EEVDF | BORE / BMQ | **◆ BORE + Auto-Nicing** |
+| **Microarchitecture Binaries**| Generic x86-64 | Generic x86-64 | Generic x86-64 | x86-64-v3/v4 | **◆ x86-64-v3 (AVX2/BMI2)** |
+| **Memory Compression** | Basic Pagefile | Basic Swap | DIY | ZRAM zstd | **◆ 8GB ZRAM (180 Swappiness)** |
+| **Rollback Time Machine** | System Restore (Slow) | Manual TimeShift | DIY Btrfs | Automated Snapper | **◆ 5-Second Boot Snapshots** |
+| **First-Boot Experience** | Mandatory Online Account | Generic Installer | Terminal CLI | Calamares | **◆ Cyberdeck Cockpit Wizard** |
 
----
+<p align="center"><img src="docs/assets/readme/divider.svg" width="100%" alt=""/></p>
 
-## 🏛 System Architecture & Subsystems
+## ◆ System Architecture & Subsystems
+<sub><code>03 // SUBSYSTEM MAP</code></sub>
 
 ```mermaid
+%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#1e1e2e', 'primaryTextColor': '#cdd6f4', 'primaryBorderColor': '#cba6f7', 'lineColor': '#cba6f7', 'secondaryColor': '#181825', 'tertiaryColor': '#11111b', 'clusterBkg': '#11111b', 'clusterBorder': '#45475a', 'titleColor': '#cba6f7', 'edgeLabelBackground': '#11111b', 'fontFamily': 'JetBrains Mono, ui-monospace, monospace'}}}%%
 flowchart TD
     subgraph Hardware ["Hardware Layer (x86-64-v3 / AVX2)"]
         CPU["CPU (Intel Core / AMD Zen)"]
@@ -124,25 +135,28 @@ flowchart TD
     DesktopSubsystem --> NeuralSubsystem
 ```
 
----
+<p align="center"><img src="docs/assets/readme/divider.svg" width="100%" alt=""/></p>
 
-## ⌨️ Mnemonic Keybinding Cheat Sheet
+## ◆ Keybindings
+<sub><code>04 // INPUT MAP</code></sub>
 
 | Keybinding | Target Action | Subsystem / Component |
 | :--- | :--- | :--- |
-| `[Mod4] + [Space]` | **Summon Command HUD / AI Copilot** | `palexus-hud` (Global Quickfire overlay) |
-| `[Mod4] + [S]` | **Summon Command HUD / AI Copilot** | `palexus-hud` (Mnemonic Search / AI) |
-| `[Mod4] + [Return]` | **Spawn GPU-Accelerated Terminal** | Kitty terminal with JetBrains Mono |
-| `[Mod4] + [B]` | **Launch Hardened Web Browser** | Chromium (Telemetry & Sync disabled) |
-| `[Mod4] + [F]` | **Launch Native File Manager** | Thunar (Fast XFCE file navigation) |
-| `[Mod4] + [I]` | **Launch System Disk Installer** | Calamares Btrfs installer (`calamares -d`) |
-| `[Mod4] + [K]` | **Display Shortcuts HUD** | Floating keybinding reference cheat sheet |
-| `[Mod4] + [Ctrl] + [T]` | **Interactive Theme Switcher** | `palexus-theme` palette menu |
-| `[Mod4] + [Shift] + [Q]` | **Close Focused Window** | Window manager close binding |
+| <kbd>Super</kbd> + <kbd>Space</kbd> | **Summon Command HUD / AI Copilot** | `palexus-hud` (Global Quickfire overlay) |
+| <kbd>Super</kbd> + <kbd>S</kbd> | **Summon Command HUD / AI Copilot** | `palexus-hud` (Mnemonic Search / AI) |
+| <kbd>Super</kbd> + <kbd>Return</kbd> | **Spawn Terminal** | Kitty terminal with JetBrains Mono |
+| <kbd>Super</kbd> + <kbd>B</kbd> | **Launch Hardened Web Browser** | Chromium (Telemetry & Sync disabled) |
+| <kbd>Super</kbd> + <kbd>F</kbd> / <kbd>E</kbd> | **Launch File Manager** | Thunar |
+| <kbd>Super</kbd> + <kbd>C</kbd> | **Launch Calculator** | Galculator |
+| <kbd>Super</kbd> + <kbd>I</kbd> | **Launch System Installer** | Calamares (live ISO only) |
+| <kbd>Super</kbd> + <kbd>/</kbd> | **Display Shortcuts HUD** | `palexus-shortcuts` floating cheat sheet |
+| <kbd>Super</kbd> + <kbd>Ctrl</kbd> + <kbd>T</kbd> | **Interactive Theme Switcher** | `palexus-theme` palette menu |
+| <kbd>Super</kbd> + <kbd>Shift</kbd> + <kbd>Q</kbd> | **Close Focused Window** | Window manager close binding |
 
----
+<p align="center"><img src="docs/assets/readme/divider.svg" width="100%" alt=""/></p>
 
-## 🎨 Colorway & Design Tokens
+## ◆ Colorway & Design Tokens
+<sub><code>05 // DESIGN TOKENS</code></sub>
 
 PalexusOS adheres to a strict tactile cyberdeck design system:
 
@@ -153,17 +167,18 @@ PalexusOS adheres to a strict tactile cyberdeck design system:
 
 | Token Name | Hex Code | Sample | Purpose |
 | :--- | :---: | :---: | :--- |
-| **Electric Mauve (Default)** | `#cba6f7` | <img src="https://via.placeholder.com/16/cba6f7/cba6f7.png" width="16"/> | Primary cyberdeck accent, glowing trails, active borders |
-| **Warm Tungsten Gold** | `#fab387` | <img src="https://via.placeholder.com/16/fab387/fab387.png" width="16"/> | Industrial hardware warning, BORE scheduler telemetry |
-| **Stealth Crimson** | `#f38ba8` | <img src="https://via.placeholder.com/16/f38ba8/f38ba8.png" width="16"/> | Firewall drops, Tor isolation, authentication failure shake |
-| **Aerospace Sapphire** | `#74c7ec` | <img src="https://via.placeholder.com/16/74c7ec/74c7ec.png" width="16"/> | Audio subsystem, Quad9 DoT status, cold chromium highlights |
-| **Matrix Emerald** | `#a6e3a1` | <img src="https://via.placeholder.com/16/a6e3a1/a6e3a1.png" width="16"/> | Local AI online status (`:11434`), verified security posture |
-| **Liquid Silver Chrome** | `#cdd6f4` | <img src="https://via.placeholder.com/16/cdd6f4/cdd6f4.png" width="16"/> | Extruded 3D wordmark typography, keycap legends |
-| **Smoked Obsidian Crust** | `#11111b` | <img src="https://via.placeholder.com/16/11111b/11111b.png" width="16"/> | Chamfered window background, Plymouth zero-flicker handoff |
+| **Electric Mauve (Default)** | `#cba6f7` | <img src="docs/assets/readme/swatch-mauve.svg" width="56" height="20" alt="#cba6f7"/> | Primary cyberdeck accent, glowing trails, active borders |
+| **Warm Tungsten Gold** | `#fab387` | <img src="docs/assets/readme/swatch-tungsten.svg" width="56" height="20" alt="#fab387"/> | Industrial hardware warning, BORE scheduler telemetry |
+| **Stealth Crimson** | `#f38ba8` | <img src="docs/assets/readme/swatch-crimson.svg" width="56" height="20" alt="#f38ba8"/> | Firewall drops, Tor isolation, authentication failure shake |
+| **Aerospace Sapphire** | `#74c7ec` | <img src="docs/assets/readme/swatch-sapphire.svg" width="56" height="20" alt="#74c7ec"/> | Audio subsystem, Quad9 DoT status, cold chromium highlights |
+| **Matrix Emerald** | `#a6e3a1` | <img src="docs/assets/readme/swatch-emerald.svg" width="56" height="20" alt="#a6e3a1"/> | Local AI online status (`:11434`), verified security posture |
+| **Liquid Silver Chrome** | `#cdd6f4` | <img src="docs/assets/readme/swatch-chrome.svg" width="56" height="20" alt="#cdd6f4"/> | Extruded 3D wordmark typography, keycap legends |
+| **Smoked Obsidian Crust** | `#11111b` | <img src="docs/assets/readme/swatch-obsidian.svg" width="56" height="20" alt="#11111b"/> | Chamfered window background, Plymouth zero-flicker handoff |
 
----
+<p align="center"><img src="docs/assets/readme/divider.svg" width="100%" alt=""/></p>
 
-## ⚙️ System Architecture & Subsystems
+## ◆ The Four Layers
+<sub><code>06 // STACK</code></sub>
 
 PalexusOS replaces complex legacy distributions with four tightly integrated architectural layers designed for speed, privacy, and local intelligence:
 
@@ -194,23 +209,33 @@ PalexusOS replaces complex legacy distributions with four tightly integrated arc
 * **Hardware-Accelerated Terminal**: GPU-rendered Kitty terminal with JetBrains Mono Nerd Font and `ble.sh` syntax highlighting.
 * **Authentic 3D Chrome Aesthetics**: Four metallic vector icon suites (*Liquid Chrome*, *Smoked Obsidian*, *Radial Tungsten*, *Aerospace Billet*) and custom embossed SDDM greeter.
 
-Test drive PalexusOS inside a high-performance QEMU virtual machine with full UEFI support:
+<p align="center"><img src="docs/assets/readme/divider.svg" width="100%" alt=""/></p>
+
+## ◆ Virtual Test Drive
+<sub><code>07 // QEMU + OVMF</code></sub>
+
+Boot PalexusOS in a QEMU virtual machine with full UEFI, no USB stick needed:
 
 ```bash
-# Clone the repository
-git clone https://github.com/earnerbaymalay/palexusOS.git palexusOS
+git clone https://github.com/earnerbaymalay/palexusOS.git
 cd palexusOS
 
-# Run the 261-gate engineering verification suite
+# Run the engineering verification gates
 ./build/verify-gates.sh
 
-# Build native packages & live ISO (requires privileged Arch environment or Docker)
-./build/build-iso.sh --dry-run
+# Build the native packages and live ISO (privileged Arch environment or Docker)
+./build/build-iso.sh --build-pkgs
+
+# Boot the newest ISO in out/ in a QEMU window
+./build/test-iso-boot.sh --gui
 ```
 
----
+On Windows, [docs/VM_TESTING.md](docs/VM_TESTING.md) walks through a Hyper-V VM instead.
 
-## 👨‍💻 Development & Architecture
+<p align="center"><img src="docs/assets/readme/divider.svg" width="100%" alt=""/></p>
+
+## ◆ Development & Architecture
+<sub><code>08 // BUILD DECK</code></sub>
 
 **For developers and contributors**: PalexusOS has deep architectural modularity focused on **locality** and **testability**.
 
@@ -260,9 +285,10 @@ python -m pytest tests/ -q  # 160 passing
 - **Clarity**: Module ownership and contracts explicit
 - **Intentionality**: Every design decision documented (ADRs)
 
----
+<p align="center"><img src="docs/assets/readme/divider.svg" width="100%" alt=""/></p>
 
-## 🤝 Contributing & Community
+## ◆ Contributing & Community
+<sub><code>09 // CREW</code></sub>
 
 **For contributors, maintainers, and users:**
 
@@ -286,9 +312,10 @@ python -m pytest tests/ -q  # 160 passing
 - **Locality**: Changes scoped to modules
 - **Testability**: 160+ tests verify functionality
 
----
+<p align="center"><img src="docs/assets/readme/divider.svg" width="100%" alt=""/></p>
 
-## 🛡️ The Prime Directive (Zero-Telemetry Sovereignty)
+## ◆ The Prime Directive (Zero-Telemetry Sovereignty)
+<sub><code>10 // STEALTH SUBSYSTEM</code></sub>
 
 PalexusOS guarantees that no telemetry packet leaves your machine without your explicit consent:
 1. **NetworkManager Hardware MAC Randomization**: `wifi.scan-rand-mac-address=yes`, `ethernet.cloned-mac-address=random`, `wifi.cloned-mac-address=random`.
@@ -296,9 +323,10 @@ PalexusOS guarantees that no telemetry packet leaves your machine without your e
 3. **Quad9 DNS-over-TLS (DoT)**: Systemd-resolved stub resolver bound to `9.9.9.9:853` with strict DNSSEC certificate verification.
 4. **Hardened Chromium Profile**: Embedded flags `--disable-sync`, `--disable-metrics`, `--disable-breakpad`, `--no-default-browser-check`.
 
----
+<p align="center"><img src="docs/assets/readme/divider.svg" width="100%" alt=""/></p>
 
-## 📜 Packaging & Subsystem Recipes
+## ◆ Packaging & Subsystem Recipes
+<sub><code>11 // PKGBUILD INDEX</code></sub>
 
 | Subsystem Package | Recipe Location | Binary & Deliverables |
 | :--- | :--- | :--- |
@@ -308,9 +336,10 @@ PalexusOS guarantees that no telemetry packet leaves your machine without your e
 | `palexus-plymouth` | [`packages/desktop/palexus-plymouth/PKGBUILD`](packages/desktop/palexus-plymouth/PKGBUILD) | Plymouth DRM/KMS boot splash (`palexus-boot.mp4`) |
 | `palexus-themes` | [`packages/desktop/palexus-themes/PKGBUILD`](packages/desktop/palexus-themes/PKGBUILD) | `palexus-theme`, `palexus-screensaver`, 14 curated wallpapers |
 
----
+<p align="center"><img src="docs/assets/readme/divider.svg" width="100%" alt=""/></p>
 
 <div align="center">
+<sub><code>◆ PALEXUS // NEURAL INTERFACE ONLINE</code></sub><br/><br/>
 <b>PalexusOS · Built for Sovereignty, Speed, and Intelligence.</b><br/>
 <sub>100% Free & Open Source Software. Dual licensed under MIT and GPLv3.</sub>
 </div>
