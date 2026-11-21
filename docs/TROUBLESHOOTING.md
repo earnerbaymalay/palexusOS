@@ -300,17 +300,20 @@ for g in r.gates:
 
 #### "AttributeError: 'BootContext' object has no attribute 'current_phase'"
 
-**Solution**:
-```bash
-# Check actual API
-python -c "
-from palexus.desktop.environment import BootContext
-ctx = BootContext()
-print(dir(ctx))  # List all attributes
-"
+**Cause**: Code or an older doc written against an API that never existed.
+`BootContext` is a dataclass with four fields: `phase`, `selected_user`,
+`selected_theme` and `hud_enabled`. There are no `advance_phase()`,
+`set_user()` or `set_theme()` methods; set fields directly and call `boot()`.
 
-# Use actual attributes available
+**Solution**:
+```python
+env = DesktopEnvironment()
+env.context.hud_enabled = False
+context = env.boot()
+print(context.phase, context.selected_user)
 ```
+
+See [API_REFERENCE.md](API_REFERENCE.md#palexusdesktop--desktopenvironment).
 
 ---
 

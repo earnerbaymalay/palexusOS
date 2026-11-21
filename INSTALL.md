@@ -4,7 +4,7 @@ PalexusOS is a modular, AI-native Linux distribution toolkit available as a Pyth
 
 ## System Requirements
 
-- **Python**: 3.9, 3.10, 3.11, or 3.12
+- **Python**: 3.11, 3.12, 3.13 or 3.14
 - **OS**: Linux, macOS, or Windows (WSL2)
 - **Disk**: ~100 MB for core package + dependencies
 - **RAM**: 2 GB recommended for full test suite
@@ -278,7 +278,7 @@ pip install -e . -v
 If build fails, check Python version:
 
 ```bash
-python --version  # Must be 3.9+
+python --version  # Must be 3.11+
 ```
 
 For Arch packages, check dependencies:

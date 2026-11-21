@@ -52,16 +52,16 @@ PalexusOS follows a **zero-telemetry, secure-by-default** philosophy:
 
 ```python
 try:
-    value = get_token("color/primary")
+    value = registry.color("primary", "mauve")
 except KeyError:
-    logger.error("Token not found: color/primary")
+    logger.error("Token not found: primary.mauve")
     value = DEFAULT_COLOR  # Safe fallback
 ```
 
 #### ❌ UNSAFE: Silent failures
 
 ```python
-value = tokens.get("color/primary", None)  # What if None breaks downstream?
+value = registry.colors("primary").get("mauve")  # What if None breaks downstream?
 ```
 
 ---
@@ -69,7 +69,7 @@ value = tokens.get("color/primary", None)  # What if None breaks downstream?
 #### ✅ SAFE: Type-checked functions
 
 ```python
-def register_token(name: str, value: str) -> None:
+def add_custom_token(name: str, value: str) -> None:
     """Register a token.
     
     Args:
@@ -297,7 +297,7 @@ def validate_token_name(name: str) -> bool:
     return bool(re.match(TOKEN_NAME_PATTERN, name))
 
 
-def register_token(name: str, value: str) -> None:
+def add_custom_token(name: str, value: str) -> None:
     """Register a token with validation.
     
     Raises:
@@ -426,16 +426,13 @@ NEW_TOKEN=$(python -c "import secrets; print(secrets.token_urlsafe(32))")
 # ✅ GOOD: Each module has explicit permissions
 
 class TokenRegistry:
-    """Can only read/write tokens."""
-    
-    def register_token(self, name: str, value: str) -> None:
-        """Add token (write permission)."""
-        ...
-    
-    def get_token(self, name: str) -> str:
-        """Read token (read permission)."""
-        ...
-    
+    """Reads one tokens.json; exposes getters only."""
+
+    def colors(self, category: str | None = None) -> dict: ...
+    def color(self, category: str, name: str) -> str: ...
+    # No setters, no writes: the registry never modifies tokens.json.
+    # Exporters return strings; the caller decides where to write them.
+
     # ❌ NOT ALLOWED:
     # - Execute arbitrary commands
     # - Delete files

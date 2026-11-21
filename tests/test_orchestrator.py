@@ -216,3 +216,13 @@ class TestOrchestratorClass:
 
         assert len(failures) > 0
         assert "test_bad" in failures[0]
+
+    def test_run_keeps_suite_duration(self):
+        """Running a suite preserves its recorded duration."""
+        orchestrator = TestOrchestrator()
+        orchestrator.register_suite(
+            Suite(name="timed", level=Level.UNIT, test_count=1, passed=1, duration_ms=12.5)
+        )
+
+        assert orchestrator.run_all()["timed"].duration_ms == 12.5
+        assert "Time: 12ms" in orchestrator.summary() or "Time: 13ms" in orchestrator.summary()

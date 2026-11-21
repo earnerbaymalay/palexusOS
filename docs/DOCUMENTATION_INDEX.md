@@ -27,8 +27,8 @@ Navigate PalexusOS documentation by role and goal.
 1. ✅ [README.md](../README.md) - Project overview (5 min)
 2. ✅ [CONTRIBUTING.md](../CONTRIBUTING.md) - How to contribute (10 min)
 3. ✅ [QUICKSTART.md](../QUICKSTART.md) - Dev setup (5 min)
-4. ✅ [CONTEXT.md](CONTEXT.md) - Domain terminology (10 min)
-5. ✅ [ARCHITECTURE.md](ARCHITECTURE.md) - Module design (15 min)
+4. ✅ [CONTEXT.md](../CONTEXT.md) - Domain terminology (10 min)
+5. ✅ [ARCHITECTURE.md](design/ARCHITECTURE.md) - Module design (15 min)
 6. ✅ [examples/01-04](../examples/README.md) - See it working (20 min)
 7. ✅ [GETTING_STARTED_TUTORIAL.md](GETTING_STARTED_TUTORIAL.md) - Real workflow (30 min)
 
@@ -47,8 +47,8 @@ Navigate PalexusOS documentation by role and goal.
 **Goal**: Modify module internals, add features
 
 **Reading Path**:
-1. ✅ [ARCHITECTURE.md](ARCHITECTURE.md) - Module ownership
-2. ✅ [CONTEXT.md](CONTEXT.md) - Domain model
+1. ✅ [ARCHITECTURE.md](design/ARCHITECTURE.md) - Module ownership
+2. ✅ [CONTEXT.md](../CONTEXT.md) - Domain model
 3. ✅ [docs/adr/](adr/) - Design decisions (all 4 ADRs)
 4. ✅ [DEVELOPER_HANDBOOK.md](DEVELOPER_HANDBOOK.md) - Extension patterns (45 min)
 5. ✅ [API_REFERENCE.md](API_REFERENCE.md) - Method signatures (20 min)
@@ -103,7 +103,7 @@ Navigate PalexusOS documentation by role and goal.
 
 ### "I want to understand the architecture"
 
-→ [ARCHITECTURE.md](ARCHITECTURE.md) (15 min)
+→ [ARCHITECTURE.md](design/ARCHITECTURE.md) (15 min)
 
 ---
 
@@ -154,18 +154,22 @@ Navigate PalexusOS documentation by role and goal.
 | [README.md](../README.md) | Project overview & features | Everyone |
 | [INSTALL.md](../INSTALL.md) | Installation methods | Users & developers |
 | [QUICKSTART.md](../QUICKSTART.md) | Developer setup & common tasks | Developers |
-| [CONTEXT.md](CONTEXT.md) | Domain vocabulary | Developers |
+| [CONTEXT.md](../CONTEXT.md) | Domain vocabulary | Developers |
 | [CONTRIBUTING.md](../CONTRIBUTING.md) | How to contribute | Contributors |
 
 ### In-Depth Guides (20-45 min)
 
 | Document | Purpose | Audience |
 |----------|---------|----------|
-| [ARCHITECTURE.md](ARCHITECTURE.md) | Module design & ownership | Developers, contributors |
+| [ARCHITECTURE.md](design/ARCHITECTURE.md) | Module design & ownership | Developers, contributors |
 | [GETTING_STARTED_TUTORIAL.md](GETTING_STARTED_TUTORIAL.md) | Real-world workflow | New contributors |
 | [DEVELOPER_HANDBOOK.md](DEVELOPER_HANDBOOK.md) | How to extend modules | Advanced contributors |
 | [API_REFERENCE.md](API_REFERENCE.md) | Method signatures & examples | Extension developers |
 | [TROUBLESHOOTING.md](TROUBLESHOOTING.md) | Solutions for common issues | Anyone stuck |
+| [INTEGRATION_GUIDE.md](INTEGRATION_GUIDE.md) | Using the modules from another project or CI | Integrators |
+| [MIGRATION.md](MIGRATION.md) | What changes between versions | Users upgrading |
+| [PERFORMANCE_BASELINES.md](PERFORMANCE_BASELINES.md) | Measured timings and budgets | Maintainers |
+| [V0.2.0_IMPLEMENTATION.md](V0.2.0_IMPLEMENTATION.md) | Plan for the next release | Contributors |
 
 ### Decision & Process (10-30 min)
 

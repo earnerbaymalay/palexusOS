@@ -146,14 +146,14 @@ registry = TokenRegistry()
 ## Quick Start
 
 ```python
-from palexus.design.token_registry import TokenRegistry
+from palexus.design.token_registry import CSSExporter, TokenRegistry
 from pathlib import Path
 
 # Load tokens
 registry = TokenRegistry(Path("docs/design-system/tokens.json"))
 
 # Export to CSS
-css = registry.export_css()
+css = CSSExporter(registry).export()
 print(css)  # Prints CSS variables
 ```
 ```
@@ -233,8 +233,9 @@ Good First Issue
 
 **Spec**:
 ```python
-# Should support:
-registry.export_json()  # Returns JSON string with all tokens
+# Should support, alongside CSSExporter, ShellExporter, KittyExporter, XFCEExporter:
+JSONExporter(registry).export()  # Returns JSON string with all tokens
+# and on the command line:  palexus design export json out.json
 
 # Output format:
 {
@@ -246,7 +247,7 @@ registry.export_json()  # Returns JSON string with all tokens
 
 **Steps to solve**:
 1. Write a test first (see `test_design.py` for examples)
-2. Implement `export_json()` method
+2. Add `JSONExporter` in `palexus/design/token_registry.py` and register it in `EXPORTERS` in `palexus/design/cli.py`
 3. Run `make test` to verify
 4. Update `API_REFERENCE.md` with new method
 5. Submit PR
@@ -285,24 +286,31 @@ results = orchestrator.run_level(Level.UNIT)  # Returns [Result(passed=False, er
 ```python
 # examples/custom_gate_example.py
 
-from palexus.build.gate_registry import GateRegistry, Gate, Result
 from pathlib import Path
+
+from palexus.build.gate_registry import Gate, GateRegistry, GateResult, GateStatus
+
 
 class DocumentationGate(Gate):
     """Verify all public functions are documented."""
-    
-    def verify(self):
-        undocumented = count_undocumented_functions()
-        return Result(
-            name="Documentation",
-            passed=undocumented == 0,
-            error=f"{undocumented} functions lack docs" if undocumented > 0 else None
-        )
+
+    def __init__(self):
+        super().__init__("docs", dependencies={"package"})
+
+    def run(self, repo_root: Path) -> GateResult:
+        undocumented = count_undocumented_functions(repo_root / "palexus")  # you write this
+        if undocumented:
+            return GateResult(self.name, GateStatus.FAILED, f"{undocumented} functions lack docs")
+        return GateResult(self.name, GateStatus.PASSED, "All public functions documented")
+
+    def test(self) -> bool:
+        return self.name == "docs"
+
 
 # Usage:
 registry = GateRegistry()
-registry.gates.append(DocumentationGate())
-results = registry.run()
+registry.gates["docs"] = DocumentationGate()
+results = registry.run(Path("."))
 ```
 
 **Steps to solve**:
@@ -326,7 +334,7 @@ Currently TokenRegistry supports CSS, Shell, Kitty, and XFCE export formats.
 Adding JSON export would enable JavaScript apps and other tools to consume tokens.
 
 ## Acceptance Criteria
-- [ ] export_json() method returns all tokens as JSON
+- [ ] `JSONExporter(registry).export()` returns all tokens as JSON
 - [ ] JSON structure matches existing format in tokens.json
 - [ ] All tests pass: make test
 - [ ] API_REFERENCE.md updated
@@ -441,7 +449,7 @@ orchestrator.run_level(Level.BROWSER)
 registry = TokenRegistry(Path("docs/design-system/tokens.json"))
 
 # 2. Export to CSS
-css = registry.export_css()
+css = CSSExporter(registry).export()
 
 # 3. Write to app
 with open("docs/example-app/styles/tokens.css", "w") as f:
@@ -681,7 +689,7 @@ Happy to pair on this or discuss design before starting.
 3. ENVIRONMENT SETUP
    ├─ Fork the repository
    ├─ Clone your fork
-   ├─ Run: make setup
+   ├─ Run: make install-dev && pre-commit install
    ├─ Run: make test (verify all pass)
    └─ Create feature branch: git checkout -b feature/your-issue-name
 
@@ -694,7 +702,7 @@ Happy to pair on this or discuss design before starting.
 
 5. VERIFY
    ├─ Run full test suite: make test
-   ├─ Check type hints: make type-check
+   ├─ Run every hook: pre-commit run --all-files
    ├─ Verify documentation is current
    └─ Review your own code once
 
@@ -719,12 +727,13 @@ Happy to pair on this or discuss design before starting.
 
 ```bash
 # Setup (first time only)
-make setup
+make install-dev
+pre-commit install
 
 # While developing
 make test              # Run all tests
 make lint              # Check code style
-make type-check        # Verify type hints
+pre-commit run --all-files   # ruff + black with CI's versions
 make format            # Auto-format code
 
 # Before submitting

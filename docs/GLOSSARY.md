@@ -320,7 +320,7 @@ A build automation file defining common tasks:
 - `make test` → run tests
 - `make lint` → lint code
 - `make format` → format code
-- `make setup` → setup development environment
+- `make install-dev` → install with development dependencies
 
 **Usage**: `make <target>`
 
@@ -381,8 +381,8 @@ CI/CD system integrated with GitHub. PalexusOS uses it to:
 
 ## See Also
 
-- [CONTEXT.md](CONTEXT.md) — Extended domain model
-- [ARCHITECTURE.md](ARCHITECTURE.md) — System design
+- [CONTEXT.md](../CONTEXT.md) — Extended domain model
+- [ARCHITECTURE.md](design/ARCHITECTURE.md) — System design
 - [API_REFERENCE.md](API_REFERENCE.md) — Complete API docs
 - [docs/adr/](adr/) — Architecture decision records
 
