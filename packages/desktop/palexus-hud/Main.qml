@@ -46,14 +46,6 @@ Window {
                 event.accepted = true
                 return
             }
-            if (searchBox.text.length === 0) {
-                var k = event.text.toUpperCase()
-                var action = findCommandByKey(k)
-                if (action !== "") {
-                    root.launchCommand(action)
-                    event.accepted = true
-                }
-            }
         }
 
         // Drop shadow / glow border
@@ -198,6 +190,7 @@ Window {
 
                     TextInput {
                         id: searchBox
+                        objectName: "searchBox"
                         width: parent.width - 40
                         anchors.verticalCenter: parent.verticalCenter
                         color: root.textMain
@@ -207,10 +200,10 @@ Window {
                         selectedTextColor: "#11111b"
 
                         Text {
-                            text: "[Esc] Close · [Enter] Launch / Ask AI · [Ctrl+Enter] Ask AI"
+                            text: "Search, or type a key letter and press Enter · anything else asks your local AI"
                             color: "#6c7086"
                             font: searchBox.font
-                            visible: !searchBox.text && !searchBox.activeFocus
+                            visible: !searchBox.text
                             anchors.verticalCenter: parent.verticalCenter
                         }
 
@@ -224,8 +217,9 @@ Window {
                                 var q = searchBox.text.trim()
                                 if (q.length > 0) {
                                     var isCtrl = (event.modifiers & Qt.ControlModifier) !== 0
-                                    var isAiExplicit = q.startsWith("?") || q.toLowerCase().startsWith("ai ")
-                                    if (isCtrl || isAiExplicit) {
+                                    // root.askMode covers "?" / "ai " prefixes and queries no card shows,
+                                    // so Enter never launches a command the user can't see
+                                    if (isCtrl || root.askMode) {
                                         root.launchCommand("AI_PROMPT:" + q)
                                     } else {
                                         var match = root.findFirstMatch(q)
@@ -239,22 +233,57 @@ Window {
                                 }
                                 return
                             }
-                            if (searchBox.text.length === 0) {
-                                var k = event.text.toUpperCase()
-                                var action = findCommandByKey(k)
-                                if (action !== "") {
-                                    root.launchCommand(action)
-                                    event.accepted = true
-                                }
-                            }
                         }
                     }
                 }
             }
 
             // Grid of 6 Categorized Command Cards
+            // Shown instead of the cards when the query is for the AI: a "?" or "ai " prefix,
+            // or text that no command matches
+            Rectangle {
+                id: askPanel
+                visible: root.askMode
+                width: parent.width
+                height: 484
+                radius: 14
+                color: "#181825"
+                border.color: Qt.rgba(root.accent.r, root.accent.g, root.accent.b, 0.55)
+                border.width: 1
+
+                Column {
+                    anchors.centerIn: parent
+                    width: parent.width - 96
+                    spacing: 18
+
+                    Text {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        text: "󰚩  ASK YOUR LOCAL AI"
+                        color: root.accent
+                        font { family: root.mono; pixelSize: 13; bold: true; letterSpacing: 1.6 }
+                    }
+                    Text {
+                        width: parent.width
+                        horizontalAlignment: Text.AlignHCenter
+                        wrapMode: Text.Wrap
+                        maximumLineCount: 4
+                        elide: Text.ElideRight
+                        text: "“" + root.aiQuery + "”"
+                        color: root.textMain
+                        font { family: root.mono; pixelSize: 16 }
+                    }
+                    Text {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        text: "[Enter] runs it on your own model with Ollama · nothing leaves this machine"
+                        color: root.textSub
+                        font { family: root.mono; pixelSize: 11 }
+                    }
+                }
+            }
+
             Grid {
                 id: commandGrid
+                visible: !root.askMode
                 width: parent.width
                 columns: 3
                 spacing: 12
@@ -296,8 +325,8 @@ Window {
                     items: [
                         { key: "A", label: "sec-status", desc: "Security Audit", cmd: "kitty --hold sec-status" },
                         { key: "S", label: "palexus-stealth", desc: "Shield Status", cmd: "kitty --hold palexus-stealth" },
-                        { key: "N", label: "nmtui", desc: "Network Manager", cmd: "kitty nmtui" },
-                        { key: "F", label: "firewall", desc: "Firewall State", cmd: "kitty --hold sudo firewall-cmd --state" },
+                        { key: "M", label: "nmtui", desc: "Network Manager", cmd: "kitty nmtui" },
+                        { key: "X", label: "firewall", desc: "Firewall State", cmd: "kitty --hold sudo firewall-cmd --state" },
                         { key: "D", label: "dns-dot", desc: "Quad9 DoT Status", cmd: "kitty --hold resolvectl status" }
                     ]
                     filterText: searchBox.text
@@ -341,7 +370,7 @@ Window {
                     items: [
                         { key: "N", label: "palexus-notes", desc: "Scratchpad Notes", cmd: "palexus-notes" },
                         { key: "C", label: "palexus-settings", desc: "Control Center", cmd: "palexus-settings" },
-                        { key: "W", label: "chromium", desc: "Web Browser", cmd: "chromium" },
+                        { key: "I", label: "chromium", desc: "Web Browser", cmd: "chromium" },
                         { key: "J", label: "galculator", desc: "Calculator", cmd: "galculator" },
                         { key: "U", label: "screensaver", desc: "Unified Matrix", cmd: "palexus-screensaver --launch" }
                     ]
@@ -352,10 +381,49 @@ Window {
         }
     }
 
+    // A query of one character selects that hotkey; anything longer searches labels and
+    // descriptions. CommandCategoryCard filters its rows with the same rule.
+    function itemMatches(item, q) {
+        if (q.length === 1)
+            return item.key.toLowerCase() === q
+        return item.label.toLowerCase().indexOf(q) !== -1 ||
+               item.desc.toLowerCase().indexOf(q) !== -1
+    }
+
+    function countMatches(query) {
+        var q = (query || "").trim().toLowerCase()
+        if (q === "") return -1
+        var n = 0
+        for (var i = 0; i < commandGrid.children.length; ++i) {
+            var cat = commandGrid.children[i]
+            if (cat && cat.items)
+                for (var j = 0; j < cat.items.length; ++j)
+                    if (itemMatches(cat.items[j], q)) n++
+        }
+        return n
+    }
+
+    readonly property string aiQuery: {
+        var q = searchBox.text.trim()
+        if (q.startsWith("?")) return q.slice(1).trim()
+        if (q.toLowerCase().startsWith("ai ")) return q.slice(3).trim()
+        return q
+    }
+    readonly property bool askMode: {
+        var q = searchBox.text.trim()
+        if (q === "") return false
+        if (q.startsWith("?") || q.toLowerCase().startsWith("ai ")) return true
+        return countMatches(q) === 0
+    }
+
     function findFirstMatch(query) {
         if (!query) return ""
         var q = query.trim().toLowerCase()
         if (q === "") return ""
+        if (q.length === 1) {
+            var byKey = findCommandByKey(q.toUpperCase())
+            if (byKey !== "") return byKey
+        }
         for (var i = 0; i < commandGrid.children.length; ++i) {
             var cat = commandGrid.children[i]
             if (cat && cat.items) {

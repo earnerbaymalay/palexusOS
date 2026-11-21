@@ -25,7 +25,7 @@ except ImportError:
 os.environ["QT_QPA_PLATFORM"] = "offscreen"
 
 try:
-    from PyQt6.QtCore import Qt, QUrl  # noqa: F401
+    from PyQt6.QtCore import QObject, Qt, QUrl  # noqa: F401
     from PyQt6.QtQml import QQmlApplicationEngine
     from PyQt6.QtWidgets import QApplication, QPushButton, QRadioButton  # noqa: F401
 
@@ -117,6 +117,43 @@ class TestPalexusHudQml:
         assert root.findFirstMatch("nonexistent_unknown_xyz") == ""
         assert root.findFirstMatch("") == ""
         assert root.findFirstMatch(None) == ""
+
+    def test_hud_single_key_and_ask_mode(self, qapp):
+        """A bare key letter selects its hotkey (no instant launch); text no command shows asks the AI."""
+        engine = QQmlApplicationEngine()
+        engine.load(QUrl.fromLocalFile(str(HUD_DIR / "Main.qml")))
+        root = engine.rootObjects()[0]
+
+        # One character means that hotkey, even though other labels contain the letter
+        assert root.findFirstMatch("a") == "kitty --hold sec-status"
+        assert "ollama run" in root.findFirstMatch("q")
+
+        # Typing a word that starts with a hotkey letter is a search, not a launch
+        source = (HUD_DIR / "Main.qml").read_text(encoding="utf-8")
+        assert "findCommandByKey(k)" not in source
+
+        box = root.findChild(QObject, "searchBox")
+        assert box is not None
+
+        def ask_mode(text):
+            box.setProperty("text", text)
+            return root.property("askMode")
+
+        assert ask_mode("") is False
+        assert ask_mode("model") is False  # matches ask-qwen and ai warm
+        assert ask_mode("is anything on this machine phoning home") is True
+        assert ask_mode("? what does BORE do") is True
+        assert ask_mode("ai summarise my notes") is True
+        assert root.property("aiQuery") == "summarise my notes"
+
+    def test_hud_hotkeys_are_unique(self):
+        """Every command card row has its own key letter."""
+        import re
+
+        source = (HUD_DIR / "Main.qml").read_text(encoding="utf-8")
+        keys = re.findall(r'\{ key: "(.)"', source)
+        assert len(keys) == 30
+        assert len({k.upper() for k in keys}) == len(keys)
 
     def test_hud_backend_signals_and_launch(self, qapp):
         """Verify HudBackend receives QML signals and launches commands or AI prompts."""
