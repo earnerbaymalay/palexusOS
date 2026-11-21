@@ -1,84 +1,58 @@
-# PalexusOS Roadmap
+# palexus Python Layer Roadmap (`palexus-lib`)
 
-Vision and planned work for PalexusOS releases.
+Plans for the `palexus/` Python modules (TokenRegistry, GateRegistry, DesktopEnvironment, TestOrchestrator), packaged as `palexus-lib`.
 
-**Audience**: Community members, contributors, stakeholders  
-**Purpose**: Set expectations, guide contributions, communicate direction  
+> Version numbers in this file are the Python package's own (`pyproject.toml`), not the distro's. Distro releases (`v0.2.0-alpha`, `v0.2.1-alpha`, ...) and the phase plan live in the root [ROADMAP.md](../ROADMAP.md).
 
 ---
 
 ## Table of Contents
 
-1. [v0.1.0 (Current)](#v010-current)
-2. [v0.2.0 (Next)](#v020-next)
-3. [v0.3.0 (1-2 Quarters)](#v030-1-2-quarters)
-4. [v1.0.0 (Stable Release)](#v100-stable-release)
+1. [palexus-lib 0.1.0 (Current)](#palexus-lib-010-current)
+2. [palexus-lib 0.2.0 (Next)](#palexus-lib-020-next)
+3. [palexus-lib 0.3.0 (1-2 Quarters)](#palexus-lib-030-1-2-quarters)
+4. [palexus-lib 1.0.0 (Stable Release)](#palexus-lib-100-stable-release)
 5. [Longer Vision (Year+)](#longer-vision-year)
 6. [Principles](#principles)
 7. [How to Influence](#how-to-influence)
 
 ---
 
-## v0.1.0 (Current)
+## palexus-lib 0.1.0 (Current)
 
-**Released**: 2026-11-20  
-**Status**: ✅ Production-ready, fully documented  
+**Landed on main**: 2026-11-20 (not tagged on its own; ships inside the distro as `palexus-lib`)  
+**Status**: In development  
 
-### Accomplishments
+### What exists
 
-**Core Modules** (160+ tests)
-- ✅ TokenRegistry: Design token management with 4 export formats (CSS, Shell, Kitty, XFCE)
-- ✅ GateRegistry: Quality verification with 5 independent gates + topological sorting
-- ✅ DesktopEnvironment: Boot orchestration with 5-phase explicit sequence
-- ✅ TestOrchestrator: Unified testing framework (unit, gate, integration levels)
+**Core modules**
+- TokenRegistry: design token management with 4 export formats (CSS, Shell, Kitty, XFCE)
+- GateRegistry: quality verification with 5 gates and topological sorting
+- DesktopEnvironment: boot orchestration with a 5-phase sequence
+- TestOrchestrator: unified testing (unit, gate, integration levels)
 
-**Documentation** (10,000+ lines)
-- ✅ Architecture documentation (CONTEXT.md, ARCHITECTURE.md, 4 ADRs)
-- ✅ Getting started tutorial (GETTING_STARTED_TUTORIAL.md)
-- ✅ Developer handbook (DEVELOPER_HANDBOOK.md, 1,100+ lines)
-- ✅ API reference (API_REFERENCE.md, complete method signatures)
-- ✅ Troubleshooting guide (TROUBLESHOOTING.md, 20+ FAQs)
-- ✅ Security hardening (SECURITY_HARDENING.md, 20+ audit checklist items)
-- ✅ Integration guide (INTEGRATION_GUIDE.md, concrete examples)
+**Documentation**
+- Architecture: CONTEXT.md, ARCHITECTURE.md, 4 ADRs
+- GETTING_STARTED_TUTORIAL.md, DEVELOPER_HANDBOOK.md, API_REFERENCE.md, TROUBLESHOOTING.md, SECURITY_HARDENING.md, INTEGRATION_GUIDE.md
 
-**Examples** (4 complete, 450+ lines each)
-- ✅ TokenRegistry example (token creation, exports, design system setup)
-- ✅ GateRegistry example (gate creation, dependency ordering, filtering)
-- ✅ DesktopEnvironment example (boot sequence, context management, themes)
-- ✅ TestOrchestrator example (all test levels, failure reporting, filtering)
+**Examples**
+- One runnable example per module under `examples/`
 
-**Operations & Community**
-- ✅ GitHub Actions CI/CD (Python 3.9–3.12 matrix testing)
-- ✅ Makefile (10+ targets for development, testing, linting)
-- ✅ Modern Python packaging (pyproject.toml, PEP 517/518)
-- ✅ Arch Linux PKGBUILD (native distribution)
-- ✅ Production-readiness checklist (PRE_LAUNCH_CHECKLIST.md)
-- ✅ Release process (RELEASE.md, SemVer, hotfixes)
+**Tooling**
+- GitHub Actions: pytest on Python 3.11, 3.12, 3.13 and 3.14
+- Makefile, pyproject.toml packaging, Arch PKGBUILD (`packages/core/palexus-lib`)
+- PRE_LAUNCH_CHECKLIST.md, RELEASE.md
 
-### Metrics
+### Measuring it
 
+Run these instead of trusting numbers written in docs:
+
+```bash
+pytest tests/ -q            # 2026-11-21: 192 passed, 8 skipped (whole repo suite)
+./build/verify-gates.sh
 ```
-Code Quality:
-├─ 160+ tests (unit, gate, integration)
-├─ 90%+ code coverage
-├─ Zero high-severity security findings
-├─ All type hints in place
-└─ 100% test pass rate
 
-Performance:
-├─ Test suite: ~25-30 seconds
-├─ Single test: <1 second average
-├─ Gate verification: ~3-5 seconds
-├─ Token export: <100ms
-└─ Memory: <500MB typical
-
-Documentation:
-├─ 10,000+ lines of docs
-├─ 155+ topics covered
-├─ 4 learning paths defined
-├─ 300+ code examples
-└─ Zero broken links
-```
+Coverage, performance and doc-size figures are not measured yet.
 
 ### What's Stable
 
@@ -90,7 +64,7 @@ Documentation:
 
 ---
 
-## v0.2.0 (Next)
+## palexus-lib 0.2.0 (Next)
 
 **Target**: Q1 2027  
 **Theme**: Expansion — more modules, more formats, community features  
@@ -180,7 +154,7 @@ v0.2.0 will maintain backward compatibility with v0.1.0 APIs.
 
 ---
 
-## v0.3.0 (1-2 Quarters)
+## palexus-lib 0.3.0 (1-2 Quarters)
 
 **Target**: Q3 2027  
 **Theme**: Performance & Scale  
@@ -221,7 +195,7 @@ v0.2.0 will maintain backward compatibility with v0.1.0 APIs.
 
 ---
 
-## v1.0.0 (Stable Release)
+## palexus-lib 1.0.0 (Stable Release)
 
 **Target**: Q1 2028  
 **Theme**: Stability & Maturity  
@@ -365,8 +339,8 @@ Interested in sponsoring development or partnering?
 
 | Artifact | Status | Link |
 |----------|--------|------|
-| v0.1.0 Release | ✅ Done | [CHANGELOG.md](../CHANGELOG.md) |
-| v0.2.0 Milestone | 📋 Planning | [GitHub](https://github.com/earnerbaymalay/palexusOS/milestones) |
+| palexus-lib 0.1.0 | On main, unreleased | [CHANGELOG.md](../CHANGELOG.md) |
+| palexus-lib 0.2.0 | 📋 Planning | [GitHub](https://github.com/earnerbaymalay/palexusOS/milestones) |
 | Design Docs | 📝 In Progress | [docs/adr/](adr/) |
 | Community Discussion | 💬 Active | [Discussions](https://github.com/earnerbaymalay/palexusOS/discussions) |
 

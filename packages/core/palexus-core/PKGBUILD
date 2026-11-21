@@ -1,7 +1,7 @@
 # Maintainer: PalexusOS Engineering Team <maintainers@palexusos.org>
 pkgname=palexus-core
 pkgver=0.1.0
-pkgrel=3
+pkgrel=4
 pkgdesc="Core AI runtime gateway, bidirectional context firewall, and 3-layer agent memory daemon for PalexusOS"
 arch=('x86_64')
 url="https://github.com/earnerbaymalay/palexusOS"
@@ -14,10 +14,9 @@ optdepends=(
   'ollama: Local LLM inference engine integration'
   'obsidian: Central AI Knowledge Base vault viewer'
 )
-backup=('etc/palexus/config.toml' 'etc/synapse/config.toml')
 options=('!debug' '!lto')
 source=(
-  "synapse::git+https://github.com/earnerbaymalay/synapse.git#commit=f6cb3462fa3d4fdf7840df82cf1c0349c9ed36c8"
+  "palexus-brain::git+https://github.com/earnerbaymalay/palexus-brain.git#commit=baaae4cc44df22795aeb09e46a4b21deb707c4d5"
   "palexus.service"
   "palexus-sync.service"
   "palexus-sync.timer"
@@ -30,38 +29,38 @@ sha256sums=(
 )
 
 prepare() {
-  cd "$srcdir/synapse"
+  cd "$srcdir/palexus-brain"
   export CARGO_HOME="$srcdir/cargo"
 }
 
 build() {
-  cd "$srcdir/synapse"
+  cd "$srcdir/palexus-brain"
   unset CFLAGS CXXFLAGS LDFLAGS
   export CARGO_HOME="$srcdir/cargo"
   export CARGO_TARGET_DIR=target
   export RUSTFLAGS="-C target-cpu=x86-64-v3 -C opt-level=3 -C codegen-units=1"
-  cargo build --release --locked -p synapse --bin synapse
+  cargo build --release --locked -p palexus --bin palexus
 }
 
 check() {
-  cd "$srcdir/synapse"
+  cd "$srcdir/palexus-brain"
   unset CFLAGS CXXFLAGS LDFLAGS
   export CARGO_HOME="$srcdir/cargo"
   export CARGO_TARGET_DIR=target
-  cargo test --release --locked -p synapse -p synapse-core
+  cargo test --release --locked -p palexus -p palexus-core
 }
 
 package() {
-  cd "$srcdir/synapse"
+  cd "$srcdir/palexus-brain"
 
   # Install core binary
-  install -Dm755 "target/release/synapse" "$pkgdir/usr/bin/palexus"
+  install -Dm755 "target/release/palexus" "$pkgdir/usr/bin/palexus"
   ln -sf "palexus" "$pkgdir/usr/bin/synapse"
 
   # Install squash wrapper for context compression
   cat > "$pkgdir/usr/bin/squash" << 'EOF'
 #!/bin/sh
-exec /usr/bin/palexus context squash "$@"
+exec /usr/bin/palexus squash "$@"
 EOF
   chmod 755 "$pkgdir/usr/bin/squash"
 
