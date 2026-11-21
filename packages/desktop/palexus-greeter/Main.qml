@@ -463,7 +463,7 @@ Item {
 
             Repeater {
                 model: [
-                    ["", "PalexusOS 0.1.0-alpha · linux-cachyos BORE (tty7)"],
+                    ["", "PalexusOS · linux-cachyos BORE (tty7)"],
                     ["[&nbsp;&nbsp;OK&nbsp;&nbsp;]&nbsp;", "Reached target Graphical Interface & Neural Cockpit."],
                     ["[&nbsp;&nbsp;OK&nbsp;&nbsp;]&nbsp;", "Started Palexus AI gateway on 127.0.0.1:8000."],
                     ["[&nbsp;&nbsp;OK&nbsp;&nbsp;]&nbsp;", "Resolver: Quad9 over TLS · MAC randomized."]
