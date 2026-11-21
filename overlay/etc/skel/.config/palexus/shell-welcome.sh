@@ -32,10 +32,12 @@ RESET='\033[0m'
 # Check if lolcat is available; fallback to gradient printer
 gradient_print() {
     local text="$1"
+    # printf %s, not echo -e: the art ends lines in backslashes ("\___ \") that echo -e
+    # would join with the colour reset and print as a literal "\033[0m"
     if command -v lolcat >/dev/null 2>&1; then
-        echo -e "$text" | lolcat -f -p 1.5 -F 0.2
+        printf '%s\n' "$text" | lolcat -f -p 1.5 -F 0.2
     else
-        echo -e "${PURPLE}${text}${RESET}"
+        printf '%b%s%b\n' "$PURPLE" "$text" "$RESET"
     fi
 }
 

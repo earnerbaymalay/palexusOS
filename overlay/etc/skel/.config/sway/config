@@ -84,7 +84,6 @@ bindsym Mod4+Escape kill
 bindsym Mod4+Shift+q kill
 bindsym Mod4+BackSpace kill
 bindsym Alt+F4 kill
-bindsym Mod1+F4 kill
 bindsym Mod1+q kill
 bindsym Mod1+w kill
 bindsym Mod4+Shift+c reload
