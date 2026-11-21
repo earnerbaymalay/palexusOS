@@ -155,10 +155,11 @@ git push origin v0.2.0
 ### 5. Verify Release
 
 GitHub Actions will automatically:
-1. Run full test suite
-2. Build wheel and sdist
-3. Upload artifacts (kept 7 days)
-4. Post build status
+1. Run full test suite and verification gates (G1–G5)
+2. Build the Archiso live image (~3 GB)
+3. Split the ISO into numbered parts (`.iso.001`, `.iso.002`, ...) if over 2 GiB to satisfy GitHub's release asset limits
+4. Publish the GitHub Release with companion join scripts (`join-iso.sh`, `join-iso.ps1`) and checksums
+5. Upload the full un-split ISO artifact to Actions (retained for 14 days)
 
 **Manual verification:**
 ```bash
@@ -168,6 +169,16 @@ git show v0.2.0
 git log --oneline v0.1.0..v0.2.0
 # Should show all changes
 ```
+
+### 6. Live ISO Release Assets (2 GiB Limit Management)
+
+GitHub Releases enforce a strict **2 GiB per-file limit** on uploaded release assets. Because full PalexusOS live ISOs are approximately 3 GB:
+- The CI release pipeline automatically splits the ISO into parts (`palexusos-*.iso.001`, `palexusos-*.iso.002`) using `build/split-iso.sh`.
+- Users downloading the release can reassemble the ISO in seconds:
+  - **Windows (CMD):** `copy /b palexusos-*.iso.001 + palexusos-*.iso.002 palexusos.iso`
+  - **Windows (PowerShell):** `.\join-iso.ps1`
+  - **Linux / macOS:** `./join-iso.sh` (or `cat palexusos-*.iso.00* > palexusos.iso`)
+- CI artifacts (in GitHub Actions) retain the un-split `.iso` for 14 days for direct internal testing via `./build/fetch-iso.sh`.
 
 ## Publishing to PyPI
 

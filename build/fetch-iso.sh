@@ -104,8 +104,16 @@ gh run download "${RUN_ID}" --repo "${REPO}" --name "${ARTIFACT}" --dir "${STAGE
 
 ISO="$(find "${STAGE}" -name 'palexusos-*.iso' -print -quit)"
 if [[ -z "${ISO}" ]]; then
-    echo "[!] Error: the artifact did not contain a palexusos-*.iso image."
-    exit 1
+    FIRST_PART="$(find "${STAGE}" -name 'palexusos-*.iso.001' -print -quit)"
+    if [[ -n "${FIRST_PART}" ]]; then
+        ISO="${FIRST_PART%.001}"
+        echo "[*] Split ISO detected. Reassembling $(basename "${ISO}")..."
+        cat "${ISO}".[0-9][0-9][0-9] > "${ISO}"
+        rm -f "${ISO}".[0-9][0-9][0-9]
+    else
+        echo "[!] Error: the artifact did not contain a palexusos-*.iso image or split parts."
+        exit 1
+    fi
 fi
 ISO_DIR="$(dirname "${ISO}")"
 if [[ -f "${ISO_DIR}/SHA256SUMS" ]]; then
