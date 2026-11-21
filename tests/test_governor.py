@@ -346,7 +346,18 @@ class TestRestore(GovernorTestCase):
         )
         try:
             deadline = time.monotonic() + 10
-            while self.sys.epp_values() != {"balance_performance"}:
+
+            def compile_profile_applied() -> bool:
+                # The daemon writes EPP before the power limits, and the fake sysfs files
+                # are rewritten in place, so a read can land on a half-written (empty) file.
+                if self.sys.epp_values() != {"balance_performance"}:
+                    return False
+                try:
+                    return self.sys.pl() == (20 * W, 30 * W)
+                except ValueError:
+                    return False
+
+            while not compile_profile_applied():
                 self.assertIsNone(proc.poll(), "daemon died early")
                 self.assertLess(time.monotonic(), deadline, "compile profile never applied")
                 time.sleep(0.02)
