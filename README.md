@@ -1,5 +1,3 @@
-<div align="center">
-
 ```text
 ┌──                                                                                      ──┐
 │                                                                                          │
@@ -18,6 +16,8 @@
 └──                                                                                      ──┘
 ```
 
+<div align="center">
+
 ### **The AI-Native Sovereign Workstation**  
 *Surgical Precision. Zero Cloud Friction. One Brain. All Models.*
 
@@ -33,6 +33,8 @@
 
 PalexusOS breaks the telemetry paradigm. Built on the high-throughput CachyOS BORE kernel and an EndeavourOS-style Arch foundation, it runs AI models directly on your own hardware. No telemetry, no token meters, and nothing leaves the machine unless you choose a cloud model.
 
+</div>
+
 ```text
 PALEXUS SECURITY SUBSYSTEM // TTY7
 [  OK  ] Reached target Graphical Interface & Neural Cockpit.
@@ -40,8 +42,12 @@ PALEXUS SECURITY SUBSYSTEM // TTY7
 [  OK  ] Resolver: Quad9 over TLS · MAC randomized.
 ```
 
+<div align="center">
+
 <img src="docs/assets/palexusos-teaser.gif" alt="Real render: PalexusOS boots through its Plymouth animation and the SDDM greeter into Sway, where Super+Space opens the Command HUD" width="640"/>
 <br/><sub><i>Real render: Plymouth boot → SDDM greeter → Sway and the Command HUD</i></sub>
+
+<br/>
 
 [`VIRTUAL TEST DRIVE`](#-virtual-test-drive) ◆ [`INSTALL`](INSTALL.md) ◆ [`ARCHITECTURE`](#-system-architecture--subsystems) ◆ [`HARDWARE`](docs/guides/HARDWARE_COMPATIBILITY.md) ◆ [`UI/UX AUDIT`](docs/audits/UI_UX_AUDIT_REPORT.md) ◆ [`BOOT VIDEO SUITE`](docs/design/PALEXUS_BOOT_VIDEO_SUITE.md)
 
