@@ -10,7 +10,7 @@
       ██║     ██║  ██║███████╗███████╗██╔╝ ██╗╚██████╔╝███████║     ╚██████╔╝███████║
       ╚═╝     ╚═╝  ╚═╝╚══════╝╚══════╝╚═╝  ╚═╝ ╚═════╝ ╚══════╝      ╚═════╝ ╚══════╝
 
-             AI-NATIVE LINUX  ·  BORE SCHEDULER  ·  SOVEREIGN NEURAL CYBERDECK
+├─────────────────────────────────────────── ◆ ────────────────────────────────────────────┤
 
                 “System aims for minimal if not 0 telemetry and prioritises
                        anonymisation without degradation of service.”
@@ -33,8 +33,8 @@
 
 PalexusOS breaks the telemetry paradigm. Built on the high-throughput CachyOS BORE kernel and an EndeavourOS-style Arch foundation, it runs AI models directly on your own hardware. No telemetry, no token meters, and nothing leaves the machine unless you choose a cloud model.
 
-<img src="docs/assets/palexusos-teaser.gif" alt="Animated concept render: a PalexusOS laptop booting into its neural HUD" width="480"/>
-<br/><sub><i>Concept render</i></sub>
+<img src="docs/assets/palexusos-teaser.gif" alt="Real render: PalexusOS boots through its Plymouth animation and the SDDM greeter into Sway, where Super+Space opens the Command HUD" width="640"/>
+<br/><sub><i>Real render: Plymouth boot → SDDM greeter → Sway and the Command HUD</i></sub>
 
 [**60-Second Virtual Test Drive**](#-60-second-virtual-test-drive-no-usb-required) • [**Install in 3 Steps**](#-get-started-in-3-steps) • [**System Architecture**](#-system-architecture--subsystems) • [**Hardware Matrix**](#-supported-hardware-matrix) • [**UI/UX Verification**](docs/audits/UI_UX_AUDIT_REPORT.md) • [**Boot Video Suite**](docs/design/PALEXUS_BOOT_VIDEO_SUITE.md)
 
@@ -45,8 +45,8 @@ PalexusOS breaks the telemetry paradigm. Built on the high-throughput CachyOS BO
 <table>
 <tr>
 <td width="44%" valign="top">
-<img src="docs/assets/palexusos-super-space.gif" alt="Animated concept render: Super+Space summons the assistant over a terminal showing TELEMETRY: 0" width="100%"/>
-<sub><i>Concept render</i></sub>
+<img src="docs/assets/palexusos-super-space.gif" alt="Real render: kitty runs the sec-status audit, then Super+Space opens the Command HUD, filters to the local model and launches ask-qwen" width="100%"/>
+<sub><i>Real render: Super+Space over a terminal</i></sub>
 </td>
 <td valign="top">
 
@@ -145,6 +145,11 @@ flowchart TD
 ## 🎨 Colorway & Design Tokens
 
 PalexusOS adheres to a strict tactile cyberdeck design system:
+
+<p align="center">
+<img src="docs/assets/palexusos-first-boot.gif" alt="Real render: the first-boot setup's Choose a look step switching scene, accent and icon set while the wallpaper previews each choice" width="640"/>
+<br/><sub><i>Real render: first-boot setup, choosing a scene, accent and icon set</i></sub>
+</p>
 
 | Token Name | Hex Code | Sample | Purpose |
 | :--- | :---: | :---: | :--- |
