@@ -215,7 +215,7 @@ if [[ "${CHECK_ONLY}" == "true" ]]; then
     if [[ -n "${ISO_PATH}" && -f "${ISO_PATH}" ]]; then
         echo "[✓] Target ISO image:   ${ISO_PATH}"
     else
-        echo "[i] Target ISO image:   None found in out/ (run ./build/build-iso.sh to build)"
+        echo "[i] Target ISO image:   None in out/ (./build/fetch-iso.sh downloads the latest CI build)"
     fi
     echo "[✓] All prerequisites for headless QEMU boot test are satisfied."
     exit 0
@@ -231,8 +231,8 @@ if [[ "${DRY_RUN}" == "true" ]]; then
     echo "[✓] Virtualization:     ${ACCEL_DESC}"
     if [[ -z "${ISO_PATH}" || ! -f "${ISO_PATH}" ]]; then
         echo "[i] Notice: No ISO found in ${REPO_ROOT}/out/ and none specified via --iso."
-        echo "    Prerequisite checks passed successfully. Build an ISO with ./build/build-iso.sh"
-        echo "    before running live boot tests."
+        echo "    Prerequisite checks passed. Get an ISO with ./build/fetch-iso.sh (latest CI build)"
+        echo "    or ./build/build-iso.sh --build-pkgs before running live boot tests."
         exit 0
     fi
     echo "[✓] Target ISO image:   ${ISO_PATH}"
@@ -254,7 +254,8 @@ fi
 # Ensure ISO exists when running actual test
 if [[ -z "${ISO_PATH}" || ! -f "${ISO_PATH}" ]]; then
     echo "[!] Error: No PalexusOS ISO image found in ${REPO_ROOT}/out/ and none specified via --iso."
-    echo "    Please generate an ISO first using ./build/build-iso.sh or provide --iso <path>."
+    echo "    Download the latest CI build with ./build/fetch-iso.sh, build one with"
+    echo "    ./build/build-iso.sh --build-pkgs, or pass --iso <path>."
     exit 1
 fi
 
@@ -275,13 +276,33 @@ echo "==========================================================================
 
 # Launch QEMU
 if [[ "${GUI_MODE}" == "true" ]]; then
-    echo "[+] Launching interactive QEMU graphical VM on DISPLAY=${DISPLAY:-:0}..."
+    if [[ -z "${WAYLAND_DISPLAY:-}" && -z "${DISPLAY:-}" ]]; then
+        echo "[!] Error: --gui needs a graphical session (no WAYLAND_DISPLAY or DISPLAY is set)."
+        echo "    Run it from a desktop terminal, or drop --gui for the headless boot test."
+        exit 1
+    fi
+    # Use the first window backend this QEMU was built with: Debian/Ubuntu ship GTK
+    # separately (qemu-system-gui), and some builds only have SDL
+    GUI_DISPLAY=""
+    QEMU_DISPLAYS="$("${QEMU_BIN}" -display help 2>/dev/null || true)"
+    for backend in gtk sdl; do
+        if grep -qx "${backend}" <<< "${QEMU_DISPLAYS}"; then
+            GUI_DISPLAY="${backend}"
+            break
+        fi
+    done
+    if [[ -z "${GUI_DISPLAY}" ]]; then
+        echo "[!] Error: this QEMU has no window backend (gtk or sdl)."
+        echo "    Arch / CachyOS: sudo pacman -S qemu-desktop    Debian / Ubuntu: sudo apt install qemu-system-gui"
+        exit 1
+    fi
+    echo "[+] Launching the PalexusOS live ISO in a QEMU window (${GUI_DISPLAY})..."
     echo "[*] Close the QEMU window when done to return to shell."
     "${QEMU_BIN}" \
         -m "${MEMORY}" \
         -smp "${SMP}" \
         -vga virtio \
-        -display gtk \
+        -display "${GUI_DISPLAY}" \
         -device virtio-mouse-pci \
         -device virtio-keyboard-pci \
         -device intel-hda -device hda-duplex \

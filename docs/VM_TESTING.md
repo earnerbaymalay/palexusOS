@@ -9,7 +9,23 @@ Two ways to boot an ISO:
 | Full install to a disk | no | yes (40 GB virtual disk, rollback checkpoint) |
 | Admin rights | no | yes (the script asks Windows for elevation) |
 
-## 1. Build the ISO on Windows (Arch in WSL)
+## 1. Get an ISO
+
+### Download the newest CI build (quickest)
+
+Every push to `main` builds and boot-tests the ISO in CI and keeps it for 14 days. GitHub only
+serves those downloads to signed-in users, so install the GitHub CLI and run `gh auth login`
+once. The ISO is about 3 GB.
+
+```powershell
+New-Item -ItemType Directory -Force "$env:USERPROFILE\VMs\iso" | Out-Null
+$run = gh run list --repo earnerbaymalay/palexusOS --workflow build-iso.yml --branch main --event push --status success --limit 1 --json databaseId --jq '.[0].databaseId'
+gh run download $run --repo earnerbaymalay/palexusOS --name palexusos-live-iso --dir "$env:USERPROFILE\VMs\iso"
+```
+
+On Linux, `./build/fetch-iso.sh` does the same into `out/` and checks the SHA256 sum.
+
+### Or build it yourself (Arch in WSL)
 
 ```powershell
 wsl --install archlinux --no-launch
