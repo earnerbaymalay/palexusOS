@@ -94,10 +94,12 @@
 - [x] **Milestone 9.1: Dynamic PL1/PL2 Thermal Governor (`palexus-governor`)**:
   - Automatically scale CPU package TDP based on real-time Ollama inference vs background compilation state.
   - RAPL powercap backend, `throttled.conf` backend while throttled runs, EPP-only fallback; limits in `/etc/palexus/governor.toml`; hardened unit (loopback-only networking); `tests/test_governor.py` on a fake sysfs.
-- [ ] **Milestone 9.2: eBPF Secret Leak Interceptor**:
+- [x] **Milestone 9.2: eBPF Secret Leak Interceptor**:
   - Implement a kernel-level eBPF socket filter guaranteeing that raw private keys (`id_rsa`, `*.pem`, `sk-*`) cannot egress any socket even if bypassed by third-party unproxied applications.
-- [ ] **Milestone 9.3: Vulkan Offload Profiler for Integrated Graphics**:
+  - Shipped as `packages/core/palexus-ebpf-guard` (loader, `palexus-ebpf-guard.service`, `ebpf-guard.toml`); defaults to `mode = "audit"` (log only), with an enforce mode. Design: `docs/design/EBPF_SECRET_INTERCEPTOR.md`.
+- [x] **Milestone 9.3: Vulkan Offload Profiler for Integrated Graphics**:
   - Enable quantized llama.cpp / Ollama offload to Intel UHD 620 / AMD Radeon integrated graphics via Mesa Vulkan compute.
+  - Shipped as `palexus-vulkan-probe` in `palexus-hud`: benchmarks Ollama with and without GPU layers, writes the faster setting as an Ollama drop-in under `/etc`, falls back to CPU when no Vulkan device exists, and shows the result in `palexus-settings`.
 
 ## Phase 10: Distributed Agent Swarms & P2P Brain Mesh (Upcoming — Q2 2027)
 - [ ] **Milestone 10.1: Peer-to-Peer Brain Synchronization**:

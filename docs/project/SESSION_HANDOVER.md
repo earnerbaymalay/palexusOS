@@ -1,8 +1,8 @@
 # PalexusOS Session Handover
 
-**Updated:** 2026-11-12
+**Updated:** 2026-11-21
 **Repository:** `https://github.com/earnerbaymalay/palexusOS`
-**Branch with this work:** `cleanup/post-rebrand-fixes` (cut from `main` at `47a244d`)
+**Branch:** `main`
 
 This file is the single current-status note. `docs/project/IDE_HANDOVER.md` and `GEMINI.md`
 describe the project layout and conventions; they do not track status.
@@ -20,82 +20,54 @@ shellcheck build/*.sh build/archiso/profiledef.sh build/archiso/airootfs/root/cu
 
 ## 1. Where things stand
 
-- All gates, pytest and ShellCheck pass on `cleanup/post-rebrand-fixes`.
-- Every CI run on `main` since the PR #2 and #3 merges on 2026-11-11 has
-  failed. The causes found are fixed on the branch above; CI has not yet run
-  against it.
-- The newest local ISO (`out/palexusos-2026.11.12-x86_64.iso`) was built
-  **before** this branch. It boots under UEFI in QEMU to the login screen.
-  No ISO has been built from this branch yet.
+- Measured 2026-11-21 in a cloud container on the `fix/open-items-2026-11-21` branch:
+  `pytest tests/` 192 passed, 8 skipped; `verify-gates.sh` 356 passed, 1 failed
+  (`build/test-iso-boot.sh --check`, because that container has no QEMU/OVMF);
+  ShellCheck clean.
+- Releases: `v0.2.0-alpha` (2026-11-12, marked Latest) and `v0.2.1-alpha`
+  (pre-release). Neither has an ISO attached. The ISO (about 2.9 GB) is over
+  GitHub's 2 GiB per-asset limit; `build/split-iso.sh`, `build/join-iso.sh` and
+  `build/join-iso.ps1` (`74eb025`) split it for the next tagged build.
+- Newest ISO on record: `out/palexusos-2026.11.12-x86_64.iso`, built before
+  everything below. No ISO has been built since.
 
-## 2. What the cleanup branch fixed
+## 2. What landed 2026-11-13 to 2026-11-21
 
-Regressions introduced by `47a244d`:
+| Date | Change |
+| :--- | :--- |
+| 11-13 | Wallpapers, HUD plates and 360 assets, Plymouth animation, Calamares art and login chime rebranded (`85015d5`, `d4e7aef`) |
+| 11-16 | L7–L9 decisions (#5): greeter follows the desktop theme, picom removed, orca screen reader, safe-graphics and copy-to-RAM boot entries, boot animation "Boot 3" chosen and cut to about 7.4 MB, HUD asks the installed coder model. Hyper-V VM script and WSL build docs. Docs regrouped into audits, guides, design, project |
+| 11-19 | Global design system and TokenEconomizer integration |
+| 11-20 | Python layer (`palexus/`: TokenRegistry, GateRegistry, DesktopEnvironment, TestOrchestrator), CLIs, packaging, CI and docs. Generated docs then corrected from source |
+| 11-21 | CI fixed (#7), Python 3.11+, picom gate (#8), README real renders (#9), MIT `LICENSE` and README brought in line with what ships, greeter no longer hard-codes a version, HUD hotkey fix (#10), README QEMU test drive boots (#11), ISO split/join tools (`74eb025`) |
+| 11-21 | `fix/open-items-2026-11-21`: see section 3 |
+
+## 3. Fixed on `fix/open-items-2026-11-21`
 
 | Area | Problem | Fix |
 | :--- | :--- | :--- |
-| `overlay/etc/skel/.bashrc`, `shell-welcome.sh` | Welcome script was loaded from one developer's home path, and its interactive check ran `exit`, which would close every new terminal | Load from `$HOME`; return instead of exit; ask the shell question once and only switch that terminal (permanent change is `chsh`) |
-| Sway config | `Super+Space` / `Super+D` moved from the Command HUD to rofi; two keys bound twice | HUD restored; rofi list on `Super+Shift+D`; `Super+E` opens Files; duplicates removed |
-| Greeter `Main.qml` | Brand text colour changed; PKGBUILD checksum stale (package would not build) | Colour restored; checksum and `pkgrel` updated |
-| `palexus-screensaver` | `--mode matrix` crashed on its first frame; PKGBUILD checksum stale | Mode rewritten on the existing rain engine; checksum and `pkgrel` updated |
-| `overlay/usr/share/backgrounds/` | 14 wallpapers duplicated from `palexus-themes` | Duplicates removed; the five new 4K wallpapers kept |
-| `README.md` | Inline code spans blanked; install and architecture sections dropped | Previous README restored |
-| `tools/wave-pipeline.sh` | Hard-coded home paths; old project name | Paths derived from the checkout; rebranded |
+| `palexus-core` PKGBUILD | Built the pre-rename `earnerbaymalay/synapse` at `f6cb346` (`-p synapse --bin synapse`), 16 commits behind Palexus Brain | Source is `palexus-brain.git#commit=baaae4c`; builds `-p palexus --bin palexus`; tests `-p palexus -p palexus-core`; `pkgrel` 4 |
+| `/usr/bin/squash` | Ran `palexus context squash`; the CLI has no `context` command | Runs `palexus squash` |
+| `palexus-core` `backup=` | Listed `etc/palexus/config.toml` and `etc/synapse/config.toml`, which the package does not ship (makepkg warning) | Removed |
+| `build/build-iso.sh` | `PALEXUS_CORE_SRC` pre-seed and `BUILD_MANIFEST.txt` still used the `synapse` source name | Use `palexus-brain` |
+| Live image | No `fish`, `fastfetch` or `lolcat`, so the shell welcome showed its plain banner and never offered the shell choice | Added to `build/archiso/packages.x86_64` |
+| `ROADMAP.md` | Milestones 9.2 (eBPF guard) and 9.3 (Vulkan probe) unchecked though both ship | Ticked, with what shipped |
+| `README.md` | Onboarding line named "Claude 3.7 Sonnet / Opus" | Matches `palexus-welcome` (Claude Opus 5.5, key check button, local Ollama default) |
+| `docs/ROADMAP.md`, `docs/V0.2.0_IMPLEMENTATION.md`, `CHANGELOG.md` | Python-layer docs used distro-looking versions ("v0.1.0 released, production-ready", "v0.2.0") and unmeasured figures | Marked as `palexus-lib` versions, pointed at the root ROADMAP for distro releases, dropped figures nobody measured, CI matrix corrected to 3.11–3.14 |
 
-Older problems found on the way:
+## 4. Open items
 
-| Area | Problem | Fix |
-| :--- | :--- | :--- |
-| `build/test-iso-boot.sh` | Passed after ~4 s on seeing the boot-menu title, before any kernel loaded | Requires a real `login:` prompt or graphical target; defaults raised to 4096 MB / 300 s |
-| `build/test-iso-boot.sh` | Did not know Arch's firmware file name (`OVMF_CODE.4m.fd`), so the CI ISO job failed its prerequisite check | Path added |
-| CI workflow | Every job, including pull-request runs, held a write token | Write access limited to the release job |
+1. **Build and boot a new ISO.** Nothing after 11-12 has been through
+   `./build/build-iso.sh --build-pkgs` and `./build/test-iso-boot.sh --gui`. On
+   that boot, confirm the 11-13 rebrand art visually and that `palexus-core`
+   builds from `palexus-brain` with `--locked`.
+2. **Publish an ISO.** Tag a release so CI builds it and uploads the split parts.
+3. **`/dev/sr0` loopback unit fails on live boot.** Boot continues; cause not
+   investigated.
+4. **Palexus Brain T8.3 (Gate 4):** install on a real machine and run
+   onboarding (`palexus-brain/.ai/PLAN.md`).
 
-## 3. Open items
+## 5. Phases ahead
 
-### 3.1 The visual rebrand is not done
-
-The rename covered text only. These shipped images still show the old
-wordmark, and the brand gate cannot see it because it only searches text:
-
-- All 14 wallpapers in `packages/desktop/palexus-themes/` (lettering on the
-  monolith, tower and carbon plate). The login screen shows the default one.
-- `packages/installer/calamares/branding/palexusos/background.png` and
-  `palexusos-welcome.png`.
-- `palexus_chrome_logo.png`, `master_plate_960.png` and the spinning chrome
-  animations in `packages/desktop/palexus-hud/` and `palexus-plymouth/`.
-- `packages/desktop/palexus-plymouth/palexus-boot.mp4` (the boot animation).
-
-The five 4K wallpapers added in `47a244d` carry no wordmark.
-
-### 3.2 Boot animation: waiting on a choice
-
-Twelve candidate boot videos were rendered in an earlier session and collected
-in a player outside the repository, at `~/Desktop/boot_video_player/index.html`.
-Once one is chosen:
-
-1. Re-render it with the PALEXUS wordmark (generators: `build/videos/`,
-   `build/blender/generate_palexus_boot_videos.py`).
-2. Replace `packages/desktop/palexus-plymouth/palexus-boot.mp4`, re-extract
-   frames and check tick timing in `palexusos.script.in`.
-3. Bump `pkgrel`, rebuild the package and the ISO, and confirm visually with
-   `./build/test-iso-boot.sh --gui`.
-
-### 3.3 Smaller items
-
-- `README.md` links to a `LICENSE` file and shows an "MIT / GPLv3" badge, but
-  the repository has no `LICENSE` file.
-- The GitHub release `v0.2.0-alpha` has only `SHA256SUMS` and `SHA512SUMS`
-  attached, no ISO, and is not flagged as a pre-release. The tag's CI run
-  failed, so the workflow never published an image.
-- The GitHub repository description still uses the old project name.
-- Remote branches `rebrand/palexusos` and
-  `task/work-through-the-tasks-listed-on-the-75b059` are fully merged into
-  `main` and can be deleted.
-- The login screen prints `PalexusOS 0.1.0-alpha`; the latest tag is
-  `v0.2.0-alpha`.
-- The live image does not ship `fish`, `fastfetch` or `lolcat`, so the shell
-  welcome falls back to its plain banner and never offers the shell choice.
-- `palexus-core` lists `etc/palexus/config.toml` as a backup file that the
-  package does not contain (makepkg warning in CI).
-- One unit fails during live boot: the loopback attach for `/dev/sr0`. Boot
-  continues; cause not investigated.
+See `ROADMAP.md`: Phase 10 (P2P Brain mesh, remote inference offload),
+Phase 11 (optional read-only root), Phase 12 (cyberdeck hardware kit).

@@ -13,9 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - GateRegistry for quality verification (5 independent gates with topological dependency sorting)
 - DesktopEnvironment with explicit 5-phase boot sequence (GREETER → USER_SELECT → HUD → THEME → COMPLETE)
 - TestOrchestrator for unified test framework (unit + gate + integration)
-- 160+ comprehensive tests across all modules
+- Unit, gate and integration tests for all four modules (`pytest tests/`)
 - CLI tools for design system (palexus-design), build system (palexus-build), and test orchestration (palexus-test)
-- GitHub Actions CI/CD workflows for multi-version Python testing (3.9–3.12)
+- GitHub Actions CI/CD workflows for multi-version Python testing (3.11–3.14)
 - Modern Python packaging with pyproject.toml (PEP 517/518)
 - Comprehensive documentation: CONTEXT.md, ARCHITECTURE.md, QUICKSTART.md
 - 4 Architecture Decision Records (ADRs) documenting core design decisions
