@@ -8,6 +8,9 @@
       ██║     ██║  ██║███████╗███████╗██╔╝ ██╗╚██████╔╝███████║     ╚██████╔╝███████║
       ╚═╝     ╚═╝  ╚═╝╚══════╝╚══════╝╚═╝  ╚═╝ ╚═════╝ ╚══════╝      ╚═════╝ ╚══════╝
 
+                              The AI-Native Linux Workstation.
+                        One Brain, All Models, Zero Cloud Friction.
+
 ├─────────────────────────────────────────── ◆ ────────────────────────────────────────────┤
 
                 “System aims for minimal if not 0 telemetry and prioritises
@@ -17,9 +20,6 @@
 ```
 
 <div align="center">
-
-### **The AI-Native Sovereign Workstation**  
-*Surgical Precision. Zero Cloud Friction. One Brain. All Models.*
 
 [![Build & Gates](https://img.shields.io/github/actions/workflow/status/earnerbaymalay/palexusOS/build-iso.yml?branch=main&label=Build%20%26%20Gates&logo=githubactions&logoColor=cba6f7&color=cba6f7&style=for-the-badge&labelColor=11111b)](https://github.com/earnerbaymalay/palexusOS/actions/workflows/build-iso.yml)
 [![Gates](https://img.shields.io/badge/Gates-G1%E2%80%93G5%20automated-a6e3a1?logo=shield&logoColor=a6e3a1&style=for-the-badge&labelColor=11111b)](build/verify-gates.sh)
