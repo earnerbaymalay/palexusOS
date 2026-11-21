@@ -220,23 +220,20 @@ PalexusOS replaces complex legacy distributions with four tightly integrated arc
 ## ◆ Virtual Test Drive
 <sub><code>07 // QEMU + OVMF</code></sub>
 
-Boot PalexusOS in a QEMU virtual machine with full UEFI, no USB stick needed:
+Boot the latest PalexusOS build in a QEMU window on a Linux desktop, no USB stick needed. Every push to `main` builds the ISO, runs the gates and boot-tests it in CI; `fetch-iso.sh` downloads that build (about 3 GB). GitHub only serves CI downloads to signed-in users, so sign the GitHub CLI in once:
 
 ```bash
+# Arch / CachyOS:  sudo pacman -S qemu-desktop edk2-ovmf github-cli
+# Debian / Ubuntu: sudo apt install qemu-system-x86 qemu-system-gui ovmf gh
+gh auth login
+
 git clone https://github.com/earnerbaymalay/palexusOS.git
 cd palexusOS
-
-# Run the engineering verification gates
-./build/verify-gates.sh
-
-# Build the native packages and live ISO (privileged Arch environment or Docker)
-./build/build-iso.sh --build-pkgs
-
-# Boot the newest ISO in out/ in a QEMU window
-./build/test-iso-boot.sh --gui
+./build/fetch-iso.sh             # newest CI-built ISO into out/, checksum verified
+./build/test-iso-boot.sh --gui   # boots it in a QEMU window (uses KVM when available)
 ```
 
-On Windows, [docs/VM_TESTING.md](docs/VM_TESTING.md) walks through a Hyper-V VM instead.
+`./build/test-iso-boot.sh --check` confirms QEMU, OVMF and KVM are in place. To build the ISO yourself instead, run `./build/build-iso.sh --build-pkgs` on an Arch host as root (it needs archiso and several GB of space), then boot it the same way. On Windows, [docs/VM_TESTING.md](docs/VM_TESTING.md) walks through a Hyper-V VM instead.
 
 <p align="center"><img src="docs/assets/readme/divider.svg" width="100%" alt=""/></p>
 
