@@ -155,9 +155,18 @@ else
     pass "picom.conf removed (L8)"
 fi
 check_file_lacks "${REPO_ROOT}/build/archiso/packages.x86_64" '(?m)^picom$' "ISO does not ship picom (L8)"
-if grep -rIqiE 'picom|kawase' "${REPO_ROOT}/packages" "${REPO_ROOT}/overlay" \
-        "${REPO_ROOT}/build/archiso/packages.x86_64" "${REPO_ROOT}/docs/guides/TECHNICAL_FAQ.md"; then
-    fail "No picom or kawase-blur claims in packages, overlay, slideshow or FAQ (L8)"
+# Search tracked files only: after --build-pkgs, makepkg leaves cloned sources under
+# packages/*/src (e.g. a pnpm-lock.yaml naming "picomatch") that are not ours to police.
+# "picom" must be a whole word so picomatch does not match; "kawase" still catches dual_kawase.
+_l8_pattern='picom([^a-z0-9]|$)|kawase'
+_l8_paths=(packages overlay build/archiso/packages.x86_64 docs/guides/TECHNICAL_FAQ.md)
+if git -C "${REPO_ROOT}" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    _l8_hits="$(git -C "${REPO_ROOT}" grep -IliE "${_l8_pattern}" -- "${_l8_paths[@]}" 2>/dev/null || true)"
+else
+    _l8_hits="$(cd "${REPO_ROOT}" && grep -rIliE --exclude-dir=src --exclude-dir=pkg "${_l8_pattern}" "${_l8_paths[@]}" 2>/dev/null || true)"
+fi
+if [[ -n "${_l8_hits}" ]]; then
+    fail "No picom or kawase-blur claims in packages, overlay, slideshow or FAQ (L8): ${_l8_hits//$'\n'/ }"
 else
     pass "No picom or kawase-blur claims in packages, overlay, slideshow or FAQ (L8)"
 fi

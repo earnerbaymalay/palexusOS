@@ -83,6 +83,8 @@ jobs:
               chown -R builder:builder /workspace/out /workspace/packages /home/builder 2>/dev/null || true
               ./build/build-iso.sh --build-pkgs
               ./build/verify-gates.sh
+              # Hand out/ back to the runner user so the checksum and upload steps can write there
+              chown -R $(id -u):$(id -g) /workspace/out
             "
 
       - name: Generate Checksums
