@@ -144,9 +144,9 @@ build_local_packages() {
 
     # Pre-seed local sources only when not already staged in packages/.../src/
     local sc_dir="${REPO_ROOT}/packages/core/palexus-core"
-    if [[ ! -d "${sc_dir}/src/synapse" ]] && [[ -n "${PALEXUS_CORE_SRC:-}" ]] && [[ -d "${PALEXUS_CORE_SRC}" ]]; then
+    if [[ ! -d "${sc_dir}/src/palexus-brain" ]] && [[ -n "${PALEXUS_CORE_SRC:-}" ]] && [[ -d "${PALEXUS_CORE_SRC}" ]]; then
         mkdir -p "${sc_dir}/src"
-        cp -al "${PALEXUS_CORE_SRC}" "${sc_dir}/src/synapse"
+        cp -al "${PALEXUS_CORE_SRC}" "${sc_dir}/src/palexus-brain"
     fi
     if [[ -d "${sc_dir}/src" ]]; then
         cp -af --remove-destination "${sc_dir}/palexus.service" "${sc_dir}/palexus-sync.service" "${sc_dir}/palexus-sync.timer" "${sc_dir}/src/"
@@ -266,7 +266,7 @@ generate_build_manifest() {
         echo ""
         echo "Upstream Sources:"
         echo "------------------------------------------------------------------------------"
-        echo "  synapse-core upstream: $(grep -E 'synapse::git\+https' "${REPO_ROOT}/packages/core/palexus-core/PKGBUILD" | tr -d ' "')"
+        echo "  palexus-core upstream: $(grep -E 'palexus-brain::git\+https' "${REPO_ROOT}/packages/core/palexus-core/PKGBUILD" | tr -d ' "')"
     } > "${manifest_file}"
 }
 
