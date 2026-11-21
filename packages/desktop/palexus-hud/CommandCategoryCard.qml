@@ -44,10 +44,12 @@ Rectangle {
 
                 readonly property bool matches: {
                     if (card.filterText.trim() === "") return true
-                    var q = card.filterText.toLowerCase()
+                    // Same rule as Main.qml itemMatches(): one character is a hotkey, more is a search
+                    var q = card.filterText.trim().toLowerCase()
+                    if (q.length === 1)
+                        return modelData.key.toLowerCase() === q
                     return modelData.label.toLowerCase().indexOf(q) !== -1 ||
-                           modelData.desc.toLowerCase().indexOf(q) !== -1 ||
-                           modelData.key.toLowerCase().indexOf(q) !== -1
+                           modelData.desc.toLowerCase().indexOf(q) !== -1
                 }
 
                 visible: matches

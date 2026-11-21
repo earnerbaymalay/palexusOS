@@ -8,6 +8,9 @@
       ██║     ██║  ██║███████╗███████╗██╔╝ ██╗╚██████╔╝███████║     ╚██████╔╝███████║
       ╚═╝     ╚═╝  ╚═╝╚══════╝╚══════╝╚═╝  ╚═╝ ╚═════╝ ╚══════╝      ╚═════╝ ╚══════╝
 
+                              The AI-Native Linux Workstation.
+                        One Brain, All Models, Zero Cloud Friction.
+
 ├─────────────────────────────────────────── ◆ ────────────────────────────────────────────┤
 
                 “System aims for minimal if not 0 telemetry and prioritises
@@ -18,16 +21,13 @@
 
 <div align="center">
 
-### **The AI-Native Sovereign Workstation**  
-*Surgical Precision. Zero Cloud Friction. One Brain. All Models.*
-
 [![Build & Gates](https://img.shields.io/github/actions/workflow/status/earnerbaymalay/palexusOS/build-iso.yml?branch=main&label=Build%20%26%20Gates&logo=githubactions&logoColor=cba6f7&color=cba6f7&style=for-the-badge&labelColor=11111b)](https://github.com/earnerbaymalay/palexusOS/actions/workflows/build-iso.yml)
 [![Gates](https://img.shields.io/badge/Gates-G1%E2%80%93G5%20automated-a6e3a1?logo=shield&logoColor=a6e3a1&style=for-the-badge&labelColor=11111b)](build/verify-gates.sh)
 [![Release](https://img.shields.io/github/v/release/earnerbaymalay/palexusOS?include_prereleases&label=Release&color=74c7ec&style=for-the-badge&labelColor=11111b)](https://github.com/earnerbaymalay/palexusOS/releases)
 [![Base](https://img.shields.io/badge/Base-Arch%20Linux-74c7ec?logo=archlinux&logoColor=74c7ec&style=for-the-badge&labelColor=11111b)](https://archlinux.org)
 [![Kernel](https://img.shields.io/badge/Kernel-linux--cachyos%20BORE-fab387?logo=linux&logoColor=fab387&style=for-the-badge&labelColor=11111b)](https://github.com/CachyOS/linux-cachyos)
 [![Telemetry](https://img.shields.io/badge/Telemetry-0%20%C2%B7%20Prime%20Directive-f38ba8?logo=privatedivision&logoColor=f38ba8&style=for-the-badge&labelColor=11111b)](#-the-prime-directive-zero-telemetry-sovereignty)
-[![License](https://img.shields.io/badge/License-MIT%20%2F%20GPLv3-cdd6f4?style=for-the-badge&labelColor=11111b)](LICENSE)
+[![License](https://img.shields.io/badge/License-MIT-cdd6f4?style=for-the-badge&labelColor=11111b)](LICENSE)
 
 <br/>
 
@@ -100,7 +100,7 @@ Commercial operating systems treat your silicon as a thin client terminal to ing
 | **CPU Scheduler Tuning** | Standard Round-Robin | CFS / EEVDF | Standard EEVDF | BORE / BMQ | **◆ BORE + Auto-Nicing** |
 | **Microarchitecture Binaries**| Generic x86-64 | Generic x86-64 | Generic x86-64 | x86-64-v3/v4 | **◆ x86-64-v3 (AVX2/BMI2)** |
 | **Memory Compression** | Basic Pagefile | Basic Swap | DIY | ZRAM zstd | **◆ 8GB ZRAM (180 Swappiness)** |
-| **Rollback Time Machine** | System Restore (Slow) | Manual TimeShift | DIY Btrfs | Automated Snapper | **◆ 5-Second Boot Snapshots** |
+| **Rollback Time Machine** | System Restore (Slow) | Manual TimeShift | DIY Btrfs | Automated Snapper | **◆ Btrfs layout (auto-snapshots planned)** |
 | **First-Boot Experience** | Mandatory Online Account | Generic Installer | Terminal CLI | Calamares | **◆ Cyberdeck Cockpit Wizard** |
 
 <p align="center"><img src="docs/assets/readme/divider.svg" width="100%" alt=""/></p>
@@ -198,7 +198,7 @@ PalexusOS replaces complex legacy distributions with four tightly integrated arc
 * **Rolling Arch Base**: Rolling synchronization with upstream Arch Linux repositories, transparent package management, and systemd isolation.
 * **Hardware Anonymization**: NetworkManager automatically randomizes MAC addresses on every Wi-Fi scan and connection.
 * **Encrypted DNS & IPv6 Privacy**: Outbound DNS queries route via Quad9 DNS-over-TLS (`9.9.9.9:853` via systemd-resolved) with RFC 4941 temporary IPv6 addresses.
-* **Time Machine Rollbacks**: Every `pacman` update captures a read-only Btrfs snapshot into `/.snapshots`. If an update ever fails, roll back to the previous working state in 5 seconds directly from the bootloader.
+* **Btrfs Layout**: Installs onto a Btrfs subvolume layout ready for snapshot-based rollback. Automatic per-update snapshots with boot-menu rollback (snapper + snap-pac + grub-btrfs) are planned but not shipped yet; until then, snapshots are manual.
 
 ### Layer 3: Sovereign AI Core & Context Firewall
 * **Local Loopback Gateway**: `palexus-core` daemon listening exclusively on `127.0.0.1:8000` with bearer-token authentication and DNS-rebinding protection.
@@ -347,5 +347,5 @@ PalexusOS guarantees that no telemetry packet leaves your machine without your e
 <div align="center">
 <sub><code>◆ PALEXUS // NEURAL INTERFACE ONLINE</code></sub><br/><br/>
 <b>PalexusOS · Built for Sovereignty, Speed, and Intelligence.</b><br/>
-<sub>100% Free & Open Source Software. Dual licensed under MIT and GPLv3.</sub>
+<sub>100% Free & Open Source Software, released under the MIT License.</sub>
 </div>
