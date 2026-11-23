@@ -27,7 +27,7 @@ if (-not $firstPart) {
 
 $baseName = $firstPart.Name -replace '\.001$', ''
 $targetIso = Join-Path $resolvedDir $baseName
-$parts = Get-ChildItem -Path $resolvedDir -Filter "$baseName.[0-9][0-9][0-9]" | Sort-Object Name
+$parts = Get-ChildItem -Path $resolvedDir -Filter "$baseName.*" | Where-Object { $_.Name -match "^$([regex]::Escape($baseName))\.\d{3}$" } | Sort-Object Name
 
 Write-Host "==============================================================================" -ForegroundColor Cyan
 Write-Host " PalexusOS Split ISO Reassembly" -ForegroundColor Cyan
@@ -71,9 +71,9 @@ $sumsFile = Join-Path $resolvedDir "SHA256SUMS"
 if (Test-Path $sumsFile) {
     Write-Host "[*] Verifying SHA256 checksum against SHA256SUMS..."
     $lines = Get-Content $sumsFile
-    $matched = $lines | Where-Object { $_ -match "\b$([regex]::Escape($baseName))\b" }
+    $matched = $lines | Where-Object { $_ -match "[\s\*]$([regex]::Escape($baseName))$" } | Select-Object -Last 1
     if ($matched) {
-        $expectedHash = ($matched -split '\s+')[0].Trim().ToLower()
+        $expectedHash = ($matched.Trim() -split '\s+')[0].ToLower()
         Write-Host "    Expected: $expectedHash"
         $actualHash = (Get-FileHash -Path $targetIso -Algorithm SHA256).Hash.ToLower()
         Write-Host "    Actual:   $actualHash"
