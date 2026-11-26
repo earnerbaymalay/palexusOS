@@ -34,3 +34,9 @@ Issues and specs live in GitHub Issues. Skills like `to-spec`, `to-tickets`, and
 ### Domain docs
 
 Single-context repo layout: one `CONTEXT.md` + `docs/adr/` at the repo root. See `docs/agents/domain.md`.
+
+<!-- mattflow:start -->
+## Agent workflow
+Before planning or coding, read `docs/agents/workflow.md` (grill → spec → tickets → TDD → review → retro).
+Domain language: `CONTEXT.md`. Decisions: `docs/adr/`. Review rules: `CODING_STANDARDS.md`. Feedback loops + quality bar: `.mattflow.json`.
+<!-- mattflow:end -->

@@ -83,16 +83,14 @@ class TestTokenRegistry:
         with pytest.raises(FileNotFoundError):
             TokenRegistry(Path("/nonexistent/tokens.json"))
 
-    def test_validate_missing_sections(self, sample_tokens):
+    def test_validate_missing_sections(self, tmp_path):
         """TokenRegistry validates required sections."""
         invalid = {"version": "1.0.0"}
+        path = tmp_path / "invalid.json"
+        path.write_text(json.dumps(invalid))
 
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".json") as f:
-            json.dump(invalid, f)
-            f.flush()
-
-            with pytest.raises(ValueError):
-                TokenRegistry(Path(f.name))
+        with pytest.raises(ValueError):
+            TokenRegistry(path)
 
     def test_colors_all_categories(self, tokens_file):
         """Registry returns all color categories."""

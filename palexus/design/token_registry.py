@@ -62,6 +62,11 @@ class TokenRegistry:
         missing = required - set(self._data.keys())
         if missing:
             raise ValueError(f"Missing required token sections: {missing}")
+        for key in ("colors", "typography", "spacing", "radius"):
+            if not isinstance(self._data.get(key), dict):
+                raise ValueError(f"Token section '{key}' must be an object")
+        if "shadows" in self._data and not isinstance(self._data["shadows"], dict):
+            raise ValueError("Token section 'shadows' must be an object")
 
     def colors(self, category: str | None = None) -> dict[str, Any]:
         """Get color tokens.
@@ -127,11 +132,18 @@ class TokenRegistry:
         return self._data.copy()
 
 
-class CSSExporter:
-    """Export tokens as CSS custom properties."""
+class Exporter:
+    """Base class for token exporters."""
 
     def __init__(self, registry: TokenRegistry):
         self.registry = registry
+
+    def export(self) -> str:
+        raise NotImplementedError
+
+
+class CSSExporter(Exporter):
+    """Export tokens as CSS custom properties."""
 
     def export(self) -> str:
         """Generate CSS custom properties.
@@ -168,11 +180,8 @@ class CSSExporter:
         return "\n".join(lines)
 
 
-class ShellExporter:
+class ShellExporter(Exporter):
     """Export tokens as shell environment variables."""
-
-    def __init__(self, registry: TokenRegistry):
-        self.registry = registry
 
     def export(self) -> str:
         """Generate shell exports.
@@ -203,11 +212,8 @@ class ShellExporter:
         return "\n".join(lines) + "\n"
 
 
-class KittyExporter:
+class KittyExporter(Exporter):
     """Export tokens as Kitty terminal configuration."""
-
-    def __init__(self, registry: TokenRegistry):
-        self.registry = registry
 
     def export(self) -> str:
         """Generate Kitty color configuration.
@@ -236,7 +242,7 @@ class KittyExporter:
         return "\n".join(lines) + "\n"
 
 
-class XFCEExporter:
+class XFCEExporter(Exporter):
     """Export tokens as XFCE theme configuration."""
 
     def __init__(self, registry: TokenRegistry):

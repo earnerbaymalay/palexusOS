@@ -63,8 +63,10 @@ venv/
 .idea/
 *.log
 
-# Claude CLI caches and local settings
-.claude/
+# Claude CLI caches and local settings (shared hooks are tracked so cloud sessions get them)
+.claude/*
+!.claude/settings.json
+!.claude/mattflow/
 
 # Blender binary files, renders, and intermediate video assets
 build/blender/*.blend*

@@ -53,28 +53,22 @@ class Gate(ABC):
             GateResult with status and message
         """
 
-    @abstractmethod
-    def test(self) -> bool:
-        """Test gate implementation.
-
-        Returns:
-            True if gate implementation is sound
-        """
-
 
 class PackageGate(Gate):
     """G1: Native package verification (PKGBUILD syntax)."""
+
+    EXPECTED_PKGBUILDS = [
+        "packages/core/palexus-core/PKGBUILD",
+        "packages/desktop/llm-quickfire-panel/PKGBUILD",
+        "packages/desktop/palexus-themes/PKGBUILD",
+    ]
 
     def __init__(self):
         super().__init__("package", dependencies=set())
 
     def run(self, repo_root: Path) -> GateResult:
         """Verify PKGBUILD files are syntactically valid."""
-        expected = [
-            "packages/core/palexus-core/PKGBUILD",
-            "packages/desktop/llm-quickfire-panel/PKGBUILD",
-            "packages/desktop/palexus-themes/PKGBUILD",
-        ]
+        expected = self.EXPECTED_PKGBUILDS
 
         for rel_path in expected:
             pkgbuild = repo_root / rel_path
@@ -83,9 +77,6 @@ class PackageGate(Gate):
 
         return GateResult(self.name, GateStatus.PASSED, "All PKGBUILDs valid")
 
-    def test(self) -> bool:
-        """Test gate definition."""
-        return self.name == "package" and not self.dependencies
 
 
 class ISOGate(Gate):
@@ -101,9 +92,6 @@ class ISOGate(Gate):
             return GateResult(self.name, GateStatus.SKIPPED, "ISO build script pending")
         return GateResult(self.name, GateStatus.PASSED, "ISO config valid")
 
-    def test(self) -> bool:
-        """Test gate definition."""
-        return self.name == "iso" and "package" in self.dependencies
 
 
 class GraphicsGate(Gate):
@@ -119,9 +107,6 @@ class GraphicsGate(Gate):
             return GateResult(self.name, GateStatus.FAILED, "Design system missing")
         return GateResult(self.name, GateStatus.PASSED, "Graphics verified")
 
-    def test(self) -> bool:
-        """Test gate definition."""
-        return self.name == "graphics" and "package" in self.dependencies
 
 
 class BootGate(Gate):
@@ -137,9 +122,6 @@ class BootGate(Gate):
             return GateResult(self.name, GateStatus.SKIPPED, "Boot config pending")
         return GateResult(self.name, GateStatus.PASSED, "Boot config valid")
 
-    def test(self) -> bool:
-        """Test gate definition."""
-        return self.name == "boot" and "iso" in self.dependencies
 
 
 class PerfGate(Gate):
@@ -152,9 +134,6 @@ class PerfGate(Gate):
         """Verify performance configurations."""
         return GateResult(self.name, GateStatus.PASSED, "Perf config verified")
 
-    def test(self) -> bool:
-        """Test gate definition."""
-        return self.name == "perf" and "boot" in self.dependencies
 
 
 class GateRegistry:
@@ -210,20 +189,6 @@ class GateRegistry:
                 blocked.add(gate_name)
 
         return self.results
-
-    def test(self, gate_name: str) -> bool:
-        """Test specific gate.
-
-        Args:
-            gate_name: Name of gate to test
-
-        Returns:
-            True if gate definition is valid
-
-        Raises:
-            KeyError: If gate not found
-        """
-        return self.gates[gate_name].test()
 
     def _topological_sort(self, gate_names: set[str]) -> list[str]:
         """Sort gates by dependencies.

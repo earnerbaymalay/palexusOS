@@ -142,6 +142,54 @@ Window {
                     }
 
                     Rectangle {
+                        id: minBtn
+                        width: 24
+                        height: 24
+                        radius: 6
+                        color: minMouseArea.containsMouse ? root.accent : "#313244"
+                        anchors.verticalCenter: parent.verticalCenter
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: "─"
+                            color: minMouseArea.containsMouse ? "#11111b" : "#cdd6f4"
+                            font { family: root.mono; pixelSize: 12; bold: true }
+                        }
+
+                        MouseArea {
+                            id: minMouseArea
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: root.showMinimized()
+                        }
+                    }
+
+                    Rectangle {
+                        id: maxBtn
+                        width: 24
+                        height: 24
+                        radius: 6
+                        color: maxMouseArea.containsMouse ? root.accent : "#313244"
+                        anchors.verticalCenter: parent.verticalCenter
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: "□"
+                            color: maxMouseArea.containsMouse ? "#11111b" : "#cdd6f4"
+                            font { family: root.mono; pixelSize: 12; bold: true }
+                        }
+
+                        MouseArea {
+                            id: maxMouseArea
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: root.showMaximized()
+                        }
+                    }
+
+                    Rectangle {
                         id: closeBtn
                         width: 24
                         height: 24

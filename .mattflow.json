@@ -1,0 +1,14 @@
+{
+  "quality": null,
+  "typecheck": [],
+  "lint": [
+    "python -m ruff check palexus tests --extend-ignore=E501",
+    "python -m black --check -q --line-length=100 palexus tests"
+  ],
+  "test": [
+    "python -m pytest tests/ -q -p no:cacheprovider"
+  ],
+  "runTestsOnStop": false,
+  "runTestsOnCommit": false,
+  "timeoutSec": 180
+}

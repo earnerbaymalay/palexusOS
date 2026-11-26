@@ -24,12 +24,6 @@ class TestPackageGate:
         gate = PackageGate()
         assert gate.dependencies == set()
 
-    def test_gate_test(self):
-        """PackageGate passes self-test."""
-        gate = PackageGate()
-        assert gate.test()
-
-
 class TestISOGate:
     """Test ISO gate."""
 
@@ -43,12 +37,6 @@ class TestISOGate:
         gate = ISOGate()
         assert "package" in gate.dependencies
 
-    def test_gate_test(self):
-        """ISOGate passes self-test."""
-        gate = ISOGate()
-        assert gate.test()
-
-
 class TestGraphicsGate:
     """Test graphics gate."""
 
@@ -61,12 +49,6 @@ class TestGraphicsGate:
         """GraphicsGate depends on package."""
         gate = GraphicsGate()
         assert "package" in gate.dependencies
-
-    def test_gate_test(self):
-        """GraphicsGate passes self-test."""
-        gate = GraphicsGate()
-        assert gate.test()
-
 
 class TestBootGate:
     """Test boot gate."""
@@ -82,12 +64,6 @@ class TestBootGate:
         assert "iso" in gate.dependencies
         assert "graphics" in gate.dependencies
 
-    def test_gate_test(self):
-        """BootGate passes self-test."""
-        gate = BootGate()
-        assert gate.test()
-
-
 class TestPerfGate:
     """Test performance gate."""
 
@@ -100,12 +76,6 @@ class TestPerfGate:
         """PerfGate depends on boot."""
         gate = PerfGate()
         assert "boot" in gate.dependencies
-
-    def test_gate_test(self):
-        """PerfGate passes self-test."""
-        gate = PerfGate()
-        assert gate.test()
-
 
 class TestGateRegistry:
     """Test gate registry."""
@@ -135,13 +105,6 @@ class TestGateRegistry:
 
         assert "package" in results
         assert len(results) == 1
-
-    def test_gate_independence(self):
-        """Each gate is independent and testable."""
-        registry = GateRegistry()
-
-        for gate_name in registry.gates:
-            assert registry.test(gate_name)
 
     def test_topological_sort(self):
         """Registry sorts gates by dependencies."""
