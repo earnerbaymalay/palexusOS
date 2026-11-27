@@ -52,12 +52,26 @@ flowchart TD
 
 ### Hook Point Comparison
 
-| Mechanism | Inspection Layer | TLS Visibility | Performance Impact | Recommended |
-| :--- | :--- | :--- | :--- | :--- |
-| **TC / cgroup_skb (Egress)** | L3/L4 Network Packets | Ciphertext Only (Blind to TLS) | Negligible (<0.1%) | ❌ Supplementary only |
-| **sock_ops / sockmsg** | Socket buffer (TCP) | Ciphertext Only for TLS | Very Low (<0.3%) | ❌ Insufficient for HTTPS |
-| **BPF LSM (`socket_sendmsg`)** | Kernel VFS/Socket Interface | Plaintext for unencrypted protocols (HTTP, raw TCP, SSH pre-auth) | Minimal (<0.2%) | ✅ Primary for Non-TLS |
-| **uprobes on `libssl.so`** | Userspace library entry | **Cleartext prior to TLS encryption** | Low (~1.5% on TLS handshakes/writes) | ✅ Primary for TLS |
+- **TC / cgroup_skb (Egress)**
+  - Inspection Layer: L3/L4 Network Packets
+  - TLS Visibility: Ciphertext Only (Blind to TLS)
+  - Performance Impact: Negligible (<0.1%)
+  - Recommended: ❌ Supplementary only
+- **sock_ops / sockmsg**
+  - Inspection Layer: Socket buffer (TCP)
+  - TLS Visibility: Ciphertext Only for TLS
+  - Performance Impact: Very Low (<0.3%)
+  - Recommended: ❌ Insufficient for HTTPS
+- **BPF LSM (`socket_sendmsg`)**
+  - Inspection Layer: Kernel VFS/Socket Interface
+  - TLS Visibility: Plaintext for unencrypted protocols (HTTP, raw TCP, SSH pre-auth)
+  - Performance Impact: Minimal (<0.2%)
+  - Recommended: ✅ Primary for Non-TLS
+- **uprobes on `libssl.so`**
+  - Inspection Layer: Userspace library entry
+  - TLS Visibility: **Cleartext prior to TLS encryption**
+  - Performance Impact: Low (~1.5% on TLS handshakes/writes)
+  - Recommended: ✅ Primary for TLS
 
 ### The TLS Visibility Solution: Dual-Layer Interception
 
@@ -108,14 +122,24 @@ To guarantee absolute consistency with `palexus-core`'s prompt firewall, `palexu
 
 `palexus-ebpf-guard` requires specific kernel features provided out-of-the-box by the default `linux-cachyos` kernel shipped in PalexusOS:
 
-| Kernel Config Option | Required Value | Purpose |
-| :--- | :--- | :--- |
-| `CONFIG_BPF` | `=y` | Core Berkeley Packet Filter support |
-| `CONFIG_BPF_SYSCALL` | `=y` | `bpf()` syscall for userspace loading |
-| `CONFIG_BPF_JIT` | `=y` | Just-In-Time native x86-64 machine code compilation |
-| `CONFIG_BPF_LSM` | `=y` | Linux Security Module BPF hooks |
-| `CONFIG_UPROBE_EVENTS` | `=y` | Dynamic userspace probes on shared libraries |
-| `CONFIG_DEBUG_INFO_BTF` | `=y` | BPF Type Format for CO-RE (Compile Once – Run Everywhere) |
+- `CONFIG_BPF`
+  - Required Value: `=y`
+  - Purpose: Core Berkeley Packet Filter support
+- `CONFIG_BPF_SYSCALL`
+  - Required Value: `=y`
+  - Purpose: `bpf()` syscall for userspace loading
+- `CONFIG_BPF_JIT`
+  - Required Value: `=y`
+  - Purpose: Just-In-Time native x86-64 machine code compilation
+- `CONFIG_BPF_LSM`
+  - Required Value: `=y`
+  - Purpose: Linux Security Module BPF hooks
+- `CONFIG_UPROBE_EVENTS`
+  - Required Value: `=y`
+  - Purpose: Dynamic userspace probes on shared libraries
+- `CONFIG_DEBUG_INFO_BTF`
+  - Required Value: `=y`
+  - Purpose: BPF Type Format for CO-RE (Compile Once – Run Everywhere)
 
 ### Boot Parameter Verification
 The bootloader (`efiboot/loader/entries/01-palexusos-x86_64-linux.conf`) enables BPF LSM via the kernel command line:

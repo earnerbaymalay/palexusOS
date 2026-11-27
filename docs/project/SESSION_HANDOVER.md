@@ -44,16 +44,30 @@ shellcheck build/*.sh build/archiso/profiledef.sh build/archiso/airootfs/root/cu
 
 ## 3. Fixed on `fix/open-items-2026-11-21`
 
-| Area | Problem | Fix |
-| :--- | :--- | :--- |
-| `palexus-core` PKGBUILD | Built the pre-rename `earnerbaymalay/synapse` at `f6cb346` (`-p synapse --bin synapse`), 16 commits behind Palexus Brain | Source is `palexus-brain.git#commit=baaae4c`; builds `-p palexus --bin palexus`; tests `-p palexus -p palexus-core`; `pkgrel` 4 |
-| `/usr/bin/squash` | Ran `palexus context squash`; the CLI has no `context` command | Runs `palexus squash` |
-| `palexus-core` `backup=` | Listed `etc/palexus/config.toml` and `etc/synapse/config.toml`, which the package does not ship (makepkg warning) | Removed |
-| `build/build-iso.sh` | `PALEXUS_CORE_SRC` pre-seed and `BUILD_MANIFEST.txt` still used the `synapse` source name | Use `palexus-brain` |
-| Live image | No `fish`, `fastfetch` or `lolcat`, so the shell welcome showed its plain banner and never offered the shell choice | Added to `build/archiso/packages.x86_64` |
-| `ROADMAP.md` | Milestones 9.2 (eBPF guard) and 9.3 (Vulkan probe) unchecked though both ship | Ticked, with what shipped |
-| `README.md` | Onboarding line named "Claude 3.7 Sonnet / Opus" | Matches `palexus-welcome` (Claude Opus 5.5, key check button, local Ollama default) |
-| `docs/ROADMAP.md`, `docs/V0.2.0_IMPLEMENTATION.md`, `CHANGELOG.md` | Python-layer docs used distro-looking versions ("v0.1.0 released, production-ready", "v0.2.0") and unmeasured figures | Marked as `palexus-lib` versions, pointed at the root ROADMAP for distro releases, dropped figures nobody measured, CI matrix corrected to 3.11–3.14 |
+- `palexus-core` PKGBUILD
+  - Problem: Built the pre-rename `earnerbaymalay/synapse` at `f6cb346` (`-p synapse --bin synapse`), 16 commits behind Palexus Brain
+  - Fix: Source is `palexus-brain.git#commit=baaae4c`; builds `-p palexus --bin palexus`; tests `-p palexus -p palexus-core`; `pkgrel` 4
+- `/usr/bin/squash`
+  - Problem: Ran `palexus context squash`; the CLI has no `context` command
+  - Fix: Runs `palexus squash`
+- `palexus-core` `backup=`
+  - Problem: Listed `etc/palexus/config.toml` and `etc/synapse/config.toml`, which the package does not ship (makepkg warning)
+  - Fix: Removed
+- `build/build-iso.sh`
+  - Problem: `PALEXUS_CORE_SRC` pre-seed and `BUILD_MANIFEST.txt` still used the `synapse` source name
+  - Fix: Use `palexus-brain`
+- **Live image**
+  - Problem: No `fish`, `fastfetch` or `lolcat`, so the shell welcome showed its plain banner and never offered the shell choice
+  - Fix: Added to `build/archiso/packages.x86_64`
+- `ROADMAP.md`
+  - Problem: Milestones 9.2 (eBPF guard) and 9.3 (Vulkan probe) unchecked though both ship
+  - Fix: Ticked, with what shipped
+- `README.md`
+  - Problem: Onboarding line named "Claude 3.7 Sonnet / Opus"
+  - Fix: Matches `palexus-welcome` (Claude Opus 5.5, key check button, local Ollama default)
+- `docs/ROADMAP.md`, `docs/V0.2.0_IMPLEMENTATION.md`, `CHANGELOG.md`
+  - Problem: Python-layer docs used distro-looking versions ("v0.1.0 released, production-ready", "v0.2.0") and unmeasured figures
+  - Fix: Marked as `palexus-lib` versions, pointed at the root ROADMAP for distro releases, dropped figures nobody measured, CI matrix corrected to 3.11–3.14
 
 ## 4. Open items
 

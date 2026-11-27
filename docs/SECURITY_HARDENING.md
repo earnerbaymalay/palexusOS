@@ -168,7 +168,8 @@ grep -r "eval\|exec\|pickle\|__import__" palexus/
 # Output should be empty
 
 # Check for hardcoded secrets (basic)
-grep -r "password\|api_key\|secret" palexus/ --include="*.py"
+grep -r "password\|api_key\|secret" palexus/ \
+  --include="*.py"
 # Review any matches carefully
 
 # Use bandit for security linting
@@ -228,7 +229,8 @@ pip install --upgrade package
 make test
 
 # 5. Commit changes
-git commit -m "deps: Update package to 1.5.0 (security fix)"
+git commit \
+  -m "deps: Update package to 1.5.0 (security fix)"
 ```
 
 ---

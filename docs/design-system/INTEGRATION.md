@@ -14,17 +14,23 @@ The design system provides:
 
 ```
 docs/design-system/
-├── tokens.css              # CSS variables (use this in your stylesheets)
-├── tokens.json             # Token definitions (for tooling)
-├── INTEGRATION.md          # This file
-├── README.md              # Design system overview
-└── components/            # Component examples
+├── tokens.css
+├── tokens.json
+├── INTEGRATION.md
+├── README.md
+└── components/
     ├── buttons.html
     ├── forms.html
     ├── cards.html
     ├── modals.html
     └── ...
 ```
+
+- `tokens.css` — CSS variables (use this in your stylesheets)
+- `tokens.json` — Token definitions (for tooling)
+- `INTEGRATION.md` — This file
+- `README.md` — Design system overview
+- `components/` — Component examples
 
 ## Quick Start
 
@@ -419,7 +425,8 @@ Use stylelint to enforce consistent CSS property naming:
 
 ```bash
 # Install stylelint and plugins
-npm install --save-dev stylelint stylelint-config-standard
+npm install \
+  --save-dev stylelint stylelint-config-standard
 
 # Run linter
 stylelint docs/design-system/tokens.css

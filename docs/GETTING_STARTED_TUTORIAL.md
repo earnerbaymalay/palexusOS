@@ -75,13 +75,16 @@ $ palexus design list | grep lavender
 Export to each target and check for the new colour:
 
 ```bash
-$ palexus design export css /tmp/tokens.css && grep lavender /tmp/tokens.css
+$ palexus design export css /tmp/tokens.css && \
+  grep lavender /tmp/tokens.css
   --color-primary-lavender: #b4befe;
 
-$ palexus design export shell /tmp/tokens.sh && grep -i lavender /tmp/tokens.sh
+$ palexus design export shell /tmp/tokens.sh && \
+  grep -i lavender /tmp/tokens.sh
 export COLOR_LAVENDER='#b4befe'
 
-$ palexus design export kitty /tmp/kitty.conf && grep -ci lavender /tmp/kitty.conf
+$ palexus design export kitty /tmp/kitty.conf && \
+  grep -ci lavender /tmp/kitty.conf
 0
 ```
 
@@ -131,7 +134,8 @@ expected files are present; they do not render anything yet.
 
 ```bash
 git add docs/design-system/tokens.json tests/test_design.py
-git commit -m "feat(design): add lavender accent token"
+git commit \
+  -m "feat(design): add lavender accent token"
 git push -u origin feat/lavender-accent
 ```
 

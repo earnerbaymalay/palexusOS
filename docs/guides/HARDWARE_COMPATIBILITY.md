@@ -9,12 +9,26 @@
 
 PalexusOS is engineered from the ground up to squeeze maximum deterministic throughput out of modern `x86_64` microarchitectures while maintaining full operational resilience.
 
-| Tier | Architecture Profile | Target Hardware Platforms | Supported Subsystems | Validation Status |
-| :--- | :--- | :--- | :--- | :--- |
-| **Tier 0: Reference Platform** | Intel 8th Gen Kaby Lake-R / UHD 620, AVX2, BMI2, 16–32 GB RAM | **Dell Latitude 7490** | • Full `linux-cachyos` BORE<br>• TLP + `throttled` 25W PL1 override<br>• ZRAM 8GB (swappiness=180)<br>• PipeWire 64/48000 low-latency<br>• Local Ollama Qwen2.5-coder CPU inference | **100% Certified Reference**<br>(254/254 Gates passing) |
-| **Tier 1: Certified Cyberdecks** | AMD Ryzen 5000/7000/8000 & Intel Core 11th–14th Gen / Core Ultra | **ThinkPad T14 / T480 / X1 Carbon Gen 6–12**<br>**Framework 13 (AMD & Intel)**<br>**Framework 16** | • Zero-friction Wi-Fi/BT (Intel ax200/ax210, MediaTek MT7922)<br>• Sway Wayland Fractional Scaling<br>• Calamares Btrfs automated rollback snapshots<br>• Fingerprint GUI authentication | **Fully Verified & Certified** |
-| **Tier 2: Modern Generic x86_64** | Any x86_64 CPU supporting `AVX2`, `BMI2`, `FMA3`, 8GB+ RAM, NVMe/SATA | Modern Custom Desktops (Ryzen / Intel), ASUS ZenBook/ROG, HP Spectre, Acer Swift | • CachyOS `x86-64-v3` precompiled packages<br>• Vulkan GPU acceleration (AMD Radeon, Intel Arc/Iris, NVIDIA via proprietary driver module) | **Fully Supported** |
-| **Tier 3: Legacy / Constrained** | Legacy x86_64 without AVX2 (`x86-64-v2`), 4–8 GB RAM, HDD/eMMC | Older laptops (Intel 2nd–5th Gen), low-power Celeron/Pentium | • Standard Arch upstream kernels fallback<br>• Single-thread constrained CPU LLM mode (`palexus-power --low-mem`) | **Compatible** (V2 Fallback) |
+- **Tier 0: Reference Platform**
+  - Architecture Profile: Intel 8th Gen Kaby Lake-R / UHD 620, AVX2, BMI2, 16–32 GB RAM
+  - Target Hardware Platforms: **Dell Latitude 7490**
+  - Supported Subsystems: • Full `linux-cachyos` BORE; • TLP + `throttled` 25W PL1 override; • ZRAM 8GB (swappiness=180); • PipeWire 64/48000 low-latency; • Local Ollama Qwen2.5-coder CPU inference
+  - Validation Status: **100% Certified Reference**; (254/254 Gates passing)
+- **Tier 1: Certified Cyberdecks**
+  - Architecture Profile: AMD Ryzen 5000/7000/8000 & Intel Core 11th–14th Gen / Core Ultra
+  - Target Hardware Platforms: **ThinkPad T14 / T480 / X1 Carbon Gen 6–12**; **Framework 13 (AMD & Intel)**; **Framework 16**
+  - Supported Subsystems: • Zero-friction Wi-Fi/BT (Intel ax200/ax210, MediaTek MT7922); • Sway Wayland Fractional Scaling; • Calamares Btrfs automated rollback snapshots; • Fingerprint GUI authentication
+  - Validation Status: **Fully Verified & Certified**
+- **Tier 2: Modern Generic x86_64**
+  - Architecture Profile: Any x86_64 CPU supporting `AVX2`, `BMI2`, `FMA3`, 8GB+ RAM, NVMe/SATA
+  - Target Hardware Platforms: Modern Custom Desktops (Ryzen / Intel), ASUS ZenBook/ROG, HP Spectre, Acer Swift
+  - Supported Subsystems: • CachyOS `x86-64-v3` precompiled packages; • Vulkan GPU acceleration (AMD Radeon, Intel Arc/Iris, NVIDIA via proprietary driver module)
+  - Validation Status: **Fully Supported**
+- **Tier 3: Legacy / Constrained**
+  - Architecture Profile: Legacy x86_64 without AVX2 (`x86-64-v2`), 4–8 GB RAM, HDD/eMMC
+  - Target Hardware Platforms: Older laptops (Intel 2nd–5th Gen), low-power Celeron/Pentium
+  - Supported Subsystems: • Standard Arch upstream kernels fallback; • Single-thread constrained CPU LLM mode (`palexus-power --low-mem`)
+  - Validation Status: **Compatible** (V2 Fallback)
 
 ---
 
@@ -32,18 +46,12 @@ The Dell Latitude 7490 serves as the primary development and reference hardware 
 
 PalexusOS ships with a native hardware CLI utility located at `/usr/bin/synapse-hardware`. It exposes unified terminal commands and JSON output for statusbars (Waybar and polybar):
 
-```
-┌────────────────────────────────────────────────────────────────────────┐
-│                        PALEXUS-HARDWARE SUITE                          │
-├───────────────────────────────────┬────────────────────────────────────┤
-│ CLI Commands                      │ Actions                            │
-├───────────────────────────────────┼────────────────────────────────────┤
-│ palexus-hardware status           │ Live diagnostics cockpit           │
-│ palexus-hardware power <mode>     │ Sets CPU governor & EPP profile    │
-│ palexus-hardware audio <mode>     │ Adjusts PipeWire buffer quantum    │
-│ palexus-hardware bar              │ Outputs formatted JSON for Waybar  │
-└───────────────────────────────────┴────────────────────────────────────┘
-```
+**`palexus-hardware` commands**
+
+- `palexus-hardware status` — Live diagnostics cockpit
+- `palexus-hardware power <mode>` — Sets CPU governor & EPP profile
+- `palexus-hardware audio <mode>` — Adjusts PipeWire buffer quantum
+- `palexus-hardware bar` — Outputs formatted JSON for Waybar
 
 ### Usage Examples:
 
@@ -99,5 +107,6 @@ Add the module to `~/.config/waybar/config.jsonc`:
   - The live image boots using open-source `nouveau` mode or fallback KMS.
   - After installation, proprietary drivers can be installed via Calamares or standard pacman:
     ```bash
-    sudo pacman -S nvidia-cachyos-dkms nvidia-utils
+    sudo pacman \
+      -S nvidia-cachyos-dkms nvidia-utils
     ```

@@ -27,18 +27,36 @@ Loads and validates a `tokens.json` file at construction.
 | `ValueError` | any of `colors`, `typography`, `spacing`, `radius` is missing |
 | `json.JSONDecodeError` | the file is not valid JSON |
 
-| Method | Returns | Notes |
-|---|---|---|
-| `colors(category=None)` | `dict` | All colour groups, or one group (`{}` if the group is unknown) |
-| `color(category, name)` | `str` | One hex value; `KeyError` if either key is missing |
-| `typography()` | `dict` | `{"families": ..., "scales": ...}` in the shipped file |
-| `spacing()` | `dict[str, str]` | Keyed by step: `"1"` → `"4px"` … `"8"` → `"48px"` |
-| `space(size)` | `str` | One spacing value; `KeyError` if missing |
-| `radius()` | `dict[str, str]` | `sm`, `md`, `lg`, `xl` |
-| `shadows()` | `dict[str, str]` | `{}` if the file has none |
-| `all()` | `dict` | The whole parsed file |
-| `load()` | `None` | Re-read the file (called by the constructor) |
-| `validate()` | `None` | Re-check required sections; raises `ValueError` |
+- `colors(category=None)`
+  - Returns: `dict`
+  - Notes: All colour groups, or one group (`{}` if the group is unknown)
+- `color(category, name)`
+  - Returns: `str`
+  - Notes: One hex value; `KeyError` if either key is missing
+- `typography()`
+  - Returns: `dict`
+  - Notes: `{"families": ..., "scales": ...}` in the shipped file
+- `spacing()`
+  - Returns: `dict[str, str]`
+  - Notes: Keyed by step: `"1"` → `"4px"` … `"8"` → `"48px"`
+- `space(size)`
+  - Returns: `str`
+  - Notes: One spacing value; `KeyError` if missing
+- `radius()`
+  - Returns: `dict[str, str]`
+  - Notes: `sm`, `md`, `lg`, `xl`
+- `shadows()`
+  - Returns: `dict[str, str]`
+  - Notes: `{}` if the file has none
+- `all()`
+  - Returns: `dict`
+  - Notes: The whole parsed file
+- `load()`
+  - Returns: `None`
+  - Notes: Re-read the file (called by the constructor)
+- `validate()`
+  - Returns: `None`
+  - Notes: Re-check required sections; raises `ValueError`
 
 ```python
 registry = TokenRegistry(Path("docs/design-system/tokens.json"))
@@ -69,10 +87,12 @@ Path("tokens.css").write_text(CSSExporter(registry).export())
 
 Holds the five built-in gates in `registry.gates: dict[str, Gate]`.
 
-| Method | Returns | Notes |
-|---|---|---|
-| `run(repo_root, selected=None)` | `dict[str, GateResult]` | Runs gates in dependency order. `selected` limits the run to those names; their dependencies are **not** added automatically. Also stored in `registry.results` |
-| `test(gate_name)` | `bool` | The gate's self-test (checks its definition, not the repo) |
+- `run(repo_root, selected=None)`
+  - Returns: `dict[str, GateResult]`
+  - Notes: Runs gates in dependency order. `selected` limits the run to those names; their dependencies are **not** added automatically. Also stored in `registry.results`
+- `test(gate_name)`
+  - Returns: `bool`
+  - Notes: The gate's self-test (checks its definition, not the repo)
 
 When a gate returns `FAILED`, every gate that depends on it, directly or
 transitively, is not run and gets `SKIPPED` with the message
@@ -92,13 +112,24 @@ files are pending does not block its dependents.
 
 What each gate checks today. None of them builds or executes anything yet.
 
-| Name | Depends on | Check | Result if missing |
-|---|---|---|---|
-| `package` | — | `packages/core/palexus-core/PKGBUILD`, `packages/desktop/llm-quickfire-panel/PKGBUILD` and `packages/desktop/palexus-themes/PKGBUILD` exist | `SKIPPED` |
-| `iso` | package | `build/build-iso.sh` exists | `SKIPPED` |
-| `graphics` | package | `docs/design-system/tokens.json` exists | `FAILED` |
-| `boot` | iso, graphics | `overlay/etc/sysctl.d/99-palexusos.conf` exists | `SKIPPED` |
-| `perf` | boot | nothing: always `PASSED` | — |
+- `package`
+  - Check: `packages/core/palexus-core/PKGBUILD`, `packages/desktop/llm-quickfire-panel/PKGBUILD` and `packages/desktop/palexus-themes/PKGBUILD` exist
+  - Result if missing: `SKIPPED`
+- `iso`
+  - Depends on: package
+  - Check: `build/build-iso.sh` exists
+  - Result if missing: `SKIPPED`
+- `graphics`
+  - Depends on: package
+  - Check: `docs/design-system/tokens.json` exists
+  - Result if missing: `FAILED`
+- `boot`
+  - Depends on: iso, graphics
+  - Check: `overlay/etc/sysctl.d/99-palexusos.conf` exists
+  - Result if missing: `SKIPPED`
+- `perf`
+  - Depends on: boot
+  - Check: nothing: always `PASSED`
 
 ### Writing a gate
 
@@ -129,14 +160,24 @@ registry.gates["docs"] = DocsGate()
 
 Owns three adapters (`greeter`, `hud`, `theme`) and a `context: BootContext`.
 
-| Method | Returns | Notes |
-|---|---|---|
-| `boot()` | `BootContext` | Runs greeter → HUD → theme; returns `self.context` |
-| `hud_interface()` | `str \| None` | `"HUD enabled (phase: …)"`, or `None` if the HUD is disabled |
-| `theme_loader()` | `Path` | Token file the theme adapter uses |
-| `set_design_tokens(path)` | `None` | Change that path |
-| `test_adapters()` | `bool` | All three adapter self-tests |
-| `reset()` | `None` | Replace the context with a fresh `BootContext()` |
+- `boot()`
+  - Returns: `BootContext`
+  - Notes: Runs greeter → HUD → theme; returns `self.context`
+- `hud_interface()`
+  - Returns: `str | None`
+  - Notes: `"HUD enabled (phase: …)"`, or `None` if the HUD is disabled
+- `theme_loader()`
+  - Returns: `Path`
+  - Notes: Token file the theme adapter uses
+- `set_design_tokens(path)`
+  - Returns: `None`
+  - Notes: Change that path
+- `test_adapters()`
+  - Returns: `bool`
+  - Notes: All three adapter self-tests
+- `reset()`
+  - Returns: `None`
+  - Notes: Replace the context with a fresh `BootContext()`
 
 ### `BootContext` (dataclass)
 
@@ -173,16 +214,30 @@ Aggregates test results into suites and reports on them. **It does not
 discover or execute tests**: the `run_*` methods return copies of registered
 suites with the results they were registered with. Run tests with `pytest`.
 
-| Method | Returns | Notes |
-|---|---|---|
-| `register_suite(suite)` | `None` | Keyed by `suite.name` |
-| `run_all()` | `dict[str, Suite]` | Every registered suite |
-| `run_level(level)` | `dict[str, Suite]` | Suites with that `Level`; `Level.ALL` matches all |
-| `run_gate(name)` | `Suite \| None` | The suite named `gate_<name>` |
-| `run_integration()` | `Suite \| None` | The suite named `integration` |
-| `test_specific(suite, test)` | `Result \| None` | Look up one recorded result |
-| `summary()` | `str` | `"Tests: 7 \| Passed: 6 \| Failed: 1 \| Pass rate: 85.7% \| Time: 0ms"`, or `"No tests executed"` |
-| `report_failures()` | `list[str]` | `"<suite>/<test>: <error>"` for each failed result |
+- `register_suite(suite)`
+  - Returns: `None`
+  - Notes: Keyed by `suite.name`
+- `run_all()`
+  - Returns: `dict[str, Suite]`
+  - Notes: Every registered suite
+- `run_level(level)`
+  - Returns: `dict[str, Suite]`
+  - Notes: Suites with that `Level`; `Level.ALL` matches all
+- `run_gate(name)`
+  - Returns: `Suite | None`
+  - Notes: The suite named `gate_<name>`
+- `run_integration()`
+  - Returns: `Suite | None`
+  - Notes: The suite named `integration`
+- `test_specific(suite, test)`
+  - Returns: `Result | None`
+  - Notes: Look up one recorded result
+- `summary()`
+  - Returns: `str`
+  - Notes: `"Tests: 7 | Passed: 6 | Failed: 1 | Pass rate: 85.7% | Time: 0ms"`, or `"No tests executed"`
+- `report_failures()`
+  - Returns: `list[str]`
+  - Notes: `"<suite>/<test>: <error>"` for each failed result
 
 `summary()` and `report_failures()` cover the most recent `run_*` call.
 

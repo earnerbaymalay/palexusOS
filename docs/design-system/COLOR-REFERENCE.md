@@ -4,15 +4,34 @@ This file documents all colors used in the PalexusOS Design System.
 
 ## Primary Palette
 
-| Color | Hex | Name | Usage |
-|-------|-----|------|-------|
-| ![#cba6f7](https://via.placeholder.com/32/cba6f7/cba6f7.png) | `#cba6f7` | Electric Mauve | Primary accent, focus states |
-| ![#fab387](https://via.placeholder.com/32/fab387/fab387.png) | `#fab387` | Warm Gold | Warnings, secondary actions |
-| ![#f38ba8](https://via.placeholder.com/32/f38ba8/f38ba8.png) | `#f38ba8` | Stealth Crimson | Errors, danger zones |
-| ![#74c7ec](https://via.placeholder.com/32/74c7ec/74c7ec.png) | `#74c7ec` | Aerospace Sapphire | Links, info, network |
-| ![#a6e3a1](https://via.placeholder.com/32/a6e3a1/a6e3a1.png) | `#a6e3a1` | Matrix Emerald | Success, local AI |
-| ![#cdd6f4](https://via.placeholder.com/32/cdd6f4/cdd6f4.png) | `#cdd6f4` | Liquid Chrome | Text, metallic |
-| ![#11111b](https://via.placeholder.com/32/11111b/11111b.png) | `#11111b` | Smoked Obsidian | Background |
+- ![#cba6f7](https://via.placeholder.com/32/cba6f7/cba6f7.png)
+  - Hex: `#cba6f7`
+  - Name: Electric Mauve
+  - Usage: Primary accent, focus states
+- ![#fab387](https://via.placeholder.com/32/fab387/fab387.png)
+  - Hex: `#fab387`
+  - Name: Warm Gold
+  - Usage: Warnings, secondary actions
+- ![#f38ba8](https://via.placeholder.com/32/f38ba8/f38ba8.png)
+  - Hex: `#f38ba8`
+  - Name: Stealth Crimson
+  - Usage: Errors, danger zones
+- ![#74c7ec](https://via.placeholder.com/32/74c7ec/74c7ec.png)
+  - Hex: `#74c7ec`
+  - Name: Aerospace Sapphire
+  - Usage: Links, info, network
+- ![#a6e3a1](https://via.placeholder.com/32/a6e3a1/a6e3a1.png)
+  - Hex: `#a6e3a1`
+  - Name: Matrix Emerald
+  - Usage: Success, local AI
+- ![#cdd6f4](https://via.placeholder.com/32/cdd6f4/cdd6f4.png)
+  - Hex: `#cdd6f4`
+  - Name: Liquid Chrome
+  - Usage: Text, metallic
+- ![#11111b](https://via.placeholder.com/32/11111b/11111b.png)
+  - Hex: `#11111b`
+  - Name: Smoked Obsidian
+  - Usage: Background
 
 ## Surface Hierarchy
 

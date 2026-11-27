@@ -15,13 +15,21 @@
 
 ## Progress (branch `installer-fixes`)
 
-| # | Status | Notes |
-|---|---|---|
-| I1 | ✅ fixed | `grubcfg` runs right before `bootloader`, with a PalexusOS `grubcfg.conf` |
-| I2 | ✅ fixed, VM check pending | Launched via `sudo -E /usr/bin/calamares`, only when `/run/archiso` exists. This also fixes the INSTALL button and the `Super+C` half of I6. |
-| I3 | ✅ fixed | `packages` now runs last |
-| I4 | ✅ fixed | `responder` removed. Every other pack package was confirmed to exist in Arch `extra`. |
-| I5 | ✅ fixed | `xfsprogs` and `f2fs-tools` added to the ISO |
+- **I1**
+  - Status: ✅ fixed
+  - Notes: `grubcfg` runs right before `bootloader`, with a PalexusOS `grubcfg.conf`
+- **I2**
+  - Status: ✅ fixed, VM check pending
+  - Notes: Launched via `sudo -E /usr/bin/calamares`, only when `/run/archiso` exists. This also fixes the INSTALL button and the `Super+C` half of I6.
+- **I3**
+  - Status: ✅ fixed
+  - Notes: `packages` now runs last
+- **I4**
+  - Status: ✅ fixed
+  - Notes: `responder` removed. Every other pack package was confirmed to exist in Arch `extra`.
+- **I5**
+  - Status: ✅ fixed
+  - Notes: `xfsprogs` and `f2fs-tools` added to the ISO
 
 | I6 | ✅ fixed | New `shellprocess@removelive` step uninstalls `cachyos-calamares` and `mkinitcpio-archiso` right after the bootloader |
 | I7 | ✅ fixed | ISO pins `cachyos-calamares` (3.4.2, the build these configs were checked against) |
@@ -43,33 +51,67 @@
 
 ## 1. Blockers: an install fails or the result doesn't boot
 
-| # | Problem | Effect | Evidence |
-|---|---|---|---|
-| I1 | **No `grubcfg` step in the install sequence.** | **Encrypted installs:** GRUB never gets `GRUB_ENABLE_CRYPTODISK=y` or `rd.luks.uuid`, so the bootloader step fails or the system can't unlock root at boot. **All installs:** no `splash` on the kernel line, so the PalexusOS boot animation never shows after install. The `quiet splash nowatchdog` in `bootloader.conf` is ignored for GRUB. | [verified] `grubcfg/main.py:192,225,289` is the only code that writes these settings. `bootloader/main.py:140-217` uses `kernelParams` only for systemd-boot, limine and rEFInd. `settings.conf:24-43` has no `grubcfg`. No `/etc/default/grub` ships anywhere in the repo. |
-| I2 | **The installer is launched as the normal live user.** The Waybar button, `Super+I` and `Super+C` all run `calamares -d`, with no `sudo` or `pkexec`. | `welcome.conf` makes "running as root" a *required* check, so Next stays disabled and the install can't start. The `-d` flag also opens Calamares in debug mode. | [read]+[VM] `overlay/etc/skel/.config/waybar/config.jsonc:51`, `sway/config:63-64`, `welcome.conf:17,22`. `cachyos-calamares` ships no self-elevating wrapper [verified]. |
-| I3 | **The packages step runs *before* the bootloader step.** | If an optional pack fails to download or install, Calamares stops with the disk already formatted and no bootloader: an unbootable machine. | [read] `settings.conf:41-42` |
-| I4 | **An optional pack names a package that doesn't exist.** `responder` (in "Pentest Heavy & RF Stack") is not in Arch or CachyOS. | Ticking that pack on an online install hits I3: the install fails and the disk is left unbootable. | [verified] Arch package search plus the CachyOS repo databases |
-| I5 | **XFS and F2FS are offered, but their tools aren't on the ISO.** | Picking either filesystem fails at the format step. | [verified] `partition.conf:21` vs `build/archiso/packages.x86_64`: no `xfsprogs` or `f2fs-tools`, though both exist in the repos |
+- **I1**
+  - Problem: **No `grubcfg` step in the install sequence.**
+  - Effect: **Encrypted installs:** GRUB never gets `GRUB_ENABLE_CRYPTODISK=y` or `rd.luks.uuid`, so the bootloader step fails or the system can't unlock root at boot. **All installs:** no `splash` on the kernel line, so the PalexusOS boot animation never shows after install. The `quiet splash nowatchdog` in `bootloader.conf` is ignored for GRUB.
+  - Evidence: [verified] `grubcfg/main.py:192,225,289` is the only code that writes these settings. `bootloader/main.py:140-217` uses `kernelParams` only for systemd-boot, limine and rEFInd. `settings.conf:24-43` has no `grubcfg`. No `/etc/default/grub` ships anywhere in the repo.
+- **I2**
+  - Problem: **The installer is launched as the normal live user.** The Waybar button, `Super+I` and `Super+C` all run `calamares -d`, with no `sudo` or `pkexec`.
+  - Effect: `welcome.conf` makes "running as root" a *required* check, so Next stays disabled and the install can't start. The `-d` flag also opens Calamares in debug mode.
+  - Evidence: [read]+[VM] `overlay/etc/skel/.config/waybar/config.jsonc:51`, `sway/config:63-64`, `welcome.conf:17,22`. `cachyos-calamares` ships no self-elevating wrapper [verified].
+- **I3**
+  - Problem: **The packages step runs *before* the bootloader step.**
+  - Effect: If an optional pack fails to download or install, Calamares stops with the disk already formatted and no bootloader: an unbootable machine.
+  - Evidence: [read] `settings.conf:41-42`
+- **I4**
+  - Problem: **An optional pack names a package that doesn't exist.** `responder` (in "Pentest Heavy & RF Stack") is not in Arch or CachyOS.
+  - Effect: Ticking that pack on an online install hits I3: the install fails and the disk is left unbootable.
+  - Evidence: [verified] Arch package search plus the CachyOS repo databases
+- **I5**
+  - Problem: **XFS and F2FS are offered, but their tools aren't on the ISO.**
+  - Effect: Picking either filesystem fails at the format step.
+  - Evidence: [verified] `partition.conf:21` vs `build/archiso/packages.x86_64`: no `xfsprogs` or `f2fs-tools`, though both exist in the repos
 
 ## 2. Wrong after install
 
-| # | Problem | Effect | Evidence |
-|---|---|---|---|
-| I6 | **Calamares stays installed on the finished system.** Nothing removes it or the live-only packages. | The installed desktop keeps an **"INSTALL PALEXUSOS"** Waybar button. `Super+C` opens the installer instead of the calculator. `Super+I` stays bound to it. | [read] cleanup script `shellprocess@cleanup.conf` doesn't remove packages. Waybar shows the button whenever `/usr/bin/calamares` exists (`config.jsonc:48`). Calamares has a `removeuser`/`packages` remove path that isn't used. |
-| I7 | **Which Calamares gets installed isn't pinned.** `packages.x86_64` asks for `calamares`, which **19** CachyOS packages provide (3.3.8 to 3.4.2, including limine, refind and systemd-boot variants). | Builds can silently pick a different installer and version. `mount.conf` relies on 3.3+ behaviour. | [verified] `cachyos.db` provides lists. `packages.x86_64:151` |
-| I8 | **No recovery if first-boot setup fails.** The installer creates no account and no root password; the first-boot wizard does. | If the wizard can't start (GPU or Wayland problem), there is no way to log in. | [read] `users` module not in the sequence, `users.conf:20` `setRootPassword: false`, `palexus-oobe-arm` |
-| I9 | **The default-ticked "Palexus CLI Power Pack" is silently skipped offline**, and its description promises "palexus-cli, memory bridge, doctor" while it actually installs `jq`, `fzf`, `ripgrep`, `bat` and two Python libraries. | Users think they got Palexus tools when they didn't. | [read] `netinstall.yaml:40-51`, `packages.conf:7` |
-| I10 | **The slideshow claims things the system doesn't do.** "Instant rollback": no snapper, snap-pac or timeshift is installed. "Single-threaded CPU protection" for Ollama: the config sets 4 threads with 1 parallel request. "Sub-500MB idle" and "guarantees zero-jitter audio": unmeasured. | Misleading during install. | [read] `show.qml:357-395,497-504`. `ollama.service.d/override.conf:9-11` |
+- **I6**
+  - Problem: **Calamares stays installed on the finished system.** Nothing removes it or the live-only packages.
+  - Effect: The installed desktop keeps an **"INSTALL PALEXUSOS"** Waybar button. `Super+C` opens the installer instead of the calculator. `Super+I` stays bound to it.
+  - Evidence: [read] cleanup script `shellprocess@cleanup.conf` doesn't remove packages. Waybar shows the button whenever `/usr/bin/calamares` exists (`config.jsonc:48`). Calamares has a `removeuser`/`packages` remove path that isn't used.
+- **I7**
+  - Problem: **Which Calamares gets installed isn't pinned.** `packages.x86_64` asks for `calamares`, which **19** CachyOS packages provide (3.3.8 to 3.4.2, including limine, refind and systemd-boot variants).
+  - Effect: Builds can silently pick a different installer and version. `mount.conf` relies on 3.3+ behaviour.
+  - Evidence: [verified] `cachyos.db` provides lists. `packages.x86_64:151`
+- **I8**
+  - Problem: **No recovery if first-boot setup fails.** The installer creates no account and no root password; the first-boot wizard does.
+  - Effect: If the wizard can't start (GPU or Wayland problem), there is no way to log in.
+  - Evidence: [read] `users` module not in the sequence, `users.conf:20` `setRootPassword: false`, `palexus-oobe-arm`
+- **I9**
+  - Problem: **The default-ticked "Palexus CLI Power Pack" is silently skipped offline**, and its description promises "palexus-cli, memory bridge, doctor" while it actually installs `jq`, `fzf`, `ripgrep`, `bat` and two Python libraries.
+  - Effect: Users think they got Palexus tools when they didn't.
+  - Evidence: [read] `netinstall.yaml:40-51`, `packages.conf:7`
+- **I10**
+  - Problem: **The slideshow claims things the system doesn't do.** "Instant rollback": no snapper, snap-pac or timeshift is installed. "Single-threaded CPU protection" for Ollama: the config sets 4 threads with 1 parallel request. "Sub-500MB idle" and "guarantees zero-jitter audio": unmeasured.
+  - Effect: Misleading during install.
+  - Evidence: [read] `show.qml:357-395,497-504`. `ollama.service.d/override.conf:9-11`
 
 ## 3. Messy but not breaking
 
-| # | Problem | Evidence |
-|---|---|---|
-| I11 | 👻 Subvolume layout and mount options are defined twice. `partition.conf`'s copy is ignored by Calamares 3.3+ and has drifted: it forces `ssd` on every disk. | `partition.conf:26-44` vs `mount.conf:27-46` |
-| I12 | 👻 `users.conf` is present but the `users` module is never run (by design, since first-boot setup creates the account). | `settings.conf` |
-| I13 | ⚠️ `@snapshots` is mounted at `/.snapshots` with no snapshot tool. If snapper is added later, `snapper create-config /` fails because the folder already exists. | `mount.conf:32` |
-| I14 | ⚠️ The installer window is fixed at 960×620, so it overflows 800×600 VMs and low-res screens. | `branding.desc:10` |
-| I15 | ⚠️ The version string disagrees with itself: "Obsidian Mauve" vs "Catppuccin Mauve". | `branding.desc:16-17` |
+- **I11**
+  - Problem: 👻 Subvolume layout and mount options are defined twice. `partition.conf`'s copy is ignored by Calamares 3.3+ and has drifted: it forces `ssd` on every disk.
+  - Evidence: `partition.conf:26-44` vs `mount.conf:27-46`
+- **I12**
+  - Problem: 👻 `users.conf` is present but the `users` module is never run (by design, since first-boot setup creates the account).
+  - Evidence: `settings.conf`
+- **I13**
+  - Problem: ⚠️ `@snapshots` is mounted at `/.snapshots` with no snapshot tool. If snapper is added later, `snapper create-config /` fails because the folder already exists.
+  - Evidence: `mount.conf:32`
+- **I14**
+  - Problem: ⚠️ The installer window is fixed at 960×620, so it overflows 800×600 VMs and low-res screens.
+  - Evidence: `branding.desc:10`
+- **I15**
+  - Problem: ⚠️ The version string disagrees with itself: "Obsidian Mauve" vs "Catppuccin Mauve".
+  - Evidence: `branding.desc:16-17`
 
 ## 4. Working as intended ✅
 

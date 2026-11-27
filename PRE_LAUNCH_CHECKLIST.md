@@ -272,12 +272,22 @@ This checklist verifies PalexusOS is ready for production release and community 
 
 ## Sign-Off
 
-| Role | Name | Date | Status |
-|------|------|------|--------|
-| Maintainer | earnerbaymalay | 2026-11-20 | ✓ Approved |
-| Code Quality | Automated (CI/CD) | 2026-11-20 | ✓ Passed |
-| Testing | 160+ tests + 3.9-3.12 | 2026-11-20 | ✓ Passed |
-| Documentation | Comprehensive | 2026-11-20 | ✓ Complete |
+- **Maintainer**
+  - Name: earnerbaymalay
+  - Date: 2026-11-20
+  - Status: ✓ Approved
+- **Code Quality**
+  - Name: Automated (CI/CD)
+  - Date: 2026-11-20
+  - Status: ✓ Passed
+- **Testing**
+  - Name: 160+ tests + 3.9-3.12
+  - Date: 2026-11-20
+  - Status: ✓ Passed
+- **Documentation**
+  - Name: Comprehensive
+  - Date: 2026-11-20
+  - Status: ✓ Complete
 
 ---
 

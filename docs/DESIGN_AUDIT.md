@@ -25,12 +25,25 @@ Contrast ratios were computed with the WCAG formula. Nothing has been checked on
 
 There is no single palette. The nearest thing to one is the theme table in `packages/desktop/palexus-themes/palexus-theme` (for example `monolith-mauve|…|#09090d|#181825|#cba6f7|#cdd6f4`). The QML screens and CSS files each copy values by hand.
 
-| Role | Greeter | HUD | Wizard | GTK/Waybar |
-|---|---|---|---|---|
-| Main text | `#cdd6f4` | `#cdd6f4` | `#f5f5fc` | `#cdd6f4` |
-| Secondary text | `#bac2de` | `#a6adc8` | `#bac2de` | — |
-| Muted text | `#7f849c` | `#6c7086` | `#8990b3` | `#6c7086` |
-| Darkest background | `#07070b` | `#11111b` | `Qt.rgba(13,12,20)` | `#11111b` / `#050508` |
+- **Main text**
+  - Greeter: `#cdd6f4`
+  - HUD: `#cdd6f4`
+  - Wizard: `#f5f5fc`
+  - GTK/Waybar: `#cdd6f4`
+- **Secondary text**
+  - Greeter: `#bac2de`
+  - HUD: `#a6adc8`
+  - Wizard: `#bac2de`
+- **Muted text**
+  - Greeter: `#7f849c`
+  - HUD: `#6c7086`
+  - Wizard: `#8990b3`
+  - GTK/Waybar: `#6c7086`
+- **Darkest background**
+  - Greeter: `#07070b`
+  - HUD: `#11111b`
+  - Wizard: `Qt.rgba(13,12,20)`
+  - GTK/Waybar: `#11111b` / `#050508`
 
 The counts:
 - **106** hard-coded hex colours across 8 files, with 30+ distinct values.
@@ -47,15 +60,41 @@ The accent switcher (`accents[variant.split("-").pop()]`) is copied in three fil
 
 ## 2. Accessibility (WCAG 2.2)
 
-| # | Severity | Where | Problem | Criterion |
-|---|---|---|---|---|
-| A1 | **Critical** | HUD `CommandCategoryCard.qml:102` | Each command row is a bare `MouseArea`: it has no focus, no Tab or arrow-key path and no `Accessible.role`. A keyboard or screen-reader user can reach a command only by typing its name, and has no way to browse the list. | 2.1.1 Keyboard, 4.1.2 Name/Role |
-| A2 | **Major** | HUD (all), greeter power buttons | The HUD has zero `Accessible.*` properties, so orca reads nothing. It matters now that orca is shipping. | 4.1.2 |
-| A3 | **Major** | HUD `Main.qml:148,211`, card `:95`, `gtk.css:23` | Muted text `#6c7086` measures 3.84:1 on `#11111b` and 3.36:1 on `#1e1e2e`, at 10–13 px. That fails the 4.5:1 minimum, and these lines are the command descriptions and the HUD's help line. Wizard muted `#8990b3` passes at 5.77:1, so use it. | 1.4.3 Contrast |
-| A4 | **Major** | HUD card rows | There is no visible focus state, because hover is the only highlight. | 2.4.7 Focus Visible |
-| A5 | **Minor** | Greeter (7 infinite loops) | Motion runs forever unless `animations=false` is set in the theme config. The system reduced-motion setting is never read (the wizard already does this). | 2.3.3 Animation from Interactions |
-| A6 | **Minor** | Borders `#313244` / `#2b2a3d` | At 1.4–1.5:1 they are too faint to show input and field edges. | 1.4.11 Non-text Contrast |
-| A7 | **Minor** | HUD | The command descriptions are 10 px, below a comfortable reading size. | best practice |
+- **A1**
+  - Severity: **Critical**
+  - Where: HUD `CommandCategoryCard.qml:102`
+  - Problem: Each command row is a bare `MouseArea`: it has no focus, no Tab or arrow-key path and no `Accessible.role`. A keyboard or screen-reader user can reach a command only by typing its name, and has no way to browse the list.
+  - Criterion: 2.1.1 Keyboard, 4.1.2 Name/Role
+- **A2**
+  - Severity: **Major**
+  - Where: HUD (all), greeter power buttons
+  - Problem: The HUD has zero `Accessible.*` properties, so orca reads nothing. It matters now that orca is shipping.
+  - Criterion: 4.1.2
+- **A3**
+  - Severity: **Major**
+  - Where: HUD `Main.qml:148,211`, card `:95`, `gtk.css:23`
+  - Problem: Muted text `#6c7086` measures 3.84:1 on `#11111b` and 3.36:1 on `#1e1e2e`, at 10–13 px. That fails the 4.5:1 minimum, and these lines are the command descriptions and the HUD's help line. Wizard muted `#8990b3` passes at 5.77:1, so use it.
+  - Criterion: 1.4.3 Contrast
+- **A4**
+  - Severity: **Major**
+  - Where: HUD card rows
+  - Problem: There is no visible focus state, because hover is the only highlight.
+  - Criterion: 2.4.7 Focus Visible
+- **A5**
+  - Severity: **Minor**
+  - Where: Greeter (7 infinite loops)
+  - Problem: Motion runs forever unless `animations=false` is set in the theme config. The system reduced-motion setting is never read (the wizard already does this).
+  - Criterion: 2.3.3 Animation from Interactions
+- **A6**
+  - Severity: **Minor**
+  - Where: Borders `#313244` / `#2b2a3d`
+  - Problem: At 1.4–1.5:1 they are too faint to show input and field edges.
+  - Criterion: 1.4.11 Non-text Contrast
+- **A7**
+  - Severity: **Minor**
+  - Where: HUD
+  - Problem: The command descriptions are 10 px, below a comfortable reading size.
+  - Criterion: best practice
 
 **What to do:** the HUD needs the same treatment the wizard already has.
 - Make each command row a focusable `ItemDelegate`, with `Accessible.role: Accessible.Button` and `Accessible.name: label + ", " + desc`.
@@ -69,17 +108,33 @@ The first-boot wizard is the voice to copy: "Runs locally with Ollama. Nothing y
 
 The login screen and HUD use a different voice: cyberpunk role-play that gets in the way of the task.
 
-| Where | Now | Suggested |
-|---|---|---|
-| Greeter field hint | `operator username (↑/↓ to cycle)` | `Username — ↑/↓ to switch account` |
-| Greeter password hint | `(not required - press enter)` | `No password on this account — press Enter` |
-| Greeter header | `PALEXUS // NEURAL INTERFACE ONLINE`, `AUTH GATE`, `PALEXUS SECURITY SUBSYSTEM // TTY7` | Keep one line of flavour at most (e.g. `PALEXUS OS`); drop "TTY7" and "AUTH GATE" |
-| Greeter subtitle | `PALEXUS OS · LINUX-CACHYOS` | `PALEXUS OS` (the kernel name means nothing at login) |
-| Greeter button | `AUTHENTICATE ↵` | `Sign in ↵` |
-| HUD descriptions | raw command names (`dns-dot`, `pal-vibe`, `hw-status`) | say what it does: "Encrypted DNS status", "Battery and CPU" |
-| HUD help line | `[Esc] Close · [Enter] Launch / Ask AI · [Ctrl+Enter] Ask AI` | `Enter runs the top match · Ctrl+Enter asks the AI · Esc closes` (the current line lists "Ask AI" twice) |
-| Wizard | `Core Cyberdeck Applications` | `Apps` or `Built-in apps` |
-| Wizard | `Crimson isn't made for Monolith.` | Say what to do: `Crimson isn't available for Monolith — pick another accent.` |
+- **Greeter field hint**
+  - Now: `operator username (↑/↓ to cycle)`
+  - Suggested: `Username — ↑/↓ to switch account`
+- **Greeter password hint**
+  - Now: `(not required - press enter)`
+  - Suggested: `No password on this account — press Enter`
+- **Greeter header**
+  - Now: `PALEXUS // NEURAL INTERFACE ONLINE`, `AUTH GATE`, `PALEXUS SECURITY SUBSYSTEM // TTY7`
+  - Suggested: Keep one line of flavour at most (e.g. `PALEXUS OS`); drop "TTY7" and "AUTH GATE"
+- **Greeter subtitle**
+  - Now: `PALEXUS OS · LINUX-CACHYOS`
+  - Suggested: `PALEXUS OS` (the kernel name means nothing at login)
+- **Greeter button**
+  - Now: `AUTHENTICATE ↵`
+  - Suggested: `Sign in ↵`
+- **HUD descriptions**
+  - Now: raw command names (`dns-dot`, `pal-vibe`, `hw-status`)
+  - Suggested: say what it does: "Encrypted DNS status", "Battery and CPU"
+- **HUD help line**
+  - Now: `[Esc] Close · [Enter] Launch / Ask AI · [Ctrl+Enter] Ask AI`
+  - Suggested: `Enter runs the top match · Ctrl+Enter asks the AI · Esc closes` (the current line lists "Ask AI" twice)
+- **Wizard**
+  - Now: `Core Cyberdeck Applications`
+  - Suggested: `Apps` or `Built-in apps`
+- **Wizard**
+  - Now: `Crimson isn't made for Monolith.`
+  - Suggested: Say what to do: `Crimson isn't available for Monolith — pick another accent.`
 
 **Translation:** wrap every visible string in `qsTr()` and add a `.ts` source. Without it, PalexusOS can't be localised.
 

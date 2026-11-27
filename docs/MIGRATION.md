@@ -73,14 +73,24 @@ TestOrchestrator(repo_root).run_all()      # returns dict[str, Suite]
 
 ### New (opt-in)
 
-| Addition | Where | Notes |
-|---|---|---|
-| `ThemeManager` | `palexus.design.theme_manager` | Multiple token sets with priority merging |
-| `VariableRegistry` | `palexus.core.variable_registry` | New `palexus.core` package |
-| Token references `{"ref": "blue/500"}` | `tokens.json` | Plain values keep working |
-| Localised copy and RTL metadata | `tokens.json` | Optional new sections |
-| Gate plugins | entry point group `palexus.gates` | Built-in gates unchanged |
-| `palexus` command | console script | Thin wrapper over the modules |
+- `ThemeManager`
+  - Where: `palexus.design.theme_manager`
+  - Notes: Multiple token sets with priority merging
+- `VariableRegistry`
+  - Where: `palexus.core.variable_registry`
+  - Notes: New `palexus.core` package
+- Token references `{"ref": "blue/500"}`
+  - Where: `tokens.json`
+  - Notes: Plain values keep working
+- **Localised copy and RTL metadata**
+  - Where: `tokens.json`
+  - Notes: Optional new sections
+- **Gate plugins**
+  - Where: entry point group `palexus.gates`
+  - Notes: Built-in gates unchanged
+- `palexus` command
+  - Where: console script
+  - Notes: Thin wrapper over the modules
 
 ### Possible breaking change: token references
 

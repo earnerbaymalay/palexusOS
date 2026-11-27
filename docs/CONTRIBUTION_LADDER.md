@@ -598,7 +598,8 @@ make benchmark
 **Deliverable**:
 ```bash
 # CLI command:
-palexus-cli sync-figma --file-key ABC123 --output tokens.json
+palexus-cli sync-figma --file-key ABC123 \
+  --output tokens.json
 
 # Fetches tokens from Figma, writes to tokens.json
 # Optionally commits to git with changelog
@@ -689,9 +690,11 @@ Happy to pair on this or discuss design before starting.
 3. ENVIRONMENT SETUP
    ├─ Fork the repository
    ├─ Clone your fork
-   ├─ Run: make install-dev && pre-commit install
+   ├─ Run: make install-dev
+   ├─ Run: pre-commit install
    ├─ Run: make test (verify all pass)
-   └─ Create feature branch: git checkout -b feature/your-issue-name
+   └─ Create feature branch:
+      git checkout -b feature/<issue>
 
 4. IMPLEMENT
    ├─ Write a failing test first (TDD)
@@ -702,12 +705,14 @@ Happy to pair on this or discuss design before starting.
 
 5. VERIFY
    ├─ Run full test suite: make test
-   ├─ Run every hook: pre-commit run --all-files
+   ├─ Run every hook:
+   │  pre-commit run --all-files
    ├─ Verify documentation is current
    └─ Review your own code once
 
 6. SUBMIT
-   ├─ Push: git push -u origin feature/...
+   ├─ Push:
+   │  git push -u origin feature/...
    ├─ Create PR via GitHub
    ├─ Provide context (what, why, how)
    ├─ Link the issue: "Fixes #123"

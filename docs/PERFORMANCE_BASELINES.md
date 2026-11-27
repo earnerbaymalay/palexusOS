@@ -27,13 +27,26 @@ the median is reported. The test suite runs once.
 
 Environment: Python 3.13.18, Linux x86_64, 4 vCPU, 16 GB RAM (cloud container).
 
-| Operation      | What it times                                   | Median    | Budget  |
-|----------------|-------------------------------------------------|-----------|---------|
-| `token_load`   | `TokenRegistry(tokens.json)` — read, parse, validate | 0.02 ms | 50 ms  |
-| `token_access` | `registry.colors()`                             | < 0.01 ms | 1 ms    |
-| `gate_run_all` | `GateRegistry().run(repo_root)`, all 5 gates    | 0.03 ms   | 500 ms  |
-| `desktop_boot` | `DesktopEnvironment().boot()`                   | 0.01 ms   | 50 ms   |
-| `test_suite`   | `pytest tests/` (166 passed, 8 skipped)         | ~8 s      | 60 s    |
+- `token_load`
+  - What it times: `TokenRegistry(tokens.json)` — read, parse, validate
+  - Median: 0.02 ms
+  - Budget: 50 ms
+- `token_access`
+  - What it times: `registry.colors()`
+  - Median: < 0.01 ms
+  - Budget: 1 ms
+- `gate_run_all`
+  - What it times: `GateRegistry().run(repo_root)`, all 5 gates
+  - Median: 0.03 ms
+  - Budget: 500 ms
+- `desktop_boot`
+  - What it times: `DesktopEnvironment().boot()`
+  - Median: 0.01 ms
+  - Budget: 50 ms
+- `test_suite`
+  - What it times: `pytest tests/` (166 passed, 8 skipped)
+  - Median: ~8 s
+  - Budget: 60 s
 
 ### Reading these numbers
 

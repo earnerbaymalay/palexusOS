@@ -135,25 +135,43 @@ python -m palexus.test run --integration         # Boot sequence
 
 ```
 palexusOS/
-├── palexus/                    # Core Python modules
-│   ├── design/                 # TokenRegistry + exporters
-│   ├── build/                  # GateRegistry + gates
-│   ├── desktop/                # DesktopEnvironment + adapters
-│   └── test/                   # TestOrchestrator
-├── packages/                   # Arch PKGBUILD definitions
-│   ├── core/                   # System fundamentals
-│   ├── desktop/                # Greeter, HUD, themes
-│   ├── tools/                  # CLI utilities
-│   └── ai/                     # LLM integrations
-├── build/                      # ISO generation, verification
-├── overlay/                    # System configuration (/etc, /usr/share, /etc/skel)
+├── palexus/
+│   ├── design/
+│   ├── build/
+│   ├── desktop/
+│   └── test/
+├── packages/
+│   ├── core/
+│   ├── desktop/
+│   ├── tools/
+│   └── ai/
+├── build/
+├── overlay/
 ├── docs/
-│   ├── design-system/          # Tokens, integration guide
-│   └── adr/                    # Architecture decision records
-├── scripts/                    # Build utilities (design generation, CI)
-├── tests/                      # Python unit tests
-└── CONTEXT.md                  # Domain model & terminology
+│   ├── design-system/
+│   └── adr/
+├── scripts/
+├── tests/
+└── CONTEXT.md
 ```
+
+- `palexus/` — Core Python modules
+- `palexus/design/` — TokenRegistry + exporters
+- `palexus/build/` — GateRegistry + gates
+- `palexus/desktop/` — DesktopEnvironment + adapters
+- `palexus/test/` — TestOrchestrator
+- `packages/` — Arch PKGBUILD definitions
+- `packages/core/` — System fundamentals
+- `packages/desktop/` — Greeter, HUD, themes
+- `packages/tools/` — CLI utilities
+- `packages/ai/` — LLM integrations
+- `build/` — ISO generation, verification
+- `overlay/` — System configuration (/etc, /usr/share, /etc/skel)
+- `docs/design-system/` — Tokens, integration guide
+- `docs/adr/` — Architecture decision records
+- `scripts/` — Build utilities (design generation, CI)
+- `tests/` — Python unit tests
+- `CONTEXT.md` — Domain model & terminology
 
 ---
 

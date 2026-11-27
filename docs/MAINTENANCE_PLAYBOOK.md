@@ -33,8 +33,10 @@ echo ""
 
 # 1. Check if all services running
 echo "1. Service Status:"
-systemctl status palexus-api || echo "⚠️  API service not running"
-systemctl status palexus-worker || echo "⚠️  Worker service not running"
+systemctl status palexus-api || \
+  echo "⚠️  API service not running"
+systemctl status palexus-worker || \
+  echo "⚠️  Worker service not running"
 
 # 2. Check disk space
 echo ""
@@ -57,7 +59,8 @@ grep -i error /var/log/palexus/*.log | tail -5 || echo "✓ No recent errors"
 # 5. Run tests
 echo ""
 echo "5. Quick Test:"
-python -m pytest tests/ -q --tb=no || echo "⚠️  Some tests failed"
+python -m pytest tests/ -q --tb=no || \
+  echo "⚠️  Some tests failed"
 
 echo ""
 echo "=== Health check complete ==="
@@ -210,7 +213,8 @@ make test
 # 4. Create patch release
 git checkout -b security-patch/CVE-XXXX
 # ... make changes ...
-git commit -m "security: Patch CVE-XXXX in dependency"
+git commit \
+  -m "security: Patch CVE-XXXX in dependency"
 git tag -a v0.1.1 -m "Security patch for CVE-XXXX"
 
 # 5. Deploy to production
@@ -253,7 +257,8 @@ echo "Maintenance mode: ON"
 # 4. Post-maintenance
 systemctl start palexus-api
 sleep 10
-curl https://localhost/health || echo "⚠️  Service not responding"
+curl https://localhost/health || \
+  echo "⚠️  Service not responding"
 
 # 5. Notify users (window complete)
 echo "Maintenance complete. System operational."
@@ -371,8 +376,12 @@ tar -tzf $BACKUP_DIR/palexus-code-$DATE.tar.gz > /dev/null && \
   echo "✓ Backup verified"
 
 # 5. Cleanup old backups
-find $BACKUP_DIR -name "palexus-code-*.tar.gz" -mtime +7 -delete
-find $BACKUP_DIR -name "palexus-config-*.tar.gz" -mtime +7 -delete
+find $BACKUP_DIR \
+  -name "palexus-code-*.tar.gz" -mtime +7 \
+  -delete
+find $BACKUP_DIR \
+  -name "palexus-config-*.tar.gz" -mtime +7 \
+  -delete
 ```
 
 ---
@@ -406,7 +415,8 @@ sleep 10
 systemctl status palexus-*
 
 # 5. Verify operational
-curl https://localhost/health || echo "⚠️  Recovery incomplete"
+curl https://localhost/health || \
+  echo "⚠️  Recovery incomplete"
 
 # 6. Document incident
 # - What happened?

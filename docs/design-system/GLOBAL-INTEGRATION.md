@@ -283,7 +283,8 @@ grep -r "#[0-9a-f]\{6\}" packages/desktop/ docs/ overlay/ \
   --exclude-dir=.git --exclude="*.json"
 
 # Check for undeclared fonts
-grep -r "font-family" docs/design-system/ | grep -v "JetBrains Mono"
+grep -r "font-family" docs/design-system/ | \
+  grep -v "JetBrains Mono"
 
 # Validate CSS against design tokens
 ./scripts/validate-tokens.sh docs/design-system/tokens.css

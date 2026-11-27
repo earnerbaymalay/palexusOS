@@ -34,28 +34,62 @@ Branch `boot-firstboot-fixes` from `main` @ `17814cf`. Audited 2026-11-12.
 
 ## Boot screen
 
-| Item | Status | Evidence |
-|---|---|---|
-| Frames extracted from `palexus-boot.mp4` and named to match the script (`frame-0000.png` …) | ✅ | `PKGBUILD:27-29` (`-start_number 0`), `palexusos.script.in:31-36` |
-| Installed initramfs gets the `plymouth` hook, before `sd-encrypt` | ✅ [verified] | `cachyos-calamares` 3.4.2 `initcpiocfg/main.py:152-154` adds it whenever `plymouth` is in the target |
-| Installed kernel line gets `splash` | ✅ [verified] | `grubcfg/main.py:173-174,225-226`; `grubcfg` is in the install sequence since PR #1 |
-| Theme selected on install and upgrade, with retired themes migrated | ✅ | `palexus-plymouth.install`, `overlay/etc/plymouth/plymouthd.conf:4` |
-| Initramfs rebuilt after theme changes, once per transaction | ✅ | `95-palexus-plymouth.hook:7-14` |
-| Live entries pass `splash` (systemd-boot and syslinux); live initramfs has `kms plymouth` | ✅ | `efiboot/loader/entries/01-…conf:5`, `syslinux.cfg:16,22`, `archiso.conf:3` |
-| LUKS passphrase and questions drawn on the splash | ✅ [VM] | `palexusos.script.in:66-109` |
+- Frames extracted from `palexus-boot.mp4` and named to match the script (`frame-0000.png` …)
+  - Status: ✅
+  - Evidence: `PKGBUILD:27-29` (`-start_number 0`), `palexusos.script.in:31-36`
+- Installed initramfs gets the `plymouth` hook, before `sd-encrypt`
+  - Status: ✅ [verified]
+  - Evidence: `cachyos-calamares` 3.4.2 `initcpiocfg/main.py:152-154` adds it whenever `plymouth` is in the target
+- Installed kernel line gets `splash`
+  - Status: ✅ [verified]
+  - Evidence: `grubcfg/main.py:173-174,225-226`; `grubcfg` is in the install sequence since PR #1
+- **Theme selected on install and upgrade, with retired themes migrated**
+  - Status: ✅
+  - Evidence: `palexus-plymouth.install`, `overlay/etc/plymouth/plymouthd.conf:4`
+- **Initramfs rebuilt after theme changes, once per transaction**
+  - Status: ✅
+  - Evidence: `95-palexus-plymouth.hook:7-14`
+- Live entries pass `splash` (systemd-boot and syslinux); live initramfs has `kms plymouth`
+  - Status: ✅
+  - Evidence: `efiboot/loader/entries/01-…conf:5`, `syslinux.cfg:16,22`, `archiso.conf:3`
+- **LUKS passphrase and questions drawn on the splash**
+  - Status: ✅ [VM]
+  - Evidence: `palexusos.script.in:66-109`
 
 ## First-boot setup
 
-| # | Problem | Effect | Evidence |
-|---|---|---|---|
-| F1 | ❌ The wizard detects the live session with `/etc/sudoers.d/00-palexus-live`, but `/etc/sudoers.d` is root-only (0750). | As the live user the check is always false. Live mode, with its Try/Install choice and "Install from the bar" hint, never shows. The live session defaults to downloading AI models. | [verified] Arch `sudo` 1.9.17.p2-7 ships `etc/sudoers.d/` as 000750. `palexus-welcome:39,317,345` |
-| F2 | ❌ No rollback if account creation fails after `useradd`. | The retry is rejected with "username already taken", leaving a half-made account. | [read] `palexus-oobe-apply` `apply()` / `create_account()` |
-| F3 | ❌ If the wizard crashes or can't load, the setup session ends with no retry and no message. | SDDM shows a login screen with no usable account. The tty2 fallback exists, but nothing tells you about it. | [read] `oobe-sway.conf:9` |
-| F4 | ⚠️ The text fallback suggests computer name `palexusos`; the wizard suggests `palexus`. | Inconsistent defaults. | [read] `palexus-oobe-recovery`, `palexus-welcome:338` |
-| F5 | ⚠️ `--finalize` leaves `/var/lib/palexus/oobe-seed` behind. | A leftover from the live session. | [read] `palexus-oobe-apply` `finalize()`; `shellprocess@cleanup.conf:14` |
-| H1 | ❌ The HUD "Ask AI" runs `source ~/.bashrc; ask-qwen "<prompt>"` in a non-interactive shell. `.bashrc` returns at once for non-interactive shells, and `ask-qwen` is an alias anyway. | Every AI prompt from the HUD fails with "command not found". The prompt is also pasted inside double quotes, so a `"` breaks it and `$(…)` would run. | [read] `palexus-hud:51-55`; `overlay/etc/skel/.bashrc:6,142` |
-| H2 | ❌ HUD menu entries `ask-qwen`, `ask-llama` and `squash` call `.bashrc` aliases inside `kitty bash -c`. | The same "command not found". | [read] `Main.qml:282,283,329` |
-| T1 | ❌ `test_hud_backend_signals_and_launch` failed. | The test expected the pre-`bf51d87` `launch()`. Commit `bf51d87` changed `launch()` without updating the test, and in doing so broke H1. Both are now fixed. | `tests/test_ui_ux.py:107-135` |
+- **F1**
+  - Problem: ❌ The wizard detects the live session with `/etc/sudoers.d/00-palexus-live`, but `/etc/sudoers.d` is root-only (0750).
+  - Effect: As the live user the check is always false. Live mode, with its Try/Install choice and "Install from the bar" hint, never shows. The live session defaults to downloading AI models.
+  - Evidence: [verified] Arch `sudo` 1.9.17.p2-7 ships `etc/sudoers.d/` as 000750. `palexus-welcome:39,317,345`
+- **F2**
+  - Problem: ❌ No rollback if account creation fails after `useradd`.
+  - Effect: The retry is rejected with "username already taken", leaving a half-made account.
+  - Evidence: [read] `palexus-oobe-apply` `apply()` / `create_account()`
+- **F3**
+  - Problem: ❌ If the wizard crashes or can't load, the setup session ends with no retry and no message.
+  - Effect: SDDM shows a login screen with no usable account. The tty2 fallback exists, but nothing tells you about it.
+  - Evidence: [read] `oobe-sway.conf:9`
+- **F4**
+  - Problem: ⚠️ The text fallback suggests computer name `palexusos`; the wizard suggests `palexus`.
+  - Effect: Inconsistent defaults.
+  - Evidence: [read] `palexus-oobe-recovery`, `palexus-welcome:338`
+- **F5**
+  - Problem: ⚠️ `--finalize` leaves `/var/lib/palexus/oobe-seed` behind.
+  - Effect: A leftover from the live session.
+  - Evidence: [read] `palexus-oobe-apply` `finalize()`; `shellprocess@cleanup.conf:14`
+- **H1**
+  - Problem: ❌ The HUD "Ask AI" runs `source ~/.bashrc; ask-qwen "<prompt>"` in a non-interactive shell. `.bashrc` returns at once for non-interactive shells, and `ask-qwen` is an alias anyway.
+  - Effect: Every AI prompt from the HUD fails with "command not found". The prompt is also pasted inside double quotes, so a `"` breaks it and `$(…)` would run.
+  - Evidence: [read] `palexus-hud:51-55`; `overlay/etc/skel/.bashrc:6,142`
+- **H2**
+  - Problem: ❌ HUD menu entries `ask-qwen`, `ask-llama` and `squash` call `.bashrc` aliases inside `kitty bash -c`.
+  - Effect: The same "command not found".
+  - Evidence: [read] `Main.qml:282,283,329`
+- **T1**
+  - Problem: ❌ `test_hud_backend_signals_and_launch` failed.
+  - Effect: The test expected the pre-`bf51d87` `launch()`. Commit `bf51d87` changed `launch()` without updating the test, and in doing so broke H1. Both are now fixed.
+  - Evidence: `tests/test_ui_ux.py:107-135`
 
 ## Decisions for you
 

@@ -137,7 +137,8 @@ Each deepening follows **explicit, intentional design**:
 
 ```bash
 # All 4 deepenings (66 tests)
-pytest tests/test_design.py tests/test_build.py tests/test_desktop.py tests/test_orchestrator.py -v
+pytest tests/test_design.py tests/test_build.py tests/test_desktop.py tests/test_orchestrator.py \
+  -v
 
 # Specific deepening
 pytest tests/test_design.py -v  # TokenRegistry

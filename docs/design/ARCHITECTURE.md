@@ -4,12 +4,22 @@
 
 **PalexusOS** is an AI-native rolling Linux operating system engineered from the ground up for developers, security researchers, and AI-assisted workflows. It synthesizes four distinct paradigms:
 
-| Paradigm | Engineering Source | Core Technical Focus | Distro Implementation |
-| :--- | :--- | :--- | :--- |
-| **Performance** | CachyOS | Low-latency BORE scheduler & AVX2 binaries | `linux-cachyos` BORE/EEVDF, `x86-64-v3`, 8GB ZRAM `zstd`, `ananicy-cpp` |
-| **Arch Simplicity** | EndeavourOS | Transparent rolling package foundation | Clean Arch rolling sync, transparent `pacman.conf`, modular Calamares Btrfs |
-| **Cyber Aesthetic** | Omarchy | Terminal-first monospace HUD & metallic themes | Kitty + `ble.sh`, Catppuccin Mocha Mauve + Liquid Chrome, dual compositors |
-| **AI Subsystem** | Palexus / Synapse Native | Offline-first private neural intelligence | `palexus-core` gateway (port 8000), Bidirectional Context Firewall, resident Ollama |
+- **Performance**
+  - Engineering Source: CachyOS
+  - Core Technical Focus: Low-latency BORE scheduler & AVX2 binaries
+  - Distro Implementation: `linux-cachyos` BORE/EEVDF, `x86-64-v3`, 8GB ZRAM `zstd`, `ananicy-cpp`
+- **Arch Simplicity**
+  - Engineering Source: EndeavourOS
+  - Core Technical Focus: Transparent rolling package foundation
+  - Distro Implementation: Clean Arch rolling sync, transparent `pacman.conf`, modular Calamares Btrfs
+- **Cyber Aesthetic**
+  - Engineering Source: Omarchy
+  - Core Technical Focus: Terminal-first monospace HUD & metallic themes
+  - Distro Implementation: Kitty + `ble.sh`, Catppuccin Mocha Mauve + Liquid Chrome, dual compositors
+- **AI Subsystem**
+  - Engineering Source: Palexus / Synapse Native
+  - Core Technical Focus: Offline-first private neural intelligence
+  - Distro Implementation: `palexus-core` gateway (port 8000), Bidirectional Context Firewall, resident Ollama
 
 ---
 

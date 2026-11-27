@@ -53,12 +53,14 @@ Omarchy provides a distinctive, developer-centric aesthetic that avoids bloated 
 ## 4. The Synthesis: The PalexusOS Advantage
 
 ```
-┌────────────────────────────────────────────────────────┐
-│                      PalexusOS                         │
-│                                                        │
-│  Fast like CachyOS      (BORE kernel + x86-64-v3 + ZRAM)
-│  Clean like EndeavourOS (Arch upstream + systemd + pacman)
-│  Aesthetic like Omarchy (Cyber monospace + palette HUD)│
-│  + AI-Native with Palexus (Gateway + Context Firewall) │
-└────────────────────────────────────────────────────────┘
+PalexusOS
+=========
+Fast like CachyOS
+  BORE kernel + x86-64-v3 + ZRAM
+Clean like EndeavourOS
+  Arch upstream + systemd + pacman
+Aesthetic like Omarchy
+  Cyber monospace + palette HUD
++ AI-Native with Palexus
+  Gateway + Context Firewall
 ```

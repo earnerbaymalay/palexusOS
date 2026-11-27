@@ -10,23 +10,47 @@
 PalexusOS combines the rapid innovation of Arch Linux rolling packages with deterministic engineering gates. To serve both production mission-critical workstations and bleeding-edge testers, PalexusOS provides three distinct release streams:
 
 ```
-┌────────────────────────────────────────────────────────────────────────┐
-│                        RELEASE CHANNELS                                │
-│                                                                        │
-│  [Nightly / Git CI]   -->   [Canary / Dev]   -->   [Stable Channel]    │
-│  Continuous Builds          Bi-Weekly ISOs         Quarterly Milestones│
-│  Git commit HEAD            Staged Testing         Signed SHA256 / GPG │
-└────────────────────────────────────────────────────────────────────────┘
+RELEASE CHANNELS
+
+[Nightly / Git CI]
+  Continuous builds
+  Git commit HEAD
+        |
+        v
+[Canary / Dev]
+  Bi-weekly ISOs
+  Staged testing
+        |
+        v
+[Stable Channel]
+  Quarterly milestones
+  Signed SHA256 / GPG
 ```
 
-| Dimension | Stable Channel (`main`) | Canary / Dev Channel (`canary`) | Nightly Stream (`staging-ci`) |
-| :--- | :--- | :--- | :--- |
-| **Target Audience** | Primary development workstations, daily drivers | Testers, contributors, hardware porting | Automated headless CI test matrix |
-| **Release Cadence** | Quarterly ISO milestones + verified updates | Bi-weekly ISO snapshots | Headless container build per commit |
-| **Kernel Stream** | Vetted `linux-cachyos` BORE (LTS or pinned) | Latest upstream `linux-cachyos` BORE | Bleeding-edge kernel branch |
-| **Verification Gate** | **100% Pass** across all 269 checks + QEMU | Automated gate pass + basic smoke test | Dry-run & container compilation |
-| **Package Repository** | `[palexusos]` (GPG-signed database) | `[palexusos-testing]` | Local chroot builds |
-| **Rollback Safety** | Automated Btrfs pre-update snapshot (`snap-pac`) | Automated Btrfs pre-update snapshot | Manual volume rollback |
+- **Target Audience**
+  - Stable Channel (`main`): Primary development workstations, daily drivers
+  - Canary / Dev Channel (`canary`): Testers, contributors, hardware porting
+  - Nightly Stream (`staging-ci`): Automated headless CI test matrix
+- **Release Cadence**
+  - Stable Channel (`main`): Quarterly ISO milestones + verified updates
+  - Canary / Dev Channel (`canary`): Bi-weekly ISO snapshots
+  - Nightly Stream (`staging-ci`): Headless container build per commit
+- **Kernel Stream**
+  - Stable Channel (`main`): Vetted `linux-cachyos` BORE (LTS or pinned)
+  - Canary / Dev Channel (`canary`): Latest upstream `linux-cachyos` BORE
+  - Nightly Stream (`staging-ci`): Bleeding-edge kernel branch
+- **Verification Gate**
+  - Stable Channel (`main`): **100% Pass** across all 269 checks + QEMU
+  - Canary / Dev Channel (`canary`): Automated gate pass + basic smoke test
+  - Nightly Stream (`staging-ci`): Dry-run & container compilation
+- **Package Repository**
+  - Stable Channel (`main`): `[palexusos]` (GPG-signed database)
+  - Canary / Dev Channel (`canary`): `[palexusos-testing]`
+  - Nightly Stream (`staging-ci`): Local chroot builds
+- **Rollback Safety**
+  - Stable Channel (`main`): Automated Btrfs pre-update snapshot (`snap-pac`)
+  - Canary / Dev Channel (`canary`): Automated Btrfs pre-update snapshot
+  - Nightly Stream (`staging-ci`): Manual volume rollback
 
 ---
 
@@ -173,7 +197,8 @@ Prior to publishing any release or committing build changes, live ISO bootabilit
 ./build/test-iso-boot.sh
 
 # Test a specific ISO image with a custom timeout and memory allocation:
-./build/test-iso-boot.sh --timeout 180 --ram 4096 out/palexusos-2026.04-x86_64.iso
+./build/test-iso-boot.sh --timeout 180 \
+  --ram 4096 out/palexusos-2026.04-x86_64.iso
 
 # Validate QEMU boot parameters and prerequisites without starting the VM:
 ./build/test-iso-boot.sh --dry-run

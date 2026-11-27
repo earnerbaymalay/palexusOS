@@ -78,16 +78,38 @@
 
 Insert the Ventoy USB drive into your powered-down computer. Power on the machine and immediately tap the vendor-specific Boot Menu key until the boot selection menu appears:
 
-| Hardware Vendor | Boot Menu Key | BIOS/UEFI Setup Key | Hardware Notes |
-| :--- | :--- | :--- | :--- |
-| **Dell** (Latitude, XPS, Inspiron, Precision) | **`F12`** | `F2` | Reference platform (`F12` One-Time Boot Menu) |
-| **Lenovo** (ThinkPad T/X/P, IdeaPad) | **`F12`** | `F1` (or `Enter`) | On select ThinkPads, press `Fn + F12` |
-| **Framework** (Laptop 13 & 16) | **`F12`** | `F2` | Native InsydeH2O UEFI bootloader |
-| **HP** (EliteBook, ProBook, ZBook, Spectre) | **`F9`** | `F10` (or `Esc`) | Tap `Esc` first to view the Startup Menu |
-| **ASUS** (ROG, TUF, ZenBook, Motherboards) | **`F8`** or **`Esc`** | `Del` or `F2` | Motherboards use `F8`; laptops often use `Esc` |
-| **MSI** (Laptops & Motherboards) | **`F11`** | `Del` | Tap rapidly during POST |
-| **Acer** (Swift, Predator, Aspire) | **`F12`** | `F2` | May require enabling `F12 Boot Menu` in BIOS |
-| **Apple** (Intel-based Mac) | **`Option` / `Alt`** | N/A | Hold `Option` immediately after chime |
+- **Dell** (Latitude, XPS, Inspiron, Precision)
+  - Boot Menu Key: **`F12`**
+  - BIOS/UEFI Setup Key: `F2`
+  - Hardware Notes: Reference platform (`F12` One-Time Boot Menu)
+- **Lenovo** (ThinkPad T/X/P, IdeaPad)
+  - Boot Menu Key: **`F12`**
+  - BIOS/UEFI Setup Key: `F1` (or `Enter`)
+  - Hardware Notes: On select ThinkPads, press `Fn + F12`
+- **Framework** (Laptop 13 & 16)
+  - Boot Menu Key: **`F12`**
+  - BIOS/UEFI Setup Key: `F2`
+  - Hardware Notes: Native InsydeH2O UEFI bootloader
+- **HP** (EliteBook, ProBook, ZBook, Spectre)
+  - Boot Menu Key: **`F9`**
+  - BIOS/UEFI Setup Key: `F10` (or `Esc`)
+  - Hardware Notes: Tap `Esc` first to view the Startup Menu
+- **ASUS** (ROG, TUF, ZenBook, Motherboards)
+  - Boot Menu Key: **`F8`** or **`Esc`**
+  - BIOS/UEFI Setup Key: `Del` or `F2`
+  - Hardware Notes: Motherboards use `F8`; laptops often use `Esc`
+- **MSI** (Laptops & Motherboards)
+  - Boot Menu Key: **`F11`**
+  - BIOS/UEFI Setup Key: `Del`
+  - Hardware Notes: Tap rapidly during POST
+- **Acer** (Swift, Predator, Aspire)
+  - Boot Menu Key: **`F12`**
+  - BIOS/UEFI Setup Key: `F2`
+  - Hardware Notes: May require enabling `F12 Boot Menu` in BIOS
+- **Apple** (Intel-based Mac)
+  - Boot Menu Key: **`Option` / `Alt`**
+  - BIOS/UEFI Setup Key: N/A
+  - Hardware Notes: Hold `Option` immediately after chime
 
 From the menu, select your USB drive (marked as `UEFI: <Device Name>, Partition 1`).
 
@@ -131,9 +153,15 @@ Once inside the Ventoy graphical boot menu:
 
 ## 7. Troubleshooting Ventoy Boot Issues
 
-| Symptom | Root Cause | Resolution |
-| :--- | :--- | :--- |
-| **Black screen after selecting ISO** | Kernel modesetting conflict with older Intel or discrete GPU | In the boot menu, press `e` to edit kernel command line, append `nomodeset` or `i915.modeset=1`, and press `Ctrl+X`. |
-| **Ventoy menu does not appear; boots straight to Windows** | Windows Fast Startup locked the EFI controller or USB boot priority is low | In Windows, disable Fast Startup (`Power Options`). In BIOS, move USB Storage above Windows Boot Manager. |
-| **"No media found" during pacstrap/live mount** | Slow USB 2.0 handshake or corrupted ISO copy | Re-copy ISO to the Ventoy partition and run `sync` before unmounting. Ensure USB is plugged into a USB 3.0/3.1 port. |
-| **Resolution is stretched or low** | UEFI fallback resolution selected | In BIOS setup, ensure Video/Display mode is set to Native resolution or UEFI High-Resolution mode. |
+- **Black screen after selecting ISO**
+  - Root Cause: Kernel modesetting conflict with older Intel or discrete GPU
+  - Resolution: In the boot menu, press `e` to edit kernel command line, append `nomodeset` or `i915.modeset=1`, and press `Ctrl+X`.
+- **Ventoy menu does not appear; boots straight to Windows**
+  - Root Cause: Windows Fast Startup locked the EFI controller or USB boot priority is low
+  - Resolution: In Windows, disable Fast Startup (`Power Options`). In BIOS, move USB Storage above Windows Boot Manager.
+- **"No media found" during pacstrap/live mount**
+  - Root Cause: Slow USB 2.0 handshake or corrupted ISO copy
+  - Resolution: Re-copy ISO to the Ventoy partition and run `sync` before unmounting. Ensure USB is plugged into a USB 3.0/3.1 port.
+- **Resolution is stretched or low**
+  - Root Cause: UEFI fallback resolution selected
+  - Resolution: In BIOS setup, ensure Video/Display mode is set to Native resolution or UEFI High-Resolution mode.
