@@ -32,7 +32,8 @@ Keep the app's CSS in step with the PalexusOS palette by generating it at
 build time instead of copying hex values.
 
 ```bash
-palexus design --tokens path/to/tokens.json export css src/styles/tokens.css
+palexus design \
+  --tokens path/to/tokens.json export css src/styles/tokens.css
 ```
 
 ```css

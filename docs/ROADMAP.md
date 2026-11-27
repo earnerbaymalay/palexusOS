@@ -337,12 +337,18 @@ Interested in sponsoring development or partnering?
 
 ## Tracking Progress
 
-| Artifact | Status | Link |
-|----------|--------|------|
-| palexus-lib 0.1.0 | On main, unreleased | [CHANGELOG.md](../CHANGELOG.md) |
-| palexus-lib 0.2.0 | 📋 Planning | [GitHub](https://github.com/earnerbaymalay/palexusOS/milestones) |
-| Design Docs | 📝 In Progress | [docs/adr/](adr/) |
-| Community Discussion | 💬 Active | [Discussions](https://github.com/earnerbaymalay/palexusOS/discussions) |
+- **palexus-lib 0.1.0**
+  - Status: On main, unreleased
+  - Link: [CHANGELOG.md](../CHANGELOG.md)
+- **palexus-lib 0.2.0**
+  - Status: 📋 Planning
+  - Link: [GitHub](https://github.com/earnerbaymalay/palexusOS/milestones)
+- **Design Docs**
+  - Status: 📝 In Progress
+  - Link: [docs/adr/](adr/)
+- **Community Discussion**
+  - Status: 💬 Active
+  - Link: [Discussions](https://github.com/earnerbaymalay/palexusOS/discussions)
 
 ---
 

@@ -25,7 +25,8 @@ python -m pytest tests/test_design.py -v
 
 # 4. Commit
 git add docs/design-system/tokens.json
-git commit -m "feat: Add animation-timing token to design system"
+git commit \
+  -m "feat: Add animation-timing token to design system"
 ```
 
 #### Add a new quality gate
@@ -84,10 +85,12 @@ python -m pytest tests/ -v
 python -m pytest tests/test_design.py -v
 
 # Specific test class
-python -m pytest tests/test_design.py::TokenRegistryTests -v
+python -m pytest tests/test_design.py::TokenRegistryTests \
+  -v
 
 # Specific test
-python -m pytest tests/test_design.py::TokenRegistryTests::test_load_valid_tokens -v
+python -m pytest tests/test_design.py::TokenRegistryTests::test_load_valid_tokens \
+  -v
 
 # Quiet mode
 python -m pytest tests/ -q

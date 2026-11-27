@@ -8,12 +8,18 @@ pip install -e .
 python examples/01_token_registry_example.py   # works from any directory
 ```
 
-| Script | Module | Shows |
-|---|---|---|
-| `01_token_registry_example.py` | `palexus.design` | Reading colours, spacing, radius and typography; exporting to CSS, shell, Kitty and XFCE; the errors for a missing or incomplete `tokens.json` |
-| `02_gate_registry_example.py` | `palexus.build` | Gate dependencies; running all or selected gates; how one failure skips everything that depends on it; gate self-tests |
-| `03_desktop_environment_example.py` | `palexus.desktop` | The boot sequence and `BootContext`; booting with the HUD off; pointing the theme loader at a token file; resetting between sessions |
-| `04_test_orchestrator_example.py` | `palexus.test` | Recording results in suites, then `run_all`, `run_level`, `summary` and `report_failures` |
+- `01_token_registry_example.py`
+  - Module: `palexus.design`
+  - Shows: Reading colours, spacing, radius and typography; exporting to CSS, shell, Kitty and XFCE; the errors for a missing or incomplete `tokens.json`
+- `02_gate_registry_example.py`
+  - Module: `palexus.build`
+  - Shows: Gate dependencies; running all or selected gates; how one failure skips everything that depends on it; gate self-tests
+- `03_desktop_environment_example.py`
+  - Module: `palexus.desktop`
+  - Shows: The boot sequence and `BootContext`; booting with the HUD off; pointing the theme loader at a token file; resetting between sessions
+- `04_test_orchestrator_example.py`
+  - Module: `palexus.test`
+  - Shows: Recording results in suites, then `run_all`, `run_level`, `summary` and `report_failures`
 
 ## What the modules do today
 

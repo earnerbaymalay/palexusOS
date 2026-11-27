@@ -159,36 +159,66 @@ Navigate PalexusOS documentation by role and goal.
 
 ### In-Depth Guides (20-45 min)
 
-| Document | Purpose | Audience |
-|----------|---------|----------|
-| [ARCHITECTURE.md](design/ARCHITECTURE.md) | Module design & ownership | Developers, contributors |
-| [GETTING_STARTED_TUTORIAL.md](GETTING_STARTED_TUTORIAL.md) | Real-world workflow | New contributors |
-| [DEVELOPER_HANDBOOK.md](DEVELOPER_HANDBOOK.md) | How to extend modules | Advanced contributors |
-| [API_REFERENCE.md](API_REFERENCE.md) | Method signatures & examples | Extension developers |
-| [TROUBLESHOOTING.md](TROUBLESHOOTING.md) | Solutions for common issues | Anyone stuck |
-| [INTEGRATION_GUIDE.md](INTEGRATION_GUIDE.md) | Using the modules from another project or CI | Integrators |
-| [MIGRATION.md](MIGRATION.md) | What changes between versions | Users upgrading |
-| [PERFORMANCE_BASELINES.md](PERFORMANCE_BASELINES.md) | Measured timings and budgets | Maintainers |
-| [V0.2.0_IMPLEMENTATION.md](V0.2.0_IMPLEMENTATION.md) | Plan for the next release | Contributors |
+- [ARCHITECTURE.md](design/ARCHITECTURE.md)
+  - Purpose: Module design & ownership
+  - Audience: Developers, contributors
+- [GETTING_STARTED_TUTORIAL.md](GETTING_STARTED_TUTORIAL.md)
+  - Purpose: Real-world workflow
+  - Audience: New contributors
+- [DEVELOPER_HANDBOOK.md](DEVELOPER_HANDBOOK.md)
+  - Purpose: How to extend modules
+  - Audience: Advanced contributors
+- [API_REFERENCE.md](API_REFERENCE.md)
+  - Purpose: Method signatures & examples
+  - Audience: Extension developers
+- [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
+  - Purpose: Solutions for common issues
+  - Audience: Anyone stuck
+- [INTEGRATION_GUIDE.md](INTEGRATION_GUIDE.md)
+  - Purpose: Using the modules from another project or CI
+  - Audience: Integrators
+- [MIGRATION.md](MIGRATION.md)
+  - Purpose: What changes between versions
+  - Audience: Users upgrading
+- [PERFORMANCE_BASELINES.md](PERFORMANCE_BASELINES.md)
+  - Purpose: Measured timings and budgets
+  - Audience: Maintainers
+- [V0.2.0_IMPLEMENTATION.md](V0.2.0_IMPLEMENTATION.md)
+  - Purpose: Plan for the next release
+  - Audience: Contributors
 
 ### Decision & Process (10-30 min)
 
-| Document | Purpose | Audience |
-|----------|---------|----------|
-| [docs/adr/](adr/) | Architecture decisions (4 ADRs) | Developers |
-| [RELEASE.md](../RELEASE.md) | Release process & versioning | Maintainers |
-| [CHANGELOG.md](../CHANGELOG.md) | Version history | Everyone |
-| [PRE_LAUNCH_CHECKLIST.md](../PRE_LAUNCH_CHECKLIST.md) | Release verification | Maintainers |
+- [docs/adr/](adr/)
+  - Purpose: Architecture decisions (4 ADRs)
+  - Audience: Developers
+- [RELEASE.md](../RELEASE.md)
+  - Purpose: Release process & versioning
+  - Audience: Maintainers
+- [CHANGELOG.md](../CHANGELOG.md)
+  - Purpose: Version history
+  - Audience: Everyone
+- [PRE_LAUNCH_CHECKLIST.md](../PRE_LAUNCH_CHECKLIST.md)
+  - Purpose: Release verification
+  - Audience: Maintainers
 
 ### Code Examples (20-50 min)
 
-| Example | Purpose | Level |
-|---------|---------|-------|
-| [examples/01_token_registry_example.py](../examples/01_token_registry_example.py) | Using TokenRegistry | Beginner |
-| [examples/02_gate_registry_example.py](../examples/02_gate_registry_example.py) | Using GateRegistry | Beginner |
-| [examples/03_desktop_environment_example.py](../examples/03_desktop_environment_example.py) | Using DesktopEnvironment | Beginner |
-| [examples/04_test_orchestrator_example.py](../examples/04_test_orchestrator_example.py) | Using TestOrchestrator | Beginner |
-| [examples/README.md](../examples/README.md) | Running examples | Beginner |
+- [examples/01_token_registry_example.py](../examples/01_token_registry_example.py)
+  - Purpose: Using TokenRegistry
+  - Level: Beginner
+- [examples/02_gate_registry_example.py](../examples/02_gate_registry_example.py)
+  - Purpose: Using GateRegistry
+  - Level: Beginner
+- [examples/03_desktop_environment_example.py](../examples/03_desktop_environment_example.py)
+  - Purpose: Using DesktopEnvironment
+  - Level: Beginner
+- [examples/04_test_orchestrator_example.py](../examples/04_test_orchestrator_example.py)
+  - Purpose: Using TestOrchestrator
+  - Level: Beginner
+- [examples/README.md](../examples/README.md)
+  - Purpose: Running examples
+  - Level: Beginner
 
 ---
 
@@ -319,18 +349,46 @@ README.md (entry point)
 
 ## 📊 Documentation Statistics
 
-| Document | Lines | Topics | Examples |
-|----------|-------|--------|----------|
-| README.md | 300+ | 10+ | 5+ |
-| QUICKSTART.md | 210+ | 8+ | 20+ |
-| CONTRIBUTING.md | 500+ | 12+ | 30+ |
-| ARCHITECTURE.md | 280+ | 8+ | 10+ |
-| CONTEXT.md | 200+ | 15+ | Various |
-| GETTING_STARTED_TUTORIAL.md | 485+ | 6+ | 15+ |
-| DEVELOPER_HANDBOOK.md | 1,100+ | 20+ | 50+ |
-| API_REFERENCE.md | 900+ | 50+ | 100+ |
-| TROUBLESHOOTING.md | 672+ | 30+ | 50+ |
-| **Total** | **~4,700** | **~140** | **~300+** |
+- **README.md**
+  - Lines: 300+
+  - Topics: 10+
+  - Examples: 5+
+- **QUICKSTART.md**
+  - Lines: 210+
+  - Topics: 8+
+  - Examples: 20+
+- **CONTRIBUTING.md**
+  - Lines: 500+
+  - Topics: 12+
+  - Examples: 30+
+- **ARCHITECTURE.md**
+  - Lines: 280+
+  - Topics: 8+
+  - Examples: 10+
+- **CONTEXT.md**
+  - Lines: 200+
+  - Topics: 15+
+  - Examples: Various
+- **GETTING_STARTED_TUTORIAL.md**
+  - Lines: 485+
+  - Topics: 6+
+  - Examples: 15+
+- **DEVELOPER_HANDBOOK.md**
+  - Lines: 1,100+
+  - Topics: 20+
+  - Examples: 50+
+- **API_REFERENCE.md**
+  - Lines: 900+
+  - Topics: 50+
+  - Examples: 100+
+- **TROUBLESHOOTING.md**
+  - Lines: 672+
+  - Topics: 30+
+  - Examples: 50+
+- **Total**
+  - Lines: **~4,700**
+  - Topics: **~140**
+  - Examples: **~300+**
 
 ---
 

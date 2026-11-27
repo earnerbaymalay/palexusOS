@@ -7,15 +7,48 @@
 
 ## 1. Executive UX/UI Matrix
 
-| Component | Technology | Primary Trigger / Binding | Primary Palette Accent | Window Model | Status |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **Command HUD** (`palexus-hud`) | Qt6 / QML | `Super+Space` / `Super+D` | Catppuccin Mauve (`#cba6f7`) | Frameless, Topmost, Chamfered | **Verified** |
-| **Onboarding Cockpit** (`palexus-welcome`) | Qt6 / QML | First Boot / `palexus-welcome` | Dynamic Accent Variant | Frameless Cyberdeck Cockpit | **Verified** |
-| **System Settings** (`palexus-settings`) | Python / PyQt6 | `Super+C` / HUD | Theme Variant Accent | Themed System Window (760x580) | **Verified** |
-| **Markdown Scratchpad** (`palexus-notes`) | Python / PyQt6 | `Super+N` / HUD | Specular Silver + Accent | Auto-saving Note Canvas | **Verified** |
-| **Screensaver** (`palexus-screensaver`) | Python / PyQt6 | Sway Idle / Lock | Dynamic Torus Wireframe | Fullscreen Canvas | **Verified** |
-| **SDDM Login Greeter** (`palexus-greeter`) | Qt6 / QML | Boot / Display Manager | Dynamic Theme Variant | Right-aligned Cyberdeck Card | **Verified** |
-| **Calamares Installer** (`palexusos`) | Calamares / QML | Live Boot / Desktop Icon | Catppuccin Mauve & Obsidian | Branded Installation Wizard | **Verified** |
+- **Command HUD** (`palexus-hud`)
+  - Technology: Qt6 / QML
+  - Primary Trigger / Binding: `Super+Space` / `Super+D`
+  - Primary Palette Accent: Catppuccin Mauve (`#cba6f7`)
+  - Window Model: Frameless, Topmost, Chamfered
+  - Status: **Verified**
+- **Onboarding Cockpit** (`palexus-welcome`)
+  - Technology: Qt6 / QML
+  - Primary Trigger / Binding: First Boot / `palexus-welcome`
+  - Primary Palette Accent: Dynamic Accent Variant
+  - Window Model: Frameless Cyberdeck Cockpit
+  - Status: **Verified**
+- **System Settings** (`palexus-settings`)
+  - Technology: Python / PyQt6
+  - Primary Trigger / Binding: `Super+C` / HUD
+  - Primary Palette Accent: Theme Variant Accent
+  - Window Model: Themed System Window (760x580)
+  - Status: **Verified**
+- **Markdown Scratchpad** (`palexus-notes`)
+  - Technology: Python / PyQt6
+  - Primary Trigger / Binding: `Super+N` / HUD
+  - Primary Palette Accent: Specular Silver + Accent
+  - Window Model: Auto-saving Note Canvas
+  - Status: **Verified**
+- **Screensaver** (`palexus-screensaver`)
+  - Technology: Python / PyQt6
+  - Primary Trigger / Binding: Sway Idle / Lock
+  - Primary Palette Accent: Dynamic Torus Wireframe
+  - Window Model: Fullscreen Canvas
+  - Status: **Verified**
+- **SDDM Login Greeter** (`palexus-greeter`)
+  - Technology: Qt6 / QML
+  - Primary Trigger / Binding: Boot / Display Manager
+  - Primary Palette Accent: Dynamic Theme Variant
+  - Window Model: Right-aligned Cyberdeck Card
+  - Status: **Verified**
+- **Calamares Installer** (`palexusos`)
+  - Technology: Calamares / QML
+  - Primary Trigger / Binding: Live Boot / Desktop Icon
+  - Primary Palette Accent: Catppuccin Mauve & Obsidian
+  - Window Model: Branded Installation Wizard
+  - Status: **Verified**
 
 ---
 

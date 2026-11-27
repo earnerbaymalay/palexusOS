@@ -191,13 +191,20 @@ All changes require tests. Use test-driven development:
 
 ```
 tests/
-├── test_design.py       # TokenRegistry tests
-├── test_build.py        # GateRegistry tests
-├── test_desktop.py      # DesktopEnvironment tests
-├── test_orchestrator.py # TestOrchestrator tests
-├── test_cli.py          # palexus command-line tools
-└── test_examples.py     # every script in examples/ must run
+├── test_design.py
+├── test_build.py
+├── test_desktop.py
+├── test_orchestrator.py
+├── test_cli.py
+└── test_examples.py
 ```
+
+- `test_design.py` — TokenRegistry tests
+- `test_build.py` — GateRegistry tests
+- `test_desktop.py` — DesktopEnvironment tests
+- `test_orchestrator.py` — TestOrchestrator tests
+- `test_cli.py` — palexus command-line tools
+- `test_examples.py` — every script in examples/ must run
 
 **Example test:**
 

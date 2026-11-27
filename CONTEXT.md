@@ -61,24 +61,38 @@
 ### Repository Structure
 ```
 palexusOS/
-├── packages/           # PKGBUILD definitions
+├── packages/
 │   ├── core/
 │   ├── desktop/
 │   ├── tools/
 │   └── ai/
-├── build/              # ISO generation, verification
-├── overlay/            # System configuration
-├── docs/               # Documentation, design system
-│   ├── design-system/  # Token definitions, integration guide
-│   └── adr/            # Architecture decision records
-├── scripts/            # Utilities (design generation, CI)
-├── tests/              # Python unit tests
-└── palexus/            # Core Python modules
-    ├── design/         # TokenRegistry, exporters
-    ├── build/          # GateRegistry, gates
-    ├── desktop/        # DesktopEnvironment, adapters
-    └── test/           # TestOrchestrator
+├── build/
+├── overlay/
+├── docs/
+│   ├── design-system/
+│   └── adr/
+├── scripts/
+├── tests/
+└── palexus/
+    ├── design/
+    ├── build/
+    ├── desktop/
+    └── test/
 ```
+
+- `packages/` — PKGBUILD definitions
+- `build/` — ISO generation, verification
+- `overlay/` — System configuration
+- `docs/` — Documentation, design system
+- `docs/design-system/` — Token definitions, integration guide
+- `docs/adr/` — Architecture decision records
+- `scripts/` — Utilities (design generation, CI)
+- `tests/` — Python unit tests
+- `palexus/` — Core Python modules
+- `palexus/design/` — TokenRegistry, exporters
+- `palexus/build/` — GateRegistry, gates
+- `palexus/desktop/` — DesktopEnvironment, adapters
+- `palexus/test/` — TestOrchestrator
 
 ## Architecture Vocabulary (from modular design theory)
 

@@ -11,19 +11,39 @@
 
 All structural specifications, packaging recipes, system overlays, and live ISO build scripts have been authored, linted, and updated for PalexusOS:
 
-| Subsystem | Path | Status |
-| :--- | :--- | :--- |
-| **Core AI Runtime Package** | [`packages/core/palexus-core/PKGBUILD`](../../packages/core/palexus-core/PKGBUILD) | Ready (`x86-64-v3` Rust build, `palexus.service`, `palexus-sync.timer`) |
-| **LLM Quickfire Panel Package** | [`packages/desktop/llm-quickfire-panel/PKGBUILD`](../../packages/desktop/llm-quickfire-panel/PKGBUILD) | Ready (`quickfire`, `quickfire-theme`, palettes, XDG autostart) |
-| **SDDM Greeter Package** | [`packages/desktop/palexus-greeter/PKGBUILD`](../../packages/desktop/palexus-greeter/PKGBUILD) | Ready (`palexusos` Qt6 theme: clock + readout, animated accent trails, variant from `palexus-theme --sync-greeter`) |
-| **Command HUD & Utilities** | [`packages/desktop/palexus-hud/PKGBUILD`](../../packages/desktop/palexus-hud/PKGBUILD) | Ready (`palexus-hud`, `palexus-welcome`, `palexus-settings`, `palexus-notes`, metallic icon themes) |
-| **Plymouth Boot Splash** | [`packages/desktop/palexus-plymouth/PKGBUILD`](../../packages/desktop/palexus-plymouth/PKGBUILD) | Ready (`palexusos` theme, Twin Hook laser engrave animation from `palexus-boot.mp4`) |
-| **Kernel, ZRAM & Stealth Overlay** | [`overlay/etc/`](../../overlay/etc) | Ready (`99-palexusos.conf`, `zram-generator.conf`, MAC randomization, RFC 4941 IPv6, Quad9 DoT) |
-| **Cyberdeck Desktop & User Skel** | [`overlay/etc/skel/`](../../overlay/etc/skel) | Ready (Kitty transparency, Sway/Waybar dual-session, `.palexus` config compatibility) |
-| **Archiso Live Profile** | [`build/archiso/`](../../build/archiso) & [`build/build-iso.sh`](../../build/build-iso.sh) | Ready (`linux-cachyos`, UEFI `systemd-boot` + BIOS `syslinux`, `customize_airootfs.sh`) |
-| **Calamares Installer** | [`packages/installer/calamares/`](../../packages/installer/calamares) | Ready (Catppuccin Mauve + Liquid Silver Chrome + Obsidian Crust branding, Btrfs `@`/`@home`/`@snapshots` zstd layout) |
-| **V4 Theme Pack & Screensaver** | [`packages/desktop/palexus-themes/`](../../packages/desktop/palexus-themes) | Ready (14 wallpapers, `palexus-theme` switcher on `Super+Ctrl+T`, geodesic torus `palexus-screensaver`) |
-| **Verification Gate Suite** | [`build/verify-gates.sh`](../../build/verify-gates.sh) | Run it for the current result |
+- **Core AI Runtime Package**
+  - Path: [`packages/core/palexus-core/PKGBUILD`](../../packages/core/palexus-core/PKGBUILD)
+  - Status: Ready (`x86-64-v3` Rust build, `palexus.service`, `palexus-sync.timer`)
+- **LLM Quickfire Panel Package**
+  - Path: [`packages/desktop/llm-quickfire-panel/PKGBUILD`](../../packages/desktop/llm-quickfire-panel/PKGBUILD)
+  - Status: Ready (`quickfire`, `quickfire-theme`, palettes, XDG autostart)
+- **SDDM Greeter Package**
+  - Path: [`packages/desktop/palexus-greeter/PKGBUILD`](../../packages/desktop/palexus-greeter/PKGBUILD)
+  - Status: Ready (`palexusos` Qt6 theme: clock + readout, animated accent trails, variant from `palexus-theme --sync-greeter`)
+- **Command HUD & Utilities**
+  - Path: [`packages/desktop/palexus-hud/PKGBUILD`](../../packages/desktop/palexus-hud/PKGBUILD)
+  - Status: Ready (`palexus-hud`, `palexus-welcome`, `palexus-settings`, `palexus-notes`, metallic icon themes)
+- **Plymouth Boot Splash**
+  - Path: [`packages/desktop/palexus-plymouth/PKGBUILD`](../../packages/desktop/palexus-plymouth/PKGBUILD)
+  - Status: Ready (`palexusos` theme, Twin Hook laser engrave animation from `palexus-boot.mp4`)
+- **Kernel, ZRAM & Stealth Overlay**
+  - Path: [`overlay/etc/`](../../overlay/etc)
+  - Status: Ready (`99-palexusos.conf`, `zram-generator.conf`, MAC randomization, RFC 4941 IPv6, Quad9 DoT)
+- **Cyberdeck Desktop & User Skel**
+  - Path: [`overlay/etc/skel/`](../../overlay/etc/skel)
+  - Status: Ready (Kitty transparency, Sway/Waybar dual-session, `.palexus` config compatibility)
+- **Archiso Live Profile**
+  - Path: [`build/archiso/`](../../build/archiso) & [`build/build-iso.sh`](../../build/build-iso.sh)
+  - Status: Ready (`linux-cachyos`, UEFI `systemd-boot` + BIOS `syslinux`, `customize_airootfs.sh`)
+- **Calamares Installer**
+  - Path: [`packages/installer/calamares/`](../../packages/installer/calamares)
+  - Status: Ready (Catppuccin Mauve + Liquid Silver Chrome + Obsidian Crust branding, Btrfs `@`/`@home`/`@snapshots` zstd layout)
+- **V4 Theme Pack & Screensaver**
+  - Path: [`packages/desktop/palexus-themes/`](../../packages/desktop/palexus-themes)
+  - Status: Ready (14 wallpapers, `palexus-theme` switcher on `Super+Ctrl+T`, geodesic torus `palexus-screensaver`)
+- **Verification Gate Suite**
+  - Path: [`build/verify-gates.sh`](../../build/verify-gates.sh)
+  - Status: Run it for the current result
 
 ---
 

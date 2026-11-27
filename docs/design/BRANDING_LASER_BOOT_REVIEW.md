@@ -12,24 +12,35 @@ The workshop/hazard-tape boot aesthetic has been completely replaced with a **Sl
 
 ```
 [UEFI systemd-boot / GRUB]
-           │
-           ▼
-[Plymouth Boot Splash] ───► Monolithic Laser Fabrication (Twin-Hook Cipher)
-           │
-           ▼
-[SDDM Greeter]         ───► Chamfered Obsidian Glass, Animated Mauve Trails
-           │
-           ▼
-[Desktop Session]      ───► XFCE 4.20 (xfwm4 compositor) / Sway
-                            ├─ Material You Command HUD (palexus-hud, Super+Space)
-                            ├─ First-Boot Onboarding (palexus-welcome)
-                            ├─ System Settings (palexus-settings)
-                            ├─ Markdown Scratchpad (palexus-notes)
-                            └─ 4 Metallic Vector Icon Packs (Liquid Chrome, Smoked Obsidian, Tungsten, Aerospace Billet)
-           │
-           ▼
-[Calamares Installer]  ───► Branded QML Slideshow, Btrfs zstd subvolumes, Zero GeoIP
+          |
+          v
+[Plymouth Boot Splash]
+  Monolithic Laser Fabrication
+  (Twin-Hook Cipher)
+          |
+          v
+[SDDM Greeter]
+  Chamfered Obsidian Glass,
+  Animated Mauve Trails
+          |
+          v
+[Desktop Session]
+  XFCE 4.20 (xfwm4) / Sway
+          |
+          v
+[Calamares Installer]
+  Branded QML slideshow,
+  Btrfs zstd subvolumes,
+  Zero GeoIP
 ```
+
+Desktop session components:
+
+- Material You Command HUD (`palexus-hud`, `Super+Space`)
+- First-Boot Onboarding (`palexus-welcome`)
+- System Settings (`palexus-settings`)
+- Markdown Scratchpad (`palexus-notes`)
+- 4 Metallic Vector Icon Packs (Liquid Chrome, Smoked Obsidian, Tungsten, Aerospace Billet)
 
 ---
 

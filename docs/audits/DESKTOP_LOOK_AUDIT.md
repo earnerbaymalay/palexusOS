@@ -20,17 +20,33 @@
 
 ## Findings
 
-| # | Problem | Evidence |
-|---|---|---|
-| L1 | ❌ Sway runs `exec swaybg -i …monolith-mauve…` in addition to `output * bg`. `palexus-theme` only updates Sway's managed background (`swaymsg output * bg`), so the extra swaybg probably stays on top and theme changes look like they do nothing. | [read]+[VM] `skel/.config/sway/config:32-35`, `palexus-theme:122-124` |
-| L2 | ❌ Sway `client.*` colours and every Waybar colour are fixed to Mauve (`#cba6f7`). `palexus-theme` writes only Kitty and Rofi palettes and the wallpaper. | [read] `sway/config:45-50`, `waybar/style.css`, `palexus-theme:148-203` |
-| L3 | ❌ The greeter's username comes from config or the last user, falling back to the first account, and there is no control to change it. A second account can't log in from the graphical greeter. | [read] `palexus-greeter/Main.qml:31,47-55,344` |
-| L4 | ❌ `CursorTheme=Catppuccin-Mocha-Mauve-Cursors`: no such package in Arch, CachyOS or `packages.x86_64`; SDDM silently falls back. | [verified] Arch package search plus CachyOS repo DBs. `sddm.conf.d/10-palexusos.conf:7` |
-| L5 | ❌ XFCE Alt+F1 runs `/usr/local/bin/xfce-launcher-toggle`, which exists nowhere in the repo. Ctrl+Alt+Esc runs `xkill`, but `xorg-xkill` is not on the ISO. | [verified] `git grep`, `packages.x86_64`. `xfce4-keyboard-shortcuts.xml:60,66` |
-| L6 | ⚠️ `chromium-flags.conf`: `--disable-telemetry` and `--disable-metrics` are not Chromium switches. `--disable-component-update` also stops CRLSet (certificate revocation) and other security component updates, against the security-first directive. | [read] `skel/.config/chromium-flags.conf` |
-| L7 | ⚠️ The greeter only follows a theme change after `palexus-theme --sync-greeter`, which asks for the admin password each time. Nothing calls it from the theme menu. | [read] `palexus-theme:229-233` |
-| L8 | ⚠️ `picom.conf` (blur, rounded corners, shadows) ships, but nothing starts picom. XFCE uses xfwm4's own compositor, so the installer slideshow's "dual-kawase blur" isn't what users get. | [read] `git grep picom` |
-| L9 | ⚠️ XFCE Alt+Super+S runs `orca` (XFCE default), but no screen reader is installed. | [read] `xfce4-keyboard-shortcuts.xml:55` |
+- **L1**
+  - Problem: ❌ Sway runs `exec swaybg -i …monolith-mauve…` in addition to `output * bg`. `palexus-theme` only updates Sway's managed background (`swaymsg output * bg`), so the extra swaybg probably stays on top and theme changes look like they do nothing.
+  - Evidence: [read]+[VM] `skel/.config/sway/config:32-35`, `palexus-theme:122-124`
+- **L2**
+  - Problem: ❌ Sway `client.*` colours and every Waybar colour are fixed to Mauve (`#cba6f7`). `palexus-theme` writes only Kitty and Rofi palettes and the wallpaper.
+  - Evidence: [read] `sway/config:45-50`, `waybar/style.css`, `palexus-theme:148-203`
+- **L3**
+  - Problem: ❌ The greeter's username comes from config or the last user, falling back to the first account, and there is no control to change it. A second account can't log in from the graphical greeter.
+  - Evidence: [read] `palexus-greeter/Main.qml:31,47-55,344`
+- **L4**
+  - Problem: ❌ `CursorTheme=Catppuccin-Mocha-Mauve-Cursors`: no such package in Arch, CachyOS or `packages.x86_64`; SDDM silently falls back.
+  - Evidence: [verified] Arch package search plus CachyOS repo DBs. `sddm.conf.d/10-palexusos.conf:7`
+- **L5**
+  - Problem: ❌ XFCE Alt+F1 runs `/usr/local/bin/xfce-launcher-toggle`, which exists nowhere in the repo. Ctrl+Alt+Esc runs `xkill`, but `xorg-xkill` is not on the ISO.
+  - Evidence: [verified] `git grep`, `packages.x86_64`. `xfce4-keyboard-shortcuts.xml:60,66`
+- **L6**
+  - Problem: ⚠️ `chromium-flags.conf`: `--disable-telemetry` and `--disable-metrics` are not Chromium switches. `--disable-component-update` also stops CRLSet (certificate revocation) and other security component updates, against the security-first directive.
+  - Evidence: [read] `skel/.config/chromium-flags.conf`
+- **L7**
+  - Problem: ⚠️ The greeter only follows a theme change after `palexus-theme --sync-greeter`, which asks for the admin password each time. Nothing calls it from the theme menu.
+  - Evidence: [read] `palexus-theme:229-233`
+- **L8**
+  - Problem: ⚠️ `picom.conf` (blur, rounded corners, shadows) ships, but nothing starts picom. XFCE uses xfwm4's own compositor, so the installer slideshow's "dual-kawase blur" isn't what users get.
+  - Evidence: [read] `git grep picom`
+- **L9**
+  - Problem: ⚠️ XFCE Alt+Super+S runs `orca` (XFCE default), but no screen reader is installed.
+  - Evidence: [read] `xfce4-keyboard-shortcuts.xml:55`
 
 **Working as intended ✅:** 14 wallpapers all exist and are checksummed. The theme ids match the first-boot helper's allow-list (no monolith-crimson, by design). The greeter falls back to the Mauve wallpaper if one is missing, handles failed logins (clears the field, shakes, refocuses), warns about Caps Lock, has F-key session switching, and labels the password field for screen readers. All fonts used (JetBrains Mono Nerd, Noto) ship on the ISO.
 
@@ -42,16 +58,32 @@
 
 ## Progress
 
-| # | Status | Proven by |
-|---|---|---|
-| L1 | ✅ second swaybg removed. VM check: confirm the wallpaper changes on Sway. | gate "Sway runs no second swaybg", `test_iso_profile.py` |
-| L2 | ✅ Waybar imports `theme-colors.css` written by `palexus-theme`; Sway borders follow via `swaymsg` | `tests/test_palexus_theme.py` (5 tests), 3 gates |
-| L3 | ✅ editable login name; Up/Down cycles accounts | `tests/test_greeter.py` (3 offscreen QML tests; they fail on the old greeter), gate |
-| L4 | ✅ phantom cursor theme removed | gate |
-| L5 | ✅ Alt+F1 opens the applications menu; `xorg-xkill` added to the ISO | 2 gates |
-| L6 | ✅ fake and security-weakening Chromium flags removed from both flag files; FAQ corrected | 2 gates |
-| L7 | ✅ decided: sync automatically. Picking a theme (menu, command line or Settings) also updates the login screen through a small root helper (`/usr/lib/palexus/palexus-greeter-sync`, polkit action `org.palexusos.theme.sync-greeter`, `auth_admin_keep`): one password prompt, no repeat for a few minutes, no prompt if the login screen already matches or on `--restore` at login. Cancelling keeps the desktop theme, leaves the login screen as it was, and shows a notification with the retry command. Neither Sway nor XFCE started a polkit agent, so pkexec could never prompt; both now start `polkit-gnome`. VM check: the prompt appears on Sway and XFCE. | `tests/test_greeter_sync.py` (12 tests), 9 gates |
-| L8 | ✅ decided: remove picom. `picom.conf`, the `picom` package and its ananicy rule are gone; the slideshow, FAQ, roadmap and handover docs no longer promise blur. XFCE keeps xfwm4's own compositor. | 3 gates, `test_iso_profile.py` |
-| L9 | ✅ decided: ship orca. `orca` and `espeak-ng` are on the ISO (and so on installed systems, which Calamares copies from the live image). Without `espeak-ng`, speech-dispatcher has no voice and orca would be silent. VM check: Alt+Super+S speaks. | 2 required-package gates, shortcut gate, `test_iso_profile.py` |
+- **L1**
+  - Status: ✅ second swaybg removed. VM check: confirm the wallpaper changes on Sway.
+  - Proven by: gate "Sway runs no second swaybg", `test_iso_profile.py`
+- **L2**
+  - Status: ✅ Waybar imports `theme-colors.css` written by `palexus-theme`; Sway borders follow via `swaymsg`
+  - Proven by: `tests/test_palexus_theme.py` (5 tests), 3 gates
+- **L3**
+  - Status: ✅ editable login name; Up/Down cycles accounts
+  - Proven by: `tests/test_greeter.py` (3 offscreen QML tests; they fail on the old greeter), gate
+- **L4**
+  - Status: ✅ phantom cursor theme removed
+  - Proven by: gate
+- **L5**
+  - Status: ✅ Alt+F1 opens the applications menu; `xorg-xkill` added to the ISO
+  - Proven by: 2 gates
+- **L6**
+  - Status: ✅ fake and security-weakening Chromium flags removed from both flag files; FAQ corrected
+  - Proven by: 2 gates
+- **L7**
+  - Status: ✅ decided: sync automatically. Picking a theme (menu, command line or Settings) also updates the login screen through a small root helper (`/usr/lib/palexus/palexus-greeter-sync`, polkit action `org.palexusos.theme.sync-greeter`, `auth_admin_keep`): one password prompt, no repeat for a few minutes, no prompt if the login screen already matches or on `--restore` at login. Cancelling keeps the desktop theme, leaves the login screen as it was, and shows a notification with the retry command. Neither Sway nor XFCE started a polkit agent, so pkexec could never prompt; both now start `polkit-gnome`. VM check: the prompt appears on Sway and XFCE.
+  - Proven by: `tests/test_greeter_sync.py` (12 tests), 9 gates
+- **L8**
+  - Status: ✅ decided: remove picom. `picom.conf`, the `picom` package and its ananicy rule are gone; the slideshow, FAQ, roadmap and handover docs no longer promise blur. XFCE keeps xfwm4's own compositor.
+  - Proven by: 3 gates, `test_iso_profile.py`
+- **L9**
+  - Status: ✅ decided: ship orca. `orca` and `espeak-ng` are on the ISO (and so on installed systems, which Calamares copies from the live image). Without `espeak-ng`, speech-dispatcher has no voice and orca would be silent. VM check: Alt+Super+S speaks.
+  - Proven by: 2 required-package gates, shortcut gate, `test_iso_profile.py`
 
 On a clean Linux clone this branch passes 302/302 gates. Merged with `boot-firstboot-fixes`, the result passes 309/309 gates, 63/63 pytest and ShellCheck.

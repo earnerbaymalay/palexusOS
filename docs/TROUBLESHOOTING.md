@@ -427,7 +427,8 @@ git checkout -b new-branch-name
 **Solution**:
 ```bash
 # Profile a test
-python -m pytest tests/test_design.py::TestTokenRegistry::test_load -v
+python -m pytest tests/test_design.py::TestTokenRegistry::test_load \
+  -v
 
 # Use --durations to see slowest tests
 python -m pytest tests/ --durations=10
@@ -508,7 +509,8 @@ python -m pytest tests/test_design.py -v
 ### "How do I run a single test?"
 
 ```bash
-python -m pytest tests/test_design.py::TestTokenRegistry::test_colors -v
+python -m pytest tests/test_design.py::TestTokenRegistry::test_colors \
+  -v
 ```
 
 ---
@@ -547,7 +549,8 @@ def test_something_broken():
 
 ```bash
 # Run with debugger
-python -m pytest tests/test_design.py::TestTokenRegistry::test_colors -v --pdb
+python -m pytest tests/test_design.py::TestTokenRegistry::test_colors \
+  -v --pdb
 
 # Or use print and -s flag to see output
 def test_something():

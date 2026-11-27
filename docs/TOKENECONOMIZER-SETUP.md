@@ -30,14 +30,21 @@ te --version
 TokenEconomizer reads from `~/.tokeneconomizer/` and `.tokeneconomizer/` (project-specific):
 
 ```
-~/.tokeneconomizer/              # Global config (all projects)
-└── global.toml                  # Global settings
+~/.tokeneconomizer/
+└── global.toml
 
-/path/to/palexusOS/.tokeneconomizer/  # Project config
-├── config.toml                  # Main PalexusOS config
-├── multi-llm.toml              # Multi-agent configuration
-└── facts.json                  # Learned facts (auto-generated)
+/path/to/palexusOS/.tokeneconomizer/
+├── config.toml
+├── multi-llm.toml
+└── facts.json
 ```
+
+- `~/.tokeneconomizer/` — Global config (all projects)
+- `global.toml` — Global settings
+- `/path/to/palexusOS/.tokeneconomizer/` — Project config
+- `config.toml` — Main PalexusOS config
+- `multi-llm.toml` — Multi-agent configuration
+- `facts.json` — Learned facts (auto-generated)
 
 ## Configuration
 

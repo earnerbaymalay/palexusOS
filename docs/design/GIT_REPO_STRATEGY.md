@@ -23,33 +23,50 @@ PalexusOS strictly adopts the **Metadata-as-Code** pattern used by Arch Linux, D
 
 ```
 palexusOS/
-├── .agents/                    # Antigravity agent rules & skills
+├── .agents/
 │   └── rules/
-├── .vscode/                    # Antigravity IDE workspace configuration
-├── docs/                       # Architecture, research papers, specifications
+├── .vscode/
+├── docs/
 │   ├── ARCHITECTURE.md
 │   ├── RESEARCH_SYNAPSE_INTEGRATION.md
 │   ├── INSPIRATIONS_ANALYSIS.md
 │   └── GIT_REPO_STRATEGY.md
-├── build/                      # Build orchestration (Code only, no artifacts)
-│   ├── archiso/                # archiso profile (profiledef.sh, packages.x86_64)
-│   ├── build-iso.sh            # Automated chroot & ISO generation script
-│   └── verify-gates.sh         # Engineering gate verification harness
-├── packages/                   # Native Arch PKGBUILD recipes
+├── build/
+│   ├── archiso/
+│   ├── build-iso.sh
+│   └── verify-gates.sh
+├── packages/
 │   ├── core/
-│   │   └── palexus-core/       # PKGBUILD building Palexus daemon from upstream git
-│   └── desktop/                # Desktop packages (palexus-hud, palexus-greeter, palexus-plymouth, palexus-themes)
-├── overlay/                    # System root overlay (/etc, /usr/share skeleton)
+│   │   └── palexus-core/
+│   └── desktop/
+├── overlay/
 │   ├── etc/
 │   │   ├── palexus/
 │   │   ├── sysctl.d/
 │   │   └── systemd/
-│   └── skel/                   # Default user profile dotfiles
-├── AGENTS.md                   # Agent Prime Directive & guidelines
-├── GEMINI.md                   # Gemini workspace rules
-├── README.md                   # Distribution overview & getting started
-└── ROADMAP.md                  # Milestone tracking
+│   └── skel/
+├── AGENTS.md
+├── GEMINI.md
+├── README.md
+└── ROADMAP.md
 ```
+
+- `.agents/` — Antigravity agent rules & skills
+- `.vscode/` — Antigravity IDE workspace configuration
+- `docs/` — Architecture, research papers, specifications
+- `build/` — Build orchestration (Code only, no artifacts)
+- `build/archiso/` — archiso profile (profiledef.sh, packages.x86_64)
+- `build/build-iso.sh` — Automated chroot & ISO generation script
+- `build/verify-gates.sh` — Engineering gate verification harness
+- `packages/` — Native Arch PKGBUILD recipes
+- `packages/core/palexus-core/` — PKGBUILD building Palexus daemon from upstream git
+- `packages/desktop/` — Desktop packages (palexus-hud, palexus-greeter, palexus-plymouth, palexus-themes)
+- `overlay/` — System root overlay (/etc, /usr/share skeleton)
+- `overlay/skel/` — Default user profile dotfiles
+- `AGENTS.md` — Agent Prime Directive & guidelines
+- `GEMINI.md` — Gemini workspace rules
+- `README.md` — Distribution overview & getting started
+- `ROADMAP.md` — Milestone tracking
 
 ---
 

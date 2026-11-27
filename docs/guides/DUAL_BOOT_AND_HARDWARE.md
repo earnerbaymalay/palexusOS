@@ -7,19 +7,23 @@
 
 ## 1. Choosing Your Installation Strategy
 
-```
-┌──────────────────────────────────────────────────────────────────────────┐
-│                   INSTALLATION STRATEGY COMPARISON                       │
-├────────────────────────────────────┬─────────────────────────────────────┤
-│      FULL OS REPLACEMENT (A++)     │          DUAL-BOOT COEXISTENCE      │
-├────────────────────────────────────┼─────────────────────────────────────┤
-│ • Complete NVMe drive allocation   │ • Preserves Windows / secondary OS  │
-│ • Btrfs zstd @ subvolumes          │ • Reuses existing EFI partition     │
-│ • Zero Windows telemetry residue   │ • Requires Fast Startup disabled   │
-│ • Automated snapshot rollbacks     │ • Clock synced to UTC (Windows RTC) │
-│ • Optional full LUKS encryption    │ • Independent OS choice via GRUB    │
-└────────────────────────────────────┴─────────────────────────────────────┘
-```
+**Installation strategy comparison**
+
+**Full OS replacement (A++)**
+
+- Complete NVMe drive allocation
+- Btrfs zstd `@` subvolumes
+- Zero Windows telemetry residue
+- Automated snapshot rollbacks
+- Optional full LUKS encryption
+
+**Dual-boot coexistence**
+
+- Preserves Windows / secondary OS
+- Reuses existing EFI partition
+- Requires Fast Startup disabled
+- Clock synced to UTC (Windows RTC)
+- Independent OS choice via GRUB
 
 ---
 
@@ -106,14 +110,10 @@ If your Dell or laptop was set to RAID/Intel RST by default:
 
 Boot your Ventoy or installation media and open the **Install PalexusOS** shortcut from the desktop or HUD (`Super+i`).
 
-```
-┌────────────────────────────────────────────────────────────────────────┐
-│                      CALAMARES PARTITIONING CHOICES                    │
-├───────────────────────────────────┬────────────────────────────────────┤
-│ Option A: Full OS Replacement     │ Option B: Dual-Boot Coexistence    │
-│ (Automated Btrfs @ subvolumes)    │ (Manual Partitioning)              │
-└───────────────────────────────────┴────────────────────────────────────┘
-```
+**Calamares partitioning choices**
+
+- **Option A: Full OS Replacement** — automated Btrfs `@` subvolumes
+- **Option B: Dual-Boot Coexistence** — manual partitioning
 
 ### Strategy A: Full OS Replacement (Clean Wipe)
 1. In the **Partitions** screen, select **Erase disk**.
@@ -121,12 +121,14 @@ Boot your Ventoy or installation media and open the **Install PalexusOS** shortc
 3. Select whether to enable **Encrypt system** (LUKS full-disk encryption with passphrase prompt at Plymouth boot splash).
 4. Calamares will automatically construct the optimized PalexusOS subvolume scheme:
    ```
-   /dev/nvme0n1p1   1024 MB   FAT32   /boot/efi    (boot, esp)
-   /dev/nvme0n1p2   Rest      Btrfs   /            (zstd:3)
-                    ├── @           -> Mounted at /
-                    ├── @home       -> Mounted at /home
-                    ├── @snapshots  -> Mounted at /.snapshots
-                    └── @var_log    -> Mounted at /var/log
+   /dev/nvme0n1p1  1024 MB  FAT32
+     -> /boot/efi (boot, esp)
+   /dev/nvme0n1p2  Rest     Btrfs
+     -> / (zstd:3)
+        @          -> /
+        @home      -> /home
+        @snapshots -> /.snapshots
+        @var_log   -> /var/log
    ```
 5. Set your User Account details:
    - Live user password defaults to your choice.

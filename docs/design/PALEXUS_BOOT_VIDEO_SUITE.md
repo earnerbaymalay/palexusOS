@@ -78,18 +78,32 @@ The complete automation suite is located at:
 ### Generating Scenes Headless:
 ```bash
 # Build & save .blend files
-blender -b -P build/blender/generate_palexus_boot_videos.py -- --concept 2 --wordmark PALEXUS --save-blend build/blender/palexus_concept2_cipher.blend
-blender -b -P build/blender/generate_palexus_boot_videos.py -- --concept 3 --wordmark "PALEXUS OS" --save-blend build/blender/palexus_concept3_cortical.blend
-blender -b -P build/blender/generate_palexus_boot_videos.py -- --concept 4 --wordmark "PALEXUS OS" --save-blend build/blender/palexus_concept4_prism.blend
+blender -b \
+  -P build/blender/generate_palexus_boot_videos.py -- \
+  --concept 2 --wordmark PALEXUS \
+  --save-blend build/blender/palexus_concept2_cipher.blend
+blender -b \
+  -P build/blender/generate_palexus_boot_videos.py -- \
+  --concept 3 --wordmark "PALEXUS OS" \
+  --save-blend build/blender/palexus_concept3_cortical.blend
+blender -b \
+  -P build/blender/generate_palexus_boot_videos.py -- \
+  --concept 4 --wordmark "PALEXUS OS" \
+  --save-blend build/blender/palexus_concept4_prism.blend
 ```
 
 ### Rendering Animation to MP4 & Plymouth Frames:
 ```bash
 # Render all 120 PNG frames
-blender -b build/blender/palexus_concept2_cipher.blend -o build/blender/renders/concept2/frame_#### -F PNG -a
+blender -b build/blender/palexus_concept2_cipher.blend \
+  -o build/blender/renders/concept2/frame_#### \
+  -F PNG -a
 
 # Encode directly to H.264 MP4 (1080p @ 30fps)
-ffmpeg -y -framerate 30 -i build/blender/renders/concept2/frame_%04d.png -c:v libx264 -pix_fmt yuv420p build/blender/palexus_boot_concept2.mp4
+ffmpeg -y -framerate 30 \
+  -i build/blender/renders/concept2/frame_%04d.png \
+  -c:v libx264 \
+  -pix_fmt yuv420p build/blender/palexus_boot_concept2.mp4
 ```
 
 ---
@@ -100,7 +114,10 @@ To compile the animation frames directly into the `palexus-plymouth` package:
 
 ```bash
 # Extract frames from MP4 into Plymouth theme directory
-ffmpeg -y -i packages/desktop/palexus-plymouth/palexus-boot.mp4 -vf "fps=30" -pix_fmt rgb24 packages/desktop/palexus-plymouth/frame-%03d.png
+ffmpeg -y \
+  -i packages/desktop/palexus-plymouth/palexus-boot.mp4 \
+  -vf "fps=30" \
+  -pix_fmt rgb24 packages/desktop/palexus-plymouth/frame-%03d.png
 ```
 
 The Plymouth script (`packages/desktop/palexus-plymouth/palexusos.script.in`) handles:

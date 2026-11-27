@@ -11,11 +11,21 @@ The user needs the `synapse` repository to be deeply embedded into **PalexusOS**
 
 ## 2. Integration Models Evaluated
 
-| Model | Mechanics | Pros | Cons | Recommendation |
-| :--- | :--- | :--- | :--- | :--- |
-| **1. Monorepo Copy** | Entire `synapse` source committed inside `palexusOS/src/synapse` | Single repository | Merging upstream updates is chaotic; git history pollution; breaks independent release tags | ❌ Not Recommended |
-| **2. Git Submodule** | `packages/core/synapse/src` tracks `earnerbaymalay/synapse.git` | Direct branch tracking; precise commit pinning | Submodule checkout friction for new contributors; dirty worktree states | ⚠️ Secondary Option |
-| **3. Native PKGBUILD Package Pipeline** | Dedicated `PKGBUILD` pulling signed releases/commits into binary repo `[palexusos]` | **Distribution standard** (Arch, Fedora, Debian); builds in clean chroots; zero repo bloat; reproducible | Requires package build repository pipeline | ✅ **Strongly Recommended** |
+- **1. Monorepo Copy**
+  - Mechanics: Entire `synapse` source committed inside `palexusOS/src/synapse`
+  - Pros: Single repository
+  - Cons: Merging upstream updates is chaotic; git history pollution; breaks independent release tags
+  - Recommendation: ❌ Not Recommended
+- **2. Git Submodule**
+  - Mechanics: `packages/core/synapse/src` tracks `earnerbaymalay/synapse.git`
+  - Pros: Direct branch tracking; precise commit pinning
+  - Cons: Submodule checkout friction for new contributors; dirty worktree states
+  - Recommendation: ⚠️ Secondary Option
+- **3. Native PKGBUILD Package Pipeline**
+  - Mechanics: Dedicated `PKGBUILD` pulling signed releases/commits into binary repo `[palexusos]`
+  - Pros: **Distribution standard** (Arch, Fedora, Debian); builds in clean chroots; zero repo bloat; reproducible
+  - Cons: Requires package build repository pipeline
+  - Recommendation: ✅ **Strongly Recommended**
 
 ---
 
@@ -48,14 +58,16 @@ sha256sums=('SKIP'
 
 prepare() {
   cd "$srcdir/synapse"
-  cargo fetch --locked --target "$CARCH-unknown-linux-gnu"
+  cargo fetch --locked \
+    --target "$CARCH-unknown-linux-gnu"
 }
 
 build() {
   cd "$srcdir/synapse"
   export RUSTUP_TOOLCHAIN=stable
   export CARGO_TARGET_DIR=target
-  RUSTFLAGS="-C target-cpu=x86-64-v3 -C opt-level=3" cargo build --release --locked --bin synapse
+  RUSTFLAGS="-C target-cpu=x86-64-v3 -C opt-level=3" cargo build \
+    --release --locked --bin synapse
 }
 
 package() {
@@ -73,7 +85,8 @@ package() {
 
   # Shell completions
   install -d "$pkgdir/usr/share/bash-completion/completions"
-  "$pkgdir/usr/bin/synapse" completions bash > "$pkgdir/usr/share/bash-completion/completions/synapse" 2>/dev/null || true
+  "$pkgdir/usr/bin/synapse" completions bash > "$pkgdir/usr/share/bash-completion/completions/synapse" 2>/dev/null || \
+    true
 }
 ```
 

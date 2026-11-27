@@ -8,9 +8,9 @@ PalexusOS uses **Semantic Versioning** (SemVer):
 
 ```
 MAJOR.MINOR.PATCH
-  |      |      └─ Bug fixes, no API changes
-  |      └─────── New features, backward compatible
-  └───────────── Breaking changes
+  |     |     └ Bug fixes, no API changes
+  |     └────── New features, compatible
+  └──────────── Breaking changes
 ```
 
 **Examples:**
@@ -47,7 +47,8 @@ make format-check
 **Check:**
 ```bash
 pip audit
-grep -r "FIXME\|TODO\|XXX" palexus/ || echo "No critical TODOs"
+grep -r "FIXME\|TODO\|XXX" palexus/ || \
+  echo "No critical TODOs"
 ```
 
 ### Documentation
@@ -263,7 +264,8 @@ git checkout -b hotfix/0.1.1 v0.1.0
 git commit -am "Fix critical bug in TokenRegistry"
 
 # Tag and push
-git tag -a v0.1.1 -m "Hotfix: critical TokenRegistry bug"
+git tag -a v0.1.1 \
+  -m "Hotfix: critical TokenRegistry bug"
 git push origin hotfix/0.1.1
 git push origin v0.1.1
 
